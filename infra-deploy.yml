@@ -59,9 +59,10 @@ parameters:
 resources:
   repositories:
     - repository: MMOPipelineCommon
-      name: mmo-fes-pipeline-common
-      type: git
-      ref: main
+      name: "DEFRA/eutd-mmo-fes-pipeline-common"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
 
 variables:
   - name: IsNetwork
