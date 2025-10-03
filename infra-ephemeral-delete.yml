@@ -1,0 +1,74 @@
+name: $(BuildID)
+
+trigger: none
+
+# Schedule configuration
+schedules:
+  - cron: "30 19 * * 1-5"
+    displayName: Daily Delete at 7:30 PM UTC
+    branches:
+      include:
+        - main
+    always: true
+
+resources:
+  repositories:
+    - repository: MMOPipelineCommon
+      name: mmo-fes-pipeline-common
+      type: git
+      ref: main
+
+extends:
+  template: /includes/scripts-deploy.yaml@MMOPipelineCommon
+  parameters:
+    scriptsList:
+      - displayName: "Export Reference Logicapps Workflow"
+        scriptRepo: MMOPipelineCommon
+        scriptPath: "scripts/Export-Workflows.ps1"
+        condition: and(succeeded(), eq(variables['ephemeral'], true))
+        ScriptArguments: -LogicAppRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -LogicAppName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
+      - displayName: "Export Processor LogicApps Workflow"
+        scriptRepo: MMOPipelineCommon
+        scriptPath: "scripts/Export-Workflows.ps1"
+        condition: and(succeeded(), eq(variables['ephemeral'], true))
+        ScriptArguments: -LogicAppRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -LogicAppName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
+      - displayName: "Remove Access Policies"
+        scriptRepo: MMOPipelineCommon
+        scriptPath: "scripts/Remove-AccessPolicies.ps1"
+        condition: and(succeeded(), eq(variables['ephemeral'], true))
+        ScriptArguments: -ResourceGroupName "$(resourceGroupName)" -LogicAppNames "$(logicappsrefdataName)","$(logicappsprocessorName)"
+      - displayName: "Remove KeyVault RoleAssignments"
+        scriptRepo: MMOPipelineCommon
+        scriptPath: "scripts/Remove-RoleAssignments.ps1"
+        condition: and(succeeded(), eq(variables['ephemeral'], true))
+        ScriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -ResourceType 'Microsoft.KeyVault/vaults' -RoleDefinitionName 'Key Vault Secrets User' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+      - displayName: "Remove Storage RoleAssignments"
+        scriptRepo: MMOPipelineCommon
+        scriptPath: "scripts/Remove-RoleAssignments.ps1"
+        condition: and(succeeded(), eq(variables['ephemeral'], true))
+        ScriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-static-res-region-id)03' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -ResourceType 'Microsoft.Storage/storageAccounts' -RoleDefinitionName 'Storage Account Contributor' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+      - displayName: "Remove Storage RoleAssignments"
+        scriptRepo: MMOPipelineCommon
+        scriptPath: "scripts/Remove-RoleAssignments.ps1"
+        condition: and(succeeded(), eq(variables['ephemeral'], true))
+        ScriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-static-res-region-id)03' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -ResourceType 'Microsoft.Storage/storageAccounts' -RoleDefinitionName 'Storage Blob Data Contributor' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+      - displayName: "Remove Storage RoleAssignments"
+        scriptRepo: MMOPipelineCommon
+        scriptPath: "scripts/Remove-RoleAssignments.ps1"
+        condition: and(succeeded(), eq(variables['ephemeral'], true))
+        ScriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-static-res-region-id)03' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -ResourceType 'Microsoft.Storage/storageAccounts' -RoleDefinitionName 'Storage Table Data Contributor' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+      - displayName: "Remove ServiceBus RoleAssignments"
+        scriptRepo: MMOPipelineCommon
+        scriptPath: "scripts/Remove-RoleAssignments.ps1"
+        condition: and(succeeded(), eq(variables['ephemeral'], true))
+        ScriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-servicebus)$(nc-region-id)01' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01' -ResourceType 'Microsoft.ServiceBus/namespaces' -RoleDefinitionName 'Azure Service Bus Data Receiver' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+      - displayName: "Remove ServiceBus RoleAssignments"
+        scriptRepo: MMOPipelineCommon
+        scriptPath: "scripts/Remove-RoleAssignments.ps1"
+        condition: and(succeeded(), eq(variables['ephemeral'], true))
+        ScriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-servicebus)$(nc-region-id)01' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01' -ResourceType 'Microsoft.ServiceBus/namespaces' -RoleDefinitionName 'Azure Service Bus Data Sender' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+      - displayName: "Remove Ephemeral Resources"
+        scriptRepo: MMOPipelineCommon
+        scriptPath: "scripts/Remove-EphemeralResources.ps1"
+        condition: and(succeeded(), eq(variables['ephemeral'], true))
+        scriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'

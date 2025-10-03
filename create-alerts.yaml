@@ -1,0 +1,30 @@
+name: $(BuildID)
+
+trigger: none
+
+parameters:
+  - name: skipPRE1
+    type: boolean
+    default: false
+
+resources:
+  repositories:
+    - repository: MMOPipelineCommon
+      name: mmo-fes-pipeline-common
+      type: git
+      ref: main
+
+extends:
+  template: /includes/scripts-deploy.yaml@MMOPipelineCommon
+  parameters:
+    scriptsList:
+      - displayName: "Create Azure Metric Alerts"
+        scriptRepo: MMOPipelineCommon
+        scriptPath: "scripts/CreateMetricAlertFunctions.ps1"
+        scriptArguments: >-
+          -manifestFilePath "./templates/monitoring/monitoring.json"
+        type: AzurePowerShell
+        failOnStandardError: true
+        filePathsForTransform:
+          - /templates/monitoring/monitoring.json
+    skipPRE1: ${{ parameters.skipPRE1 }}

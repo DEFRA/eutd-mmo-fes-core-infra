@@ -1,0 +1,369 @@
+using 'webApps.bicep'
+
+param environment = '#{{ environment }}'
+param webAppNames = '#{{ webAppNames }}'
+param ephemeral = '#{{ ephemeral }}'
+
+param comparams = {
+  keyVaultName: '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-keyvault }}#{{ nc-static-res-region-id }}01'
+  appInsightsName: '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-appinsights }}#{{ nc-region-id }}01'
+  rediscachename: '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-rediscachename }}#{{ nc-region-id }}01'
+}
+param vnetName = '#{{ vnetName }}'
+param vnetResourceGroupName = '#{{ vnetResourceGroupName }}'
+param privateEndpointSubnet = '#{{ privateEndpointSubnet }}'
+param frontDoorId = '#{{ frontDoorId }}'
+param ukSouthDnsZoneId = '#{{ ukSouthDnsZoneIdPrefix }}/#{{ privateLinkSites }}'
+param northEuDnsZoneId = '#{{ northEuDnsZoneIdPrefix }}/#{{ privateLinkSites }}'
+param westEuDnsZoneId = '#{{ westEuDnsZoneIdPrefix }}/#{{ privateLinkSites }}'
+param ukWestDnsZoneId = '#{{ ukWestDnsZoneIdPrefix }}/#{{ privateLinkSites }}'
+
+param logAnalyticsWorkspace = '#{{ logAnalyticsWorkspace }}'
+param resourceGroupName = '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}02'
+
+param slotsEnabled = '#{{ slotsEnabled }}'
+param appVersions = '#{{ appVersions }}'
+param appSettingsSlotKeyValuePairs = [
+  //repoName1: mmo-fes-batch-data-process appSettings
+  {
+    EXTERNAL_APP_URL: '#{{ externalFrontendStgBaseUrl }}'
+    INTERNAL_ADMIN_URL: '#{{ internalAdminFrontendStgBaseUrl }}'
+    INSTRUMENTATION_CLOUD_ROLE: '#{{ repoName1 }}-staging'
+    MMO_CC_LANDINGS_CONSOLIDATION_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName4 }}-#{{ nc-resource-webapp }}-staging.azurewebsites.net')
+    RUN_RESUBMIT_CC_TO_TRADE: 'false'
+    RUN_RESUBMIT_CC_TO_TRADE_START_DATE: '2024-06-27T00:00:00.000Z'
+    WEBSITE_NAME: '${toUpper('#{{ environment }}-#{{ repoName1 }}-#{{ nc-resource-webapp }}')}-staging'
+  }
+  //repoName2: mmo-fes-external-fe appSettings
+  {
+    BASE_URL: '#{{ externalFrontendStgBaseUrl }}'
+    INSTRUMENTATION_CLOUD_ROLE: '#{{ repoName2 }}-staging'
+    IDENTITY_APPDOMAIN: '#{{ externalFrontendStgBaseUrl }}'
+    MMO_ECC_ORCHESTRATION_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName5 }}-#{{ nc-resource-webapp }}-staging.azurewebsites.net')
+    MMO_ECC_REFERENCE_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName6 }}-#{{ nc-resource-webapp }}-staging.azurewebsites.net')
+    WEBSITE_NAME: '${toUpper('#{{ environment }}-#{{ repoName2 }}-#{{ nc-resource-webapp }}')}-staging'
+  }
+  //repoName3: mmo-fes-internal-admin-fe appSettings 
+  {
+    EXTERNAL_APP_URL: '#{{ externalFrontendStgBaseUrl }}'
+    BASE_URL: '#{{ internalAdminFrontendStgBaseUrl }}'
+    INSTRUMENTATION_CLOUD_ROLE: '#{{ repoName3 }}-staging'
+    MMO_BATCH_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName1 }}-#{{ nc-resource-webapp }}-staging.azurewebsites.net')
+    MMO_CC_LANDINGS_CONSOLIDATION_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName4 }}-#{{ nc-resource-webapp }}-staging.azurewebsites.net')
+    MMO_ECC_REFERENCE_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName6 }}-#{{ nc-resource-webapp }}-staging.azurewebsites.net')
+    MMO_FUNCTION_APP_URL: 'https://#{{ functionAppName }}-staging.azurewebsites.net'
+    SERVICE_URL: '#{{ externalFrontendStgBaseUrl }}'
+    WEBSITE_NAME: '${toUpper('#{{ environment }}-#{{ repoName3 }}-#{{ nc-resource-webapp }}')}-staging'
+  }
+  //repoName4: mmo-fes-landings-consolidation appSettings 
+  {
+    EXTERNAL_APP_URL: '#{{ externalFrontendStgBaseUrl }}'
+    INSTRUMENTATION_CLOUD_ROLE: '#{{ repoName4 }}-staging'
+    INTERNAL_ADMIN_URL: '#{{ internalAdminFrontendStgBaseUrl }}'
+    WEBSITE_NAME: '${toUpper('#{{ environment }}-#{{ repoName4 }}-#{{ nc-resource-webapp }}')}-staging'
+  }
+  //repoName5: mmo-fes-orchestration appSettings 
+  {
+    INSTRUMENTATION_CLOUD_ROLE: '#{{ repoName5 }}-staging'
+    MMO_CC_LANDINGS_CONSOLIDATION_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName4 }}-#{{ nc-resource-webapp }}-staging.azurewebsites.net')
+    MMO_ECC_REFERENCE_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName6 }}-#{{ nc-resource-webapp }}-staging.azurewebsites.net')
+    SERVICE_URL: '#{{ externalFrontendStgBaseUrl }}'
+    WEBSITE_NAME: '${toUpper('#{{ environment }}-#{{ repoName5 }}-#{{ nc-resource-webapp }}')}-staging'
+  }
+  //repoName6: mmo-fes-reference-data-reader appSettings 
+  {
+    INSTRUMENTATION_CLOUD_ROLE: '#{{ repoName6 }}-staging'
+    WEBSITE_NAME: '${toUpper('#{{ environment }}-#{{ repoName5 }}-#{{ nc-resource-webapp }}')}-staging'
+    EXTERNAL_APP_URL: '#{{ externalFrontendStgBaseUrl }}'
+    INTERNAL_ADMIN_URL: '#{{ internalAdminFrontendStgBaseUrl }}'
+  }
+]
+
+param appSettingsKeyValuePairs = [
+  //repoName1: mmo-fes-batch-data-process appSettings
+  {
+    AZURE_BLOB_CONTAINER: 't1-catchcerts'
+    AZURE_BLOB_URL: '#{{ SR_AZURE_BLOB_URL }}'
+    AZURE_SAS: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=SR-AZURE-BLOB-SAS)'
+    AZURE_QUEUE_CONNECTION_STRING: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=SERVICEBUS-CONNECTION-STRING)'
+    AZURE_QUEUE_TRADE_CONNECTION_STRING: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=TRADE-QUEUE-CONNECTION-STRING)'
+    ENABLE_CHIP_REPORTING: 'true'
+    BOOMI_URL: '#{{ boomiUrl }}'
+    COSMOS_DB_RW_CONNECTION_URI: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=COSMOS-DB-RW-CONNECTION-URI)'
+    DB_NAME: 'mmo_exportcert'
+    EXTERNAL_APP_URL: '#{{ externalFrontendBaseUrl }}'
+    INTERNAL_ADMIN_URL: '#{{ internalAdminFrontendBaseUrl }}'
+    INSTRUMENTATION_CLOUD_ROLE: '#{{ repoName1 }}'
+    LANDING_REPROCESSING_LIMIT: '50'
+    MMO_CC_LANDINGS_CONSOLIDATION_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName4 }}-#{{ nc-resource-webapp }}.azurewebsites.net')
+    NODE_ENV: 'production'
+    PORT: '9000'
+    REF_BOOMI_API_OAUTH_CLIENT_ID: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-BOOMI-API-OAUTH-CLIENT-ID)'
+    REF_BOOMI_API_OAUTH_CLIENT_SECRET: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-BOOMI-API-OAUTH-CLIENT-SECRET)'
+    REF_BOOMI_API_OAUTH_TOKEN_URL: '#{{ REF-BOOMI-API-OAUTH-TOKEN-URL }}'
+    REF_BOOMI_API_OAUTH_AL_SCOPE: '#{{ REF-BOOMI-API-OAUTH-AL-SCOPE }}'
+    REF_BOOMI_API_OAUTH_MMO_SCOPE: '#{{ REF-BOOMI-API-OAUTH-MMO-SCOPE }}'
+    REF_SERVICE_BASIC_AUTH_PASSWORD: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-SERVICE-BASIC-AUTH-PASSWORD)'
+    REF_SERVICE_BASIC_AUTH_USER: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-SERVICE-BASIC-AUTH-USER)'
+    REFERENCE_DATA_AZURE_STORAGE: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REFDATA-STORAGE-CONNECTION-STRING)'
+    REFRESH_SPECIES_JOB: '#{{ REF_DATA_READER_REFRESH_SPECIES_JOB }}'
+    REFRESH_VESSEL_JOB: '#{{ REF_DATA_READER_REFRESH_VESSEL_JOB }}'
+    REPORT_QUEUE: 'mmo-ecc-dyn-req-queue'
+    REPORT_QUEUE_TRADE: 'defra.trade.catch.create'
+    RUN_LANDING_REPROCESSING_JOB: 'false'
+    RUN_RESUBMIT_CC_TO_TRADE: 'false'
+    RUN_RESUBMIT_CC_TO_TRADE_START_DATE: '2024-06-27T00:00:00.000Z'
+    VESSEL_NOT_FOUND_ENABLE: 'true'
+    VESSEL_NOT_FOUND_NAME: 'Vessel not found'
+    VESSEL_NOT_FOUND_PLN: 'N/A'
+    MAXIMUM_DEFRA_VALIDATION_REPORT_BATCH_SIZE: '1000'
+    // WEBSITE Azure App Service variables and App Settings
+    WEBSITE_HEALTHCHECK_MAXPINGFAILURES: '5'
+    WEBSITE_HEALTHCHECK_MAXUNHEALTHYWORKERPERCENT: '50'
+    WEBSITE_NAME: toUpper('#{{ environment }}-#{{ repoName1 }}-#{{ nc-resource-webapp }}')
+    WEBSITE_WARMUP_PATH: '/health'
+    WEBSITES_CONTAINER_START_TIME_LIMIT: '300'
+    WEBSITES_PORT: '9000'
+  }
+  //repoName2: mmo-fes-external-fe appSettings
+  {
+    AAD_AUTHHOST: 'https://login.microsoftonline.com'
+    AAD_CLIENTID: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=AAD-CLIENTID)'
+    AAD_CLIENTSECRET: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=AAD-CLIENTSECRET)'
+    AAD_TENANTID: '#{{ aadTenantId }}'
+    AAD_TENANTNAME: '#{{ dynamicsTenantId }}'
+    APP_USES_HTTPS: 'true'
+    BASE_URL: '#{{ externalFrontendBaseUrl }}'
+    BLOB_STORAGE_CONNECTION: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=EXPORTCERT-STORAGE-CONNECTION-STRING)'
+    CLARITY_PROJECT_ID: '#{{ clarityProjectId }}'
+    CREATED_PAGE_FEEDBACK_URL: 'https://defragroup.eu.qualtrics.com/jfe/form/SV_734LbtQfQMrBoEu'
+    DASHBOARD_FEEDBACK_URL: 'https://defragroup.eu.qualtrics.com/jfe/form/SV_1S5DVwag5rcTrAq'
+    DISABLE_IDM: 'false'
+    DYN_AADCLIENTID: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=DYN-AADCLIENTID)'
+    DYN_AADCLIENTSECRET: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=DYN-AADCLIENTSECRET)'
+    DYNAMICS_ENDPOINTBASE: '/api/data/v9.2/'
+    DYNAMICS_RESOURCEURL: '#{{ dynamicsResourceUrl }}'
+    EU_CATCH_FIELDS_OPTIONAL: true
+    EU_CATCH_MAX_EEZ: '5'
+    eventHubConnectionString: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=EVENTHUB-CONNECTION-STRING)'
+    eventHubNamespace: 'insights-application-logs'
+    GA_TRACKING_ID: '#{{ gaTrackingID }}'
+    GOOGLE_TAG_MANAGER_ID: '#{{ googleTagManagerID }}'
+    IDENTITY_APP_MGT_URL: '#{{ IDENTITY_APP_MGT_URL }}'
+    IDENTITY_APP_URL: '#{{ IDENTITY_APP_URL }}'
+    IDENTITY_APPDOMAIN: '#{{ externalFrontendBaseUrl }}'
+    IDENTITY_SERVICEID: '#{{ IDENTITY_SERVICEID }}'
+    IDENTITY_SERVICEROLEID: '#{{ IDENTITY_SERVICEROLEID }}'
+    IDLE_TIME_OUT_IN_MILLISECONDS: '1800000'
+    IDM_CLIENTID: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=IDM-CLIENTID)'
+    IDM_CLIENTSECRET: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=IDM-CLIENTSECRET)'
+    IDM_FALLBACK_TOKEN: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=IDM-FALLBACK-TOKEN)'
+    INSTRUMENTATION_CLOUD_ROLE: '#{{ repoName2 }}'
+    LANDING_LIMIT_DAYS_FUTURE: '7'
+    LIMIT_ADD_LANDINGS: '100'
+    MAX_UPLOAD_FILE_SIZE: '10000'
+    MAXIMUM_CONCURRENT_DRAFTS: '50'
+    MAXIMUM_PRODUCT_DESCRIPTION_LENGTH: '50'
+    MMO_ECC_ORCHESTRATION_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName5 }}-#{{ nc-resource-webapp }}.azurewebsites.net')
+    MMO_ECC_REFERENCE_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName6 }}-#{{ nc-resource-webapp }}.azurewebsites.net')
+    MOCK_ORG_ACCOUNT_ID: '8504bf69-18f9-ec11-bb3d-000d3a2f806d'
+    MOCK_ORG_COMPANY_NAME: 'Automation Testing Ltd'
+    NODE_ENV: 'production'
+    OFFLINE_PROCESSING_TIME_IN_MINUTES: '30'
+    PORT: '3001'
+    REF_SERVICE_BASIC_AUTH_PASSWORD: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-SERVICE-BASIC-AUTH-PASSWORD)'
+    REF_SERVICE_BASIC_AUTH_USER: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-SERVICE-BASIC-AUTH-USER)'
+    SESSION_SECRET: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=SESSION-SECRET)'
+    SPECIES_EXEMPT_LINK: 'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32011R0202&qid=1647522263758&from=EN'
+    WARNING_T0_TIME_OUT_IN_MILLISECONDS: '1500000'
+    // WEBSITE Azure App Service variables and App Settings
+    WEBSITE_HEALTHCHECK_MAXPINGFAILURES: '5'
+    WEBSITE_HEALTHCHECK_MAXUNHEALTHYWORKERPERCENT: '50'
+    WEBSITE_NAME: toUpper('#{{ environment }}-#{{ repoName2 }}-#{{ nc-resource-webapp }}')
+    WEBSITE_WARMUP_PATH: '/health'
+    WEBSITES_CONTAINER_START_TIME_LIMIT: '300'
+    WEBSITES_PORT: '3001'
+  }
+  //repoName3: mmo-fes-internal-admin-fe appSettings 
+  {
+    AAD_CLIENTID: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=AAD-CLIENTID)'
+    AAD_CLIENTSECRET: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=AAD-CLIENTSECRET)'
+    AAD_TENANTID: '#{{ aadTenantId }}'
+    AAD_APP_ID_URI: '#{{ aadAppIdUri }}'
+    AUTHORISATION_COOKIE_NAME: 'admin'
+    AUTH_COOKIE_PASSWORD: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=AUTH-COOKIE-PASSWORD)'
+    AZURE_STORAGE_URL: toLower('https://#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-storageaccount }}#{{ nc-static-res-region-id }}01.blob.core.windows.net')
+    BASE_URL: '#{{ internalAdminFrontendBaseUrl }}'
+    BLOB_STORAGE_CONNECTION: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=EXPORTCERT-STORAGE-CONNECTION-STRING)'
+    BLOB_STORAGE_CONTAINER_NAME: 'export-certificates'
+    COSMOS_DB_RW_CONNECTION_URI: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=COSMOS-DB-RW-CONNECTION-URI)'
+    DB_NAME: 'mmo_exportcert'
+    DEFAULT_FLAG: 'GBR'
+    DEFAULT_HOME_PORT: 'N/A'
+    DEFAULT_IMO: 'N/A'
+    DEFAULT_LICENCE_NUMBER: '#{{ DEFAULT_LICENCE_NUMBER }}'
+    DEFAULT_LICENCE_VALID_TO: '2030-12-31T00:01:00'
+    ENABLE_PDF_GEN: 'true'
+    ENABLE_PDF_UPLOAD: 'true'
+    EVENT_HUB_CSP_CONNECT: 'wss://#{{ environment }}#{{ nc-deptService }}#{{ nc-resource-eventhub }}#{{ nc-region-id }}03.servicebus.windows.net'
+    eventHubConnectionString: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=EVENTHUB-CONNECTION-STRING)'
+    eventHubNamespace: 'insights-application-logs'
+    EXTERNAL_APP_URL: '#{{ externalFrontendBaseUrl }}'
+    GTM_ID: '#{{ gtmID }}'
+    INSTRUMENTATION_CLOUD_ROLE: '#{{ repoName3 }}'
+    MMO_BATCH_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName1 }}-#{{ nc-resource-webapp }}.azurewebsites.net')
+    MMO_CC_LANDINGS_CONSOLIDATION_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName4 }}-#{{ nc-resource-webapp }}.azurewebsites.net')
+    MMO_ECC_REFERENCE_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName6 }}-#{{ nc-resource-webapp }}.azurewebsites.net')
+    MMO_FUNCTION_APP_URL: 'https://#{{ functionAppName }}.azurewebsites.net'
+    NODE_ENV: 'production'
+    PORT: '6500'
+    REDIS_CONNECTION_URI: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REDIS-CONNECTION-STRING)'
+    REDIS_TLS_HOST: '${comparams.rediscachename}.redis.cache.windows.net'
+    REF_SERVICE_BASIC_AUTH_PASSWORD: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-SERVICE-BASIC-AUTH-PASSWORD)'
+    REF_SERVICE_BASIC_AUTH_USER: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-SERVICE-BASIC-AUTH-USER)'
+    SERVICE_URL: '#{{ externalFrontendBaseUrl }}'
+    USE_BASIC_AUTH: 'true'
+    // WEBSITE Azure App Service variables and App Settings
+    WEBSITE_HEALTHCHECK_MAXPINGFAILURES: '5'
+    WEBSITE_HEALTHCHECK_MAXUNHEALTHYWORKERPERCENT: '50'
+    WEBSITE_NAME: toUpper('#{{ environment }}-#{{ repoName3 }}-#{{ nc-resource-webapp }}')
+    WEBSITE_WARMUP_PATH: '/health'
+    WEBSITES_CONTAINER_START_TIME_LIMIT: '300'
+    WEBSITES_PORT: '6500'
+  }
+  //repoName4: mmo-fes-landings-consolidation appSettings 
+  {
+    AZURE_QUEUE_CONNECTION_STRING: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=SERVICEBUS-CONNECTION-STRING)'
+    BOOMI_URL: '#{{ boomiUrl }}'
+    COSMOS_DB_RW_CONNECTION_URI: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=COSMOS-DB-RW-CONNECTION-URI)'
+    DB_NAME: 'mmo_exportcert'
+    EXTERNAL_APP_URL: '#{{ externalFrontendBaseUrl }}'
+    INSTRUMENTATION_CLOUD_ROLE: '#{{ repoName4 }}'
+    INTERNAL_ADMIN_URL: '#{{ internalAdminFrontendBaseUrl }}'
+    NODE_ENV: 'production'
+    PORT: '9000'
+    REF_BOOMI_CERTIFICATE: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-BOOMI-CERTIFICATE)'
+    REF_BOOMI_PASSPHRASE: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-BOOMI-PASSPHRASE)'
+    REF_BOOMI_USER: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-BOOMI-USER)'
+    REF_SERVICE_BASIC_AUTH_PASSWORD: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-SERVICE-BASIC-AUTH-PASSWORD)'
+    REF_SERVICE_BASIC_AUTH_USER: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-SERVICE-BASIC-AUTH-USER)'
+    REFERENCE_DATA_AZURE_STORAGE: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REFDATA-STORAGE-CONNECTION-STRING)'
+    REFRESH_SPECIES_JOB: '#{{ REF_DATA_READER_REFRESH_SPECIES_JOB }}'
+    REFRESH_VESSEL_JOB: '#{{ REF_DATA_READER_REFRESH_VESSEL_JOB }}'
+    // WEBSITE Azure App Service variables and App Settings
+    WEBSITE_HEALTHCHECK_MAXPINGFAILURES: '5'
+    WEBSITE_HEALTHCHECK_MAXUNHEALTHYWORKERPERCENT: '50'
+    WEBSITE_NAME: toUpper('#{{ environment }}-#{{ repoName4 }}-#{{ nc-resource-webapp }}')
+    WEBSITE_WARMUP_PATH: '/health'
+    WEBSITES_CONTAINER_START_TIME_LIMIT: '300'
+    WEBSITES_PORT: '9000'
+  }
+  //repoName5: mmo-fes-orchestration appSettings 
+  {
+    AZURE_STORAGE_CONNECTION_STRING: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=EXPORTCERT-STORAGE-CONNECTION-STRING)'
+    BLOB_STORAGE_CONNECTION: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=EXPORTCERT-STORAGE-CONNECTION-STRING)'
+    BUSINESS_CONTINUITY_KEY: '#{{ businessContinuityKey }}'
+    BUSINESS_CONTINUITY_URL: '#{{ businessContinuityUrl }}'
+    COSMOS_DB_RW_CONNECTION_URI: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=COSMOS-DB-RW-CONNECTION-URI)'
+    DB_CONNECTION_POOL: '25'
+    DB_NAME: 'mmo_exportcert'
+    DISABLE_AUTH: false
+    ENABLE_PDF_GEN: true
+    eventHubConnectionString: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=EVENTHUB-CONNECTION-STRING)'
+    eventHubNamespace: 'insights-application-logs'
+    EU_CATCH_MAX_EEZ: '5'
+    FES_API_MASTER_PASSWORD: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=FES-API-MASTER-PASSWORD)'
+    FES_NOTIFY_API_KEY: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=FES-NOTIFY-API-KEY)'
+    FES_NOTIFY_FAILURE_TEMPLATE_ID: '#{{ FES_NOTIFY_FAILURE_TEMPLATE_ID}}'
+    FES_NOTIFY_SUCCESS_TEMPLATE_ID: '#{{ FES_NOTIFY_SUCCESS_TEMPLATE_ID }}'
+    FES_NOTIFY_TECHNICAL_ERROR_TEMPLATE_ID: '#{{ FES_NOTIFY_TECHNICAL_ERROR_TEMPLATE_ID }}'
+    IDENTITY_APP_URL: '#{{ ORCH_IDENTITY_APP_URL }}'
+    IDENTITY_DEFAULT_POLICY: '#{{ IDENTITY_DEFAULT_POLICY }}'
+    INSTRUMENTATION_CLOUD_ROLE: '#{{ repoName5 }}'
+    LANDING_LIMIT_DAYS_IN_THE_FUTURE: '7'
+    LAST_UPDATED_COOKIE_POLICY: '#{{ LAST_UPDATED_COOKIE_POLICY }}'
+    LAST_UPDATED_PRIVACY_STATEMENT: '#{{ LAST_UPDATED_PRIVACY_STATEMENT }}'
+    LIMIT_ADD_LANDINGS: '100'
+    MAX_AUTH_RETRIES: '2'
+    MAX_UPLOAD_FILE_SIZE: '10000'
+    MAXIMUM_CONCURRENT_DRAFTS: '50'
+    MAXIMUM_FAVOURITES_PER_USER: '50'
+    MAXIMUM_LANDINGS_FOR_ONLINE_VALIDATION: '10'
+    MMO_CC_LANDINGS_CONSOLIDATION_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName4 }}-#{{ nc-resource-webapp }}.azurewebsites.net')
+    MMO_ECC_REFERENCE_SVC_URL: toLower('https://#{{ environment }}-#{{ repoName6 }}-#{{ nc-resource-webapp }}.azurewebsites.net')
+    NODE_ENV: 'production'
+    PORT: '5500'
+    REDIS_HOST_NAME: '${comparams.rediscachename}.redis.cache.windows.net'
+    REDIS_PASSWORD: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REDIS-PASSWORD)'
+    REDIS_TLS_HOST_NAME: '${comparams.rediscachename}.redis.cache.windows.net'
+    REF_SERVICE_BASIC_AUTH_PASSWORD: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-SERVICE-BASIC-AUTH-PASSWORD)'
+    REF_SERVICE_BASIC_AUTH_USER: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-SERVICE-BASIC-AUTH-USER)'
+    SERVICE_URL: '#{{ externalFrontendBaseUrl }}'
+    // WEBSITE Azure App Service variables and App Settings
+    WEBSITE_HEALTHCHECK_MAXPINGFAILURES: '5'
+    WEBSITE_HEALTHCHECK_MAXUNHEALTHYWORKERPERCENT: '50'
+    WEBSITE_NAME: toUpper('#{{ environment }}-#{{ repoName5 }}-#{{ nc-resource-webapp }}')
+    WEBSITE_WARMUP_PATH: '/health'
+    WEBSITES_CONTAINER_START_TIME_LIMIT: '300'
+    WEBSITES_PORT: '5500'
+  }
+  //repoName6: mmo-fes-reference-data-reader appSettings 
+  {
+    ALL_SPECIES_DATA_CONTAINER_NAME: 'allspecies'
+    ALL_SPECIES_DATA_FILE_NAME: 'allSpecies.csv'
+    AV_BASE_URL: '#{{ AV_BASE_URL }}'
+    AZURE_BLOB_CONTAINER: 't1-catchcerts'
+    AZURE_BLOB_URL: '#{{ SR_AZURE_BLOB_URL }}'
+    AZURE_QUEUE_CONNECTION_STRING: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=SERVICEBUS-CONNECTION-STRING)'
+    AZURE_QUEUE_TRADE_CONNECTION_STRING: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=TRADE-QUEUE-CONNECTION-STRING)'
+    AZURE_SAS: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=SR-AZURE-BLOB-SAS)'
+    BOOMI_URL: '#{{ boomiUrl }}'
+    BUSINESS_CONTINUITY_KEY: '#{{ businessContinuityKey }}'
+    BUSINESS_CONTINUITY_URL: '#{{ businessContinuityUrl }}'
+    COSMOS_DB_RW_CONNECTION_URI: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=COSMOS-DB-RW-CONNECTION-URI)'
+    DB_CONNECTION_POOL: '25'
+    DB_NAME: 'mmo_exportcert'
+    DEFRA_TRADE_API_APIM_HEADER_NAME: '#{{ apimHeaderName }}'
+    DEFRA_TRADE_API_APIM_HEADER_VALUE: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=DEFRA-TRADE-API-APIM-HEADER-VALUE)'
+    DEFRA_TRADE_API_BASE_URL: '#{{ DEFRA-TRADE-API-BASE-URL }}'
+    DEFRA_TRADE_API_GET_COUNTRIES_URI: '#{{ tradeApimGetCountriesUri }}'
+    DEFRA_TRADE_API_OAUTH_CLIENT_ID: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=DEFRA-TRADE-API-OAUTH-CLIENT-ID)'
+    DEFRA_TRADE_API_OAUTH_CLIENT_SECRET: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=DEFRA-TRADE-API-OAUTH-CLIENT-SECRET)'
+    DEFRA_TRADE_API_OAUTH_SCOPE: '#{{ DEFRA-TRADE-API-OAUTH-SCOPE }}'
+    DEFRA_TRADE_API_OAUTH_TOKEN_URL: '#{{ DEFRA-TRADE-API-OAUTH-TOKEN-URL }}'
+    ENABLE_CHIP_REPORTING: true
+    EOD_RULES_MIGRATION: true
+    EXTERNAL_APP_URL: '#{{ externalFrontendBaseUrl }}'
+    INSTRUMENTATION_CLOUD_ROLE: '#{{ repoName6 }}'
+    INTERNAL_ADMIN_URL: '#{{ internalAdminFrontendBaseUrl }}'
+    MAXIMUM_DEFRA_VALIDATION_REPORT_BATCH_SIZE: '1000'
+    NODE_ENV: 'production'
+    PORT: '9000'
+    REF_BOOMI_CERTIFICATE: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-BOOMI-CERTIFICATE)'
+    REF_BOOMI_PASSPHRASE: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-BOOMI-PASSPHRASE)'
+    REF_BOOMI_USER: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-BOOMI-USER)'
+    REF_BOOMI_API_OAUTH_CLIENT_ID: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-BOOMI-API-OAUTH-CLIENT-ID)'
+    REF_BOOMI_API_OAUTH_CLIENT_SECRET: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-BOOMI-API-OAUTH-CLIENT-SECRET)'
+    REF_BOOMI_API_OAUTH_TOKEN_URL: '#{{ REF-BOOMI-API-OAUTH-TOKEN-URL }}'
+    REF_BOOMI_API_OAUTH_AL_SCOPE: '#{{ REF-BOOMI-API-OAUTH-AL-SCOPE }}'
+    REF_BOOMI_API_OAUTH_MMO_SCOPE: '#{{ REF-BOOMI-API-OAUTH-MMO-SCOPE }}'
+    REF_SERVICE_BASIC_AUTH_PASSWORD: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-SERVICE-BASIC-AUTH-PASSWORD)'
+    REF_SERVICE_BASIC_AUTH_USER: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REF-SERVICE-BASIC-AUTH-USER)'
+    REFERENCE_DATA_AZURE_STORAGE: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=REFDATA-STORAGE-CONNECTION-STRING)'
+    REFRESH_SPECIES_JOB: '#{{ REF_DATA_READER_REFRESH_SPECIES_JOB }}'
+    REFRESH_VESSEL_JOB: '#{{ REF_DATA_READER_REFRESH_VESSEL_JOB }}'
+    REPORT_QUEUE_TRADE: 'defra.trade.catch.create'
+    REPORT_QUEUE: 'mmo-ecc-dyn-req-queue'
+    SKIP_AV_SCAN: '#{{ SKIP_AV_SCAN }}'
+    VESSEL_NOT_FOUND_ENABLE: true
+    VESSEL_NOT_FOUND_NAME: 'Vessel not found'
+    VESSEL_NOT_FOUND_PLN: 'N/A'
+    // WEBSITE Azure App Service variables and App Settings
+    WEBSITE_HEALTHCHECK_MAXPINGFAILURES: '5'
+    WEBSITE_HEALTHCHECK_MAXUNHEALTHYWORKERPERCENT: '50'
+    WEBSITE_NAME: toUpper('#{{ environment }}-#{{ repoName6 }}-#{{ nc-resource-webapp }}')
+    WEBSITE_WARMUP_PATH: '/health'
+    WEBSITES_CONTAINER_START_TIME_LIMIT: '300'
+    WEBSITES_PORT: '9000'
+  }
+]

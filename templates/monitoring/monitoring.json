@@ -1,0 +1,56 @@
+{
+  "environment": "#{{ lower(environment) }}",
+  "subscriptionId": "#{{ subscriptionId }}",
+  "secSubscriptionId": "#{{ defraSecSubscriptionId }}",
+  "actionContext": {
+    "groupName": "MMOSupport",
+    "groupShortName": "MMO",
+    "groupResourceGroup": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}01"
+  },
+  "alertRecipientPolicy": {
+    "productionEnvironment": {
+      "name": "EmailPolicy",
+      "emailRecipients": ["#{{ monitoringAlertProdRecipient }}"]
+    },
+    "nonProductionEnvironment": {
+      "name": "EmailPolicy",
+      "emailRecipients": ["#{{ monitoringAlertNonProdRecipient }}"]
+    }
+  },
+  "monitoredResources": {
+    "appInsights": {
+      "name": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-appinsights }}#{{ nc-region-id }}01",
+      "resourceGroup": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}02",
+      "cloudRoleNames": [
+        "#{{ repoName2 }}",
+        "#{{ repoName2 }}-server",
+        "#{{ repoName2 }}-staging",
+        "#{{ repoName2 }}-staging-server",
+        "#{{ repoName3 }}",
+        "#{{ repoName3 }}-staging",
+        "#{{ repoName5 }}",
+        "#{{ repoName5 }}-staging",
+        "#{{ repoName4 }}",
+        "#{{ repoName4 }}-staging",
+        "#{{ repoName1 }}",
+        "#{{ repoName1 }}-staging",
+        "#{{ repoName6 }}",
+        "#{{ repoName6 }}-staging",
+        "#{{ funcRepoName }}",
+        "#{{ funcRepoName }}-staging"
+      ]
+    },
+    "appInsightsAlertPolicyName": "StandardAppInsightsAlertPolicy",
+    "logicApps": [
+      {
+        "name": "#{{ environment }}#{{ nc-deptService }}PROCESSOR#{{ nc-resource-logicapps }}#{{ nc-region-id }}01",
+        "resourceGroup": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}01"
+      },
+      {
+        "name": "#{{ environment }}#{{ nc-deptService }}REFDATA#{{ nc-resource-logicapps }}#{{ nc-region-id }}01",
+        "resourceGroup": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}01"
+      }
+    ],
+    "logicAppsAlertPolicyName": "StandardLogicAppPolicy"
+  }
+}

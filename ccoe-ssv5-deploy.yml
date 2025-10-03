@@ -1,0 +1,156 @@
+name: $(BuildID)_${{ parameters.deployResources }}
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - "**/network/ssv5/**"
+      - "**/containerRegistries/**"
+
+schedules:
+  - cron: "30 6 * * 1-5"
+    displayName: Daily Deploy at 6:30 AM UTC
+    branches:
+      include:
+        - main
+    always: true
+
+parameters:
+  - name: deployToDevelopmentEnvironment
+    displayName: "Deploy from Feature Branch"
+    type: boolean
+    default: false
+
+  - name: deployToSecondaryRegion
+    displayName: "Deploy to Secondary Region"
+    type: boolean
+    default: false
+
+  - name: deployResources
+    displayName: "Resources to Deploy"
+    type: string
+    default: "All"
+    values:
+      - All
+      - Network
+      - Container Registry - All
+      - Container Registry - Registry
+      - Container Registry - Role Assignments
+
+resources:
+  repositories:
+    - repository: MMOPipelineCommon
+      name: mmo-fes-pipeline-common
+      type: git
+      ref: main
+
+variables:
+  - name: IsNetwork
+    value: ${{ and( or(eq(parameters.deployResources,'All'), eq(parameters.deployResources,'Network')), ne(variables['Build.Reason'], 'schedule'))}}
+  - name: IsContainerRegistry
+    value: ${{ and( or(eq(parameters.deployResources,'All'), eq(parameters.deployResources,'Container Registry - All'), eq(parameters.deployResources,'Container Registry - Registry')), ne(variables['Build.Reason'], 'schedule'))}}
+  - name: IsRegistryRoleAssignments
+    value: ${{ or(eq(parameters.deployResources,'All'), eq(parameters.deployResources,'Container Registry - All'), eq(parameters.deployResources,'Container Registry - Role Assignments')) }}
+
+extends:
+  template: /includes/infra-deploy.yaml@MMOPipelineCommon
+  parameters:
+    deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
+    deployToSecondaryRegion: ${{ parameters.deployToSecondaryRegion }}
+    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
+      environments:
+        - name: SSV_PRE
+          azureRegions:
+            primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
+          developmentEnvironment: true
+          serviceConnection: AZR-MMO-SSV5
+          privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+          deploymentBranches:
+            - "*"
+        - name: SSV_PRD
+          dependsOn: SSV_PRE
+          azureRegions:
+            primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
+          serviceConnection: AZR-MMO-SSV5
+          privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+          deploymentBranches:
+            - "*"
+        - ${{ if eq(parameters.deployToSecondaryRegion, false) }}:
+            - name: SSV_PRE2
+              dependsOn: SSV_PRE
+              azureRegions:
+                primary: UKSouth
+              serviceConnection: AZR-MMO-SSV5
+              privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+              deploymentBranches:
+                - "*"
+    ${{ else }}:
+      environments:
+        - ${{ if eq(parameters.deployToSecondaryRegion, false) }}:
+            - name: SSV_SND
+              developmentEnvironment: true
+              azureRegions:
+                primary: UKSouth
+              serviceConnection: AZR-MMO-SSV5
+              privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+              deploymentBranches:
+                - "*"
+        - name: SSV_DEV
+          azureRegions:
+            primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
+          developmentEnvironment: ${{ parameters.deployToSecondaryRegion }}
+          serviceConnection: AZR-MMO-SSV5
+          privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+          deploymentBranches:
+            - "*"
+        - ${{ if eq(parameters.deployToSecondaryRegion, false) }}:
+            - name: SSV_TST
+              azureRegions:
+                primary: UKSouth
+              dependsOn: SSV_SND
+              serviceConnection: AZR-MMO-SSV5
+              privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+              deploymentBranches:
+                - "refs/heads/main"
+    groupedTemplates:
+      - name: SSV5
+        deploymentTimeoutInMinutes: 60
+        templates:
+          - ${{ if eq(variables.IsNetwork, true) }}:
+              - name: network
+                path: templates/network/ssv5
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: $(environmentName)$(nc-deptService)$(nc-function-network)$(nc-resource-resourcegroup)$(nc-region-id)01
+          - ${{ if and(eq(parameters.deployToSecondaryRegion, false), eq(variables.IsContainerRegistry, true)) }}:
+              - name: containerRegistry
+                path: templates/containerRegistries
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: $(acrResourceGroup)
+                postDeployScriptsList:
+                  - displayName: Resolve Private Endpoint IP for '$(acrName)'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
+                    ScriptArguments: >
+                      -ResourceGroupName '$(acrResourceGroup)'
+                      -ResourceName '$(acrName)'
+                  - displayName: Set DNS record for '$(acrName)'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
+                    ScriptArguments: >
+                      -UpdateAllDnsZones $true
+          - ${{ if and(eq(parameters.deployToSecondaryRegion, true), eq(variables.IsContainerRegistry, true)) }}:
+              - name: acrSecondaryPE
+                path: templates/containerRegistries
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: $(acrResourceGroup)
+          - ${{ if eq(variables.IsRegistryRoleAssignments, true) }}:
+              - name: acrRoleAssignments
+                path: templates/containerRegistries
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: $(acrResourceGroup)

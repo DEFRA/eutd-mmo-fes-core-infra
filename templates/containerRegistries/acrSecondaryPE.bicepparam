@@ -1,0 +1,13 @@
+using './acrSecondaryPE.bicep'
+
+param location = '#{{ secondaryRegion }}'
+param environment = '#{{ environment }}'
+param acrName = '#{{ acrName }}'
+param acrResourceGroupName = '#{{ acrResourceGroup }}'
+param vnetName = '#{{ vnetName }}'
+param vnetResourceGroupName = '#{{ vnetResourceGroupName }}'
+param ukSouthDnsZoneId = '#{{ ukSouthDnsZoneIdPrefix }}/#{{ privateLinkAcr }}'
+param northEuDnsZoneId = '#{{ northEuDnsZoneIdPrefix }}/#{{ privateLinkAcr }}'
+param westEuDnsZoneId = '#{{ westEuDnsZoneIdPrefix }}/#{{ privateLinkAcr }}'
+param ukWestDnsZoneId = '#{{ ukWestDnsZoneIdPrefix }}/#{{ privateLinkAcr }}'
+param privateEndpointSubnet = '#{{ acrSubnet }}'

@@ -1,0 +1,11 @@
+using 'logicAppsAsp.bicep'
+
+param environment = '#{{ environment }}'
+param ephemeral = '#{{ ephemeral }}'
+param logicApps = '#{{ logicApps }}'
+param logAnalyticsWorkspace = '#{{ logAnalyticsWorkspace }}'
+param resourceGroupName = '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}02'
+param skuCapacity = '#{{ aspSkuCapacity }}'
+param zoneRedundant = '#{{ aspZoneRedundant }}'
+param skuName = '#{{ logicAppsAspTier }}'
+param maxElasticWorkerCount = '#{{ maxElasticWorkerCount }}'

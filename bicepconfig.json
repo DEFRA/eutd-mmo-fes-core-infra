@@ -1,0 +1,17 @@
+{
+  "moduleAliases": {
+    "br": {
+      "avm": {
+        "registry": "mcr.microsoft.com",
+        "modulePath": "bicep/avm/res"
+      }
+    }
+  },
+  "formatting": {
+    "indentKind": "Space",
+    "indentSize": 2,
+    "insertFinalNewline": true,
+    "newlineKind": "LF",
+    "width": 100
+  }
+}
