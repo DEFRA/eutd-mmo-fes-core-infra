@@ -2,13 +2,13 @@ name: $(BuildID)
 
 trigger: none
 
-schedules:
-  - cron: "30 6 * * 1-5"
-    displayName: Daily Deploy at 6:30 AM UTC
-    branches:
-      include:
-        - main
-    always: true
+# schedules:
+#   - cron: "30 6 * * 1-5"
+#     displayName: Daily Deploy at 6:30 AM UTC
+#     branches:
+#       include:
+#         - main
+#     always: true
 
 resources:
   repositories:
