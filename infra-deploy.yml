@@ -109,7 +109,7 @@ extends:
   parameters:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: false
-    groupedTemplates:
+    groupedDeployments:
       - name: infraResource
         deploymentTimeoutInMinutes: 60
         templates:
