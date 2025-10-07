@@ -115,7 +115,7 @@ extends:
               privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
               deploymentBranches:
                 - "refs/heads/main"
-    groupedTemplates:
+    groupedDeployments:
       - name: SSV5
         deploymentTimeoutInMinutes: 60
         templates:

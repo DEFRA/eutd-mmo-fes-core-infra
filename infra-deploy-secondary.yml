@@ -38,7 +38,7 @@ extends:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: true
     skipPRE1: ${{ parameters.skipPRE1 }}
-    groupedTemplates:
+    groupedDeployments:
       - name: infraResource
         deploymentTimeoutInMinutes: 60
         templates:
