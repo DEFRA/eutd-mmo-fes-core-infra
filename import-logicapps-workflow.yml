@@ -31,10 +31,14 @@ steps:
         Get-Location
         Write-Host "Working Directory: $(System.DefaultWorkingDirectory)"
         Get-ChildItem "$(System.DefaultWorkingDirectory)" -Directory
-        Write-Host "Contents of MMOPipelineCommon:"
+        ls
         Get-ChildItem "$(System.DefaultWorkingDirectory)/MMOPipelineCommon" -Recurse -ErrorAction SilentlyContinue
-        Get-ChildItem " workingDirectory: $(Build.SourcesDirectory)"
+        ls
+        # Get-ChildItem " workingDirectory: $(Build.SourcesDirectory)"
+        Get-ChildItem "Directory: $(Pipeline.Workspace)"
+        ls
         Get-ChildItem " workingDirectory: $(Build.StagingDirectory)"
+        ls
 
 # extends:
 #   template: /includes/infra-deploy.yaml@MMOPipelineCommon
