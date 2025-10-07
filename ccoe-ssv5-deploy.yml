@@ -107,7 +107,7 @@ extends:
           deploymentBranches:
             - "*"
         - ${{ if eq(parameters.deployToSecondaryRegion, false) }}:
-            - name: ssv_TST
+            - name: ssv_tst
               azureRegions:
                 primary: UKSouth
               dependsOn: ssv_snd
