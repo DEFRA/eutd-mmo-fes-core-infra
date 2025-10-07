@@ -29,13 +29,13 @@ extends:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: false
     groupedDeployments:
-      - name: "Import Reference LogicApps Workflow"
+      - name: "Import_Reference_LogicApps_Workflow"
         scriptRepo: MMOPipelineCommon
         type: script
         scriptType: AzurePowershell
         path: "scripts/Import-Workflows.ps1"
         scriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
-      - name: "Import Processor LogicApps Workflow"
+      - name: "Import_Processor_LogicApps_Workflow"
         scriptRepo: MMOPipelineCommon
         type: script
         scriptType: AzurePowershell
