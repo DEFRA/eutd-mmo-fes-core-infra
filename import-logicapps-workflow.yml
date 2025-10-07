@@ -23,24 +23,36 @@ resources:
       type: github
       ref: refs/heads/feature/pipeline-paths-fix
 
-extends:
-  template: /includes/infra-deploy.yaml@MMOPipelineCommon
-  parameters:
-    deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
-    deployToSecondaryRegion: false
-    groupedDeployments:
-      - name: Import_LogicApps_Workflows
-        timeoutInMinutes: 60
-        deployments:
-          - name: "Import_Reference_LogicApps_Workflow"
-            scriptRepo: MMOPipelineCommon
-            type: script
-            scriptType: AzurePowerShell
-            path: "/scripts/Import-Workflows.ps1"
-            scriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
-          - name: "Import_Processor_LogicApps_Workflow"
-            scriptRepo: MMOPipelineCommon
-            type: script
-            scriptType: AzurePowerShell
-            path: "/scripts/Import-Workflows.ps1"
-            scriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
+steps:
+  - task: AzurePowerShell@5
+    inputs:
+      azureSubscription: 'AZR-MMO-DEV1'
+      ScriptType: InlineScript
+      Inline: |
+        Write-Host "Working Directory: $(System.DefaultWorkingDirectory)"
+        Get-ChildItem "$(System.DefaultWorkingDirectory)" -Directory
+        Write-Host "Contents of MMOPipelineCommon:"
+        Get-ChildItem "$(System.DefaultWorkingDirectory)/MMOPipelineCommon" -Recurse -ErrorAction SilentlyContinue
+    displayName: "MMOPipelineCommon"
+
+# extends:
+#   template: /includes/infra-deploy.yaml@MMOPipelineCommon
+#   parameters:
+#     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
+#     deployToSecondaryRegion: false
+#     groupedDeployments:
+#       - name: Import_LogicApps_Workflows
+#         timeoutInMinutes: 60
+#         deployments:
+#           - name: "Import_Reference_LogicApps_Workflow"
+#             scriptRepo: MMOPipelineCommon
+#             type: script
+#             scriptType: AzurePowerShell
+#             path: "/scripts/Import-Workflows.ps1"
+#             scriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
+#           - name: "Import_Processor_LogicApps_Workflow"
+#             scriptRepo: MMOPipelineCommon
+#             type: script
+#             scriptType: AzurePowerShell
+#             path: "/scripts/Import-Workflows.ps1"
+#             scriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
