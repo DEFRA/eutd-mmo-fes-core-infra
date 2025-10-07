@@ -24,11 +24,14 @@ resources:
       ref: refs/heads/feature/pipeline-paths-fix
 
 steps:
+  - checkout: MMOPipelineCommon
+    path: pipelineCommon
+
   - task: PowerShell@2
     inputs:
       targetType: 'inline'
       script: |
-        Get-Location
+        ls
         Write-Host "Working Directory: $(System.DefaultWorkingDirectory)"
         Get-ChildItem "$(System.DefaultWorkingDirectory)" -Directory
         ls
