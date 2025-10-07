@@ -33,4 +33,4 @@ extends:
           scriptRepo: MMOPipelineCommon
           scriptPath: "scripts/Import-Workflows.ps1"
           ScriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
-  skipPRE1: ${{ parameters.skipPRE1 }}
+  # skipPRE1: ${{ parameters.skipPRE1 }}
