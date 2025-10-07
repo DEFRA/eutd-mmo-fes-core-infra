@@ -62,7 +62,7 @@ extends:
     deployToSecondaryRegion: ${{ parameters.deployToSecondaryRegion }}
     ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
       environments:
-        - name: SSV_PRE
+        - name: ssv_pre
           azureRegions:
             primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
           developmentEnvironment: true
@@ -70,8 +70,8 @@ extends:
           privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
           deploymentBranches:
             - "*"
-        - name: SSV_PRD
-          dependsOn: SSV_PRE
+        - name: ssv_prd
+          dependsOn: ssv_pre
           azureRegions:
             primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
           serviceConnection: AZR-MMO-SSV5
@@ -79,8 +79,8 @@ extends:
           deploymentBranches:
             - "*"
         - ${{ if eq(parameters.deployToSecondaryRegion, false) }}:
-            - name: SSV_PRE2
-              dependsOn: SSV_PRE
+            - name: ssv_pre2
+              dependsOn: ssv_pre
               azureRegions:
                 primary: UKSouth
               serviceConnection: AZR-MMO-SSV5
@@ -90,7 +90,7 @@ extends:
     ${{ else }}:
       environments:
         - ${{ if eq(parameters.deployToSecondaryRegion, false) }}:
-            - name: SSV_SND
+            - name: ssv_snd
               developmentEnvironment: true
               azureRegions:
                 primary: UKSouth
@@ -98,7 +98,7 @@ extends:
               privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
               deploymentBranches:
                 - "*"
-        - name: SSV_DEV
+        - name: ssv_dev
           azureRegions:
             primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
           developmentEnvironment: ${{ parameters.deployToSecondaryRegion }}
@@ -107,10 +107,10 @@ extends:
           deploymentBranches:
             - "*"
         - ${{ if eq(parameters.deployToSecondaryRegion, false) }}:
-            - name: SSV_TST
+            - name: ssv_TST
               azureRegions:
                 primary: UKSouth
-              dependsOn: SSV_SND
+              dependsOn: ssv_snd
               serviceConnection: AZR-MMO-SSV5
               privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
               deploymentBranches:
