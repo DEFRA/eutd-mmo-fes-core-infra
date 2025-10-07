@@ -32,12 +32,13 @@ extends:
       - name: "Import_Reference_LogicApps_Workflow"
         scriptRepo: MMOPipelineCommon
         type: script
-        scriptType: AzurePowershell
-        path: "scripts/Import-Workflows.ps1"
+        scriptType: AzurePowerShell
+        scriptPath: "scripts/Import-Workflows.ps1"
         scriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
       - name: "Import_Processor_LogicApps_Workflow"
         scriptRepo: MMOPipelineCommon
         type: script
-        scriptType: AzurePowershell
+        scriptType: AzurePowerShell
         path: "scripts/Import-Workflows.ps1"
+        azurePowershellUseCore: true
         scriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
