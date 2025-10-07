@@ -33,7 +33,7 @@ extends:
         scriptRepo: MMOPipelineCommon
         type: script
         scriptType: AzurePowerShell
-        scriptPath: "scripts/Import-Workflows.ps1"
+        Path: "scripts/Import-Workflows.ps1"
         scriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
       - name: "Import_Processor_LogicApps_Workflow"
         scriptRepo: MMOPipelineCommon
