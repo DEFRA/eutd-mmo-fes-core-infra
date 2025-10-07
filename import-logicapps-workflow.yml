@@ -28,6 +28,12 @@ extends:
   parameters:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: false
+    additionalRepositories:
+      - repository: MMOPipelineCommon
+        name: "DEFRA/eutd-mmo-fes-pipeline-common"
+        endpoint: DEFRA
+        type: github
+        ref: refs/heads/feature/pipeline-paths-fix
     groupedDeployments:
       - name: Import_LogicApps_Workflows
         timeoutInMinutes: 60
