@@ -32,7 +32,8 @@ extends:
   parameters:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: false
-    additionalRepositories: MMOPipelineCommon
+    additionalRepositories: 
+      - MMOPipelineCommon
     groupedDeployments:
       - name: Import_LogicApps_Workflows
         timeoutInMinutes: 60
