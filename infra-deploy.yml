@@ -62,7 +62,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: feature/pipeline-paths-fix 
+      ref: refs/heads/main
 
 variables:
   - name: IsNetwork
