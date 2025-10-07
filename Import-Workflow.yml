@@ -29,10 +29,8 @@ extends:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: false
     groupedDeployments:
-      - name: infraResource
-        deploymentTimeoutInMinutes: 60
         templates:
-          postDeployScriptsList:
+          preDeployScriptsList:
             - displayName: "Import Reference LogicApps Workflow"
               scriptRepo: MMOPipelineCommon
               type: AzurePowerShell
@@ -43,4 +41,3 @@ extends:
               type: powershell
               scriptPath: "scripts/Import-Workflows.ps1"
               ScriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
-      # skipPRE1: ${{ parameters.skipPRE1 }}
