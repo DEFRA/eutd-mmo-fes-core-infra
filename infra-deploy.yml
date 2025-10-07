@@ -110,336 +110,335 @@ extends:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: false
     groupedDeployments:
-      deployments:
-        - name: infraResource
-          deploymentTimeoutInMinutes: 60
-          templates:
-            - ${{ if eq(variables.IsNetwork, true) }}:
-                - name: network
-                  path: templates/network
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: $(environmentName)$(nc-deptService)$(nc-function-network)$(nc-resource-resourcegroup)$(nc-region-id)01
-                - name: logAnalytics
-                  path: templates/logAnalytics
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
-            - ${{ if eq(variables.IsKeyVault, true) }}:
-                - name: keyVaults
-                  path: templates/keyVaults
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
-                  postDeployScriptsList:
-                    - displayName: Resolve Private Endpoint IP for $(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
-                      ScriptArguments: >
-                        -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
-                        -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01'
-                    - displayName: Set DNS record for $(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
-                      ScriptArguments: >
-                        -UpdateAllDnsZones $true
-            - ${{ if eq(variables.IsAppInsights, true) }}:
-                - name: appInsights
-                  path: templates/appInsights
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
-            - ${{ if eq(variables.IsStorageAccounts, true) }}:
-                - name: storageAccounts
-                  path: templates/storageAccounts
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
-                  postDeployScriptsList:
-                    - displayName: Resolve Private Endpoint IP for Storage Accounts
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
-                      ScriptArguments: >
-                        -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
-                        -ResourceName '$(storageAccounts)'
-                    - displayName: Set DNS record for Storage Accounts
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
-                      ScriptArguments: >
-                        -UpdateAllDnsZones $true
-                    - displayName: Create SAS Token for Storage Accounts
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/New-AzureStorageSasToken.ps1"
-                      ScriptArguments: >
-                        -StorageAccounts '$(storageAccounts)'
-                        -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
-                        -ExpiryInMonths $(storageSasTokenExpiryInMonths)
-                        -Permissions $(storageSasTokenPermissions)
-                        -KeyVaultName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01'
-                        -KeyVaultResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
-            - ${{ if eq(variables.IsCosmos, true) }}:
-                - name: cosmosDB
-                  path: templates/cosmosDB
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
-                  preDeployScriptsList:
-                    - displayName: Check if Cosmos MongoCluster GeoReplica exists
-                      condition: and(eq(variables['cosmosVcore'], true), eq(variables['cosmosGeoRedundant'], true))
-                      inlineScript: |
-                        $ErrorActionPreference = "Stop"
-                        $geoReplicaName = "$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601"
-                        $resourceGroupName = "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
-                        $geoReplica = Get-AzResource -ResourceType "Microsoft.DocumentDB/mongoClusters" -ResourceGroupName $resourceGroupName -Name $geoReplicaName -ErrorAction SilentlyContinue
-                        if ($null -eq $geoReplica) {
-                          Write-Host "##vso[task.setvariable variable=geoReplicaExists]false"
-                        } else {
-                          Write-Host "##vso[task.setvariable variable=geoReplicaExists]true"
-                        }
-                  postDeployScriptsList:
-                    - displayName: Resolve Private Endpoint IP for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
-                      ScriptArguments: >
-                        -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
-                        -ResourceName '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
-                        -OverrideFqdnPrefix $true
-                    - displayName: Set DNS record for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
-                      ScriptArguments: >
-                        -UpdateAllDnsZones $true
-                    - displayName: Resolve Private Endpoint IP for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601'
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
-                      condition: and(succeeded(), eq(variables['cosmosVcore'], true), eq(variables['cosmosGeoRedundant'], true))
-                      ScriptArguments: >
-                        -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
-                        -ResourceName '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601'
-                        -IsSecondaryRegion $true
-                        -OverrideFqdnPrefix $true
-                    - displayName: Set DNS record for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601'
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
-                      condition: and(succeeded(), eq(variables['cosmosVcore'], true), eq(variables['cosmosGeoRedundant'], true))
-                      ScriptArguments: >
-                        -UpdateAllDnsZones $true
-                    - displayName: Create database collection in '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
-                      condition: and(succeeded(), eq(variables['cosmosVcore'], 'true'))
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/New-CosmosMongoDatabase.ps1"
-                      ScriptArguments: >
-                        -KeyVaultName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01'
-                        -DbCollectionsJson '$(cosmosDbCollections)'
-                    - displayName: Ensure failback to original primary cluster
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Switch-CosmosToSecondary.ps1"
-                      ScriptArguments: >
-                        -SubscriptionId '$(subscriptionId)'
-                        -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
-                        -ReplicaClusterName '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
-            - ${{ if eq(variables.IsServiceBus, true) }}:
-                - name: serviceBus
-                  path: templates/serviceBus
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
-            - ${{ if eq(variables.IsRedis, true) }}:
-                - name: redisCache
-                  path: templates/redisCache
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
-                  preDeployScriptsList:
-                    - displayName: Remove cache links
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Set-RedisCacheLink.ps1"
-                      ScriptArguments: >
-                        -PrimaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
-                        -SecondaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)1601'
-                        -Mode 'Unlink'
-                  postDeployScriptsList:
-                    - displayName: Resolve Private Endpoint IP for '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
-                      ScriptArguments: >
-                        -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
-                        -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
-                    - displayName: Set DNS record for '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
-                      ScriptArguments: >
-                        -UpdateAllDnsZones $true
-                    - displayName: Resolve Private Endpoint IP for '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)1601'
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
-                      condition: and(succeeded(), eq(variables['disasterRecoverySupported'], true))
-                      ScriptArguments: >
-                        -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)1601'
-                        -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)1601'
-                        -IsSecondaryRegion $true
-                    - displayName: Set DNS record for '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)1601'
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
-                      condition: and(succeeded(), eq(variables['disasterRecoverySupported'], true))
-                      ScriptArguments: >
-                        -UpdateAllDnsZones $true
-                    - displayName: Link primary redis cache to secondary
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Set-RedisCacheLink.ps1"
-                      condition: and(succeeded(), eq(variables['disasterRecoverySupported'], true))
-                      ScriptArguments: >
-                        -PrimaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
-                        -SecondaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)1601'
-                        -Mode 'Failover'
-            - ${{ if eq(variables.IsEventHub, true) }}:
-                - name: event
-                  path: templates/event
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
-            - ${{ if eq(variables.IsASP, true) }}:
-                - name: appServicePlan
-                  path: templates/appServicePlan
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
-            - ${{ if eq(variables.IsWebApps, true) }}:
-                - name: webApps
-                  path: templates/webApps
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
-                  preDeployScriptsList:
-                    - displayName: Get WebApp image tag if it exists
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Get-ExistingWebAppVersion.ps1"
-                      ScriptArguments: >
-                        -WebAppNames '$(webAppNames)'
-                        -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
-                        -IsSlotsEnabled $$(slotsEnabled)
-                  postDeployScriptsList:
-                    - displayName: Set AppServices list if deployment slots are enabled
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Set-AppServiceSlotNames.ps1"
-                      ScriptArguments: >
-                        -IsSlotsEnabled $$(slotsEnabled)
-                        -WebAppNames '$(webAppNames)'
-                    - displayName: Resolve Private Endpoint IP for WebApps
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
-                      ScriptArguments: >
-                        -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
-                        -ResourceName '$(webApps)'
-                    - displayName: Set DNS record for WebApps
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
-                      ScriptArguments: >
-                        -UpdateAllDnsZones $true
-            - ${{ if eq(variables.IsFuncApps, true) }}:
-                - name: functionApps
-                  path: templates/functionApps
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
-                  preDeployScriptsList:
-                    - displayName: Get FunctionApp image tag if it exists
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Get-ExistingWebAppVersion.ps1"
-                      ScriptArguments: >
-                        -WebAppNames '$(functionApps)'
-                        -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
-                        -IsSlotsEnabled $$(slotsEnabled)
-                  postDeployScriptsList:
-                    - displayName: Set AppServices list if deployment slots are enabled
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Set-AppServiceSlotNames.ps1"
-                      ScriptArguments: >
-                        -IsSlotsEnabled $$(slotsEnabled)
-                        -WebAppNames '$(functionAppName)'
-                    - displayName: Resolve Private Endpoint IP for '$(functionAppName)'
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
-                      ScriptArguments: >
-                        -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
-                        -ResourceName '$(webApps)'
-                    - displayName: Set DNS record for '$(functionAppName)'
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
-                      ScriptArguments: >
-                        -UpdateAllDnsZones $true
-            - ${{ if eq(variables.IsKeyVaultRoleAssignments, true) }}:
-                - name: keyVaultRoleAssignments
-                  path: templates/keyVaults
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
-            - ${{ if eq(variables.IsLogicAppsAsp, true) }}:
-                - name: logicAppsAsp
-                  isDeployToSecondaryRegions: false
-                  path: templates/logicAppsStandard
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
-            - ${{ if eq(variables.IsLogicApps, true) }}:
-                - name: logicApps
-                  isDeployToSecondaryRegions: false
-                  path: templates/logicAppsStandard
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
-                  postDeployScriptsList:
-                    - displayName: Set logicApps list
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Set-AppServiceSlotNames.ps1"
-                      ScriptArguments: >
-                        -IsSlotsEnabled $false
-                        -WebAppNames '$(logicApps)'
-                    - displayName: Resolve Private Endpoint IP for logicApps
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
-                      ScriptArguments: >
-                        -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
-                        -ResourceName '$(webApps)'
-                    - displayName: Set DNS record for logicApps
-                      scriptRepo: MMOPipelineCommon
-                      scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
-                      ScriptArguments: >
-                        -UpdateAllDnsZones $true
-            - ${{ if eq(variables.IsLogicAppsRoleAssignments, true) }}:
-                - name: logicAppsStorageRoleAssignments
-                  path: templates/logicAppsStandard
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
-            - ${{ if eq(variables.IsLogicAppsRoleAssignments, true) }}:
-                - name: logicAppsServiceBusRoleAssignments
-                  path: templates/logicAppsStandard
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
-            - ${{ if eq(variables.IsExportConnString, true) }}:
-                - name: connectionStrings
-                  path: templates/connectionStrings
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
-            - ${{ if eq(variables.IsLogicAppsApiConnections, true) }}:
-                - name: apiConnections
-                  path: templates/apiConnections
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
-            - ${{ if eq(variables.IsLogicAppsApiConnectionsPolicies, true) }}:
-                - name: apiConnectionsAccesspolicies
-                  path: templates/apiConnections
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
-            - ${{ if eq(variables.IsDashboard, true) }}:
-                - name: dashboard
-                  path: templates/appInsights
-                  type: bicep
-                  scope: "Resource Group"
-                  resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
+      - name: infraResource
+        timeoutInMinutes: 60
+        deployments:
+          - ${{ if eq(variables.IsNetwork, true) }}:
+              - name: network
+                path: templates/network
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: $(environmentName)$(nc-deptService)$(nc-function-network)$(nc-resource-resourcegroup)$(nc-region-id)01
+              - name: logAnalytics
+                path: templates/logAnalytics
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
+          - ${{ if eq(variables.IsKeyVault, true) }}:
+              - name: keyVaults
+                path: templates/keyVaults
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
+                postDeployScriptsList:
+                  - displayName: Resolve Private Endpoint IP for $(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
+                    ScriptArguments: >
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
+                      -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01'
+                  - displayName: Set DNS record for $(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
+                    ScriptArguments: >
+                      -UpdateAllDnsZones $true
+          - ${{ if eq(variables.IsAppInsights, true) }}:
+              - name: appInsights
+                path: templates/appInsights
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
+          - ${{ if eq(variables.IsStorageAccounts, true) }}:
+              - name: storageAccounts
+                path: templates/storageAccounts
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
+                postDeployScriptsList:
+                  - displayName: Resolve Private Endpoint IP for Storage Accounts
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
+                    ScriptArguments: >
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
+                      -ResourceName '$(storageAccounts)'
+                  - displayName: Set DNS record for Storage Accounts
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
+                    ScriptArguments: >
+                      -UpdateAllDnsZones $true
+                  - displayName: Create SAS Token for Storage Accounts
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/New-AzureStorageSasToken.ps1"
+                    ScriptArguments: >
+                      -StorageAccounts '$(storageAccounts)'
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
+                      -ExpiryInMonths $(storageSasTokenExpiryInMonths)
+                      -Permissions $(storageSasTokenPermissions)
+                      -KeyVaultName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01'
+                      -KeyVaultResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
+          - ${{ if eq(variables.IsCosmos, true) }}:
+              - name: cosmosDB
+                path: templates/cosmosDB
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
+                preDeployScriptsList:
+                  - displayName: Check if Cosmos MongoCluster GeoReplica exists
+                    condition: and(eq(variables['cosmosVcore'], true), eq(variables['cosmosGeoRedundant'], true))
+                    inlineScript: |
+                      $ErrorActionPreference = "Stop"
+                      $geoReplicaName = "$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601"
+                      $resourceGroupName = "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
+                      $geoReplica = Get-AzResource -ResourceType "Microsoft.DocumentDB/mongoClusters" -ResourceGroupName $resourceGroupName -Name $geoReplicaName -ErrorAction SilentlyContinue
+                      if ($null -eq $geoReplica) {
+                        Write-Host "##vso[task.setvariable variable=geoReplicaExists]false"
+                      } else {
+                        Write-Host "##vso[task.setvariable variable=geoReplicaExists]true"
+                      }
+                postDeployScriptsList:
+                  - displayName: Resolve Private Endpoint IP for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
+                    ScriptArguments: >
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
+                      -ResourceName '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
+                      -OverrideFqdnPrefix $true
+                  - displayName: Set DNS record for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
+                    ScriptArguments: >
+                      -UpdateAllDnsZones $true
+                  - displayName: Resolve Private Endpoint IP for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
+                    condition: and(succeeded(), eq(variables['cosmosVcore'], true), eq(variables['cosmosGeoRedundant'], true))
+                    ScriptArguments: >
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
+                      -ResourceName '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601'
+                      -IsSecondaryRegion $true
+                      -OverrideFqdnPrefix $true
+                  - displayName: Set DNS record for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
+                    condition: and(succeeded(), eq(variables['cosmosVcore'], true), eq(variables['cosmosGeoRedundant'], true))
+                    ScriptArguments: >
+                      -UpdateAllDnsZones $true
+                  - displayName: Create database collection in '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
+                    condition: and(succeeded(), eq(variables['cosmosVcore'], 'true'))
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/New-CosmosMongoDatabase.ps1"
+                    ScriptArguments: >
+                      -KeyVaultName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01'
+                      -DbCollectionsJson '$(cosmosDbCollections)'
+                  - displayName: Ensure failback to original primary cluster
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Switch-CosmosToSecondary.ps1"
+                    ScriptArguments: >
+                      -SubscriptionId '$(subscriptionId)'
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
+                      -ReplicaClusterName '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
+          - ${{ if eq(variables.IsServiceBus, true) }}:
+              - name: serviceBus
+                path: templates/serviceBus
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+          - ${{ if eq(variables.IsRedis, true) }}:
+              - name: redisCache
+                path: templates/redisCache
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+                preDeployScriptsList:
+                  - displayName: Remove cache links
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-RedisCacheLink.ps1"
+                    ScriptArguments: >
+                      -PrimaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
+                      -SecondaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)1601'
+                      -Mode 'Unlink'
+                postDeployScriptsList:
+                  - displayName: Resolve Private Endpoint IP for '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
+                    ScriptArguments: >
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+                      -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
+                  - displayName: Set DNS record for '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
+                    ScriptArguments: >
+                      -UpdateAllDnsZones $true
+                  - displayName: Resolve Private Endpoint IP for '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)1601'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
+                    condition: and(succeeded(), eq(variables['disasterRecoverySupported'], true))
+                    ScriptArguments: >
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)1601'
+                      -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)1601'
+                      -IsSecondaryRegion $true
+                  - displayName: Set DNS record for '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)1601'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
+                    condition: and(succeeded(), eq(variables['disasterRecoverySupported'], true))
+                    ScriptArguments: >
+                      -UpdateAllDnsZones $true
+                  - displayName: Link primary redis cache to secondary
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-RedisCacheLink.ps1"
+                    condition: and(succeeded(), eq(variables['disasterRecoverySupported'], true))
+                    ScriptArguments: >
+                      -PrimaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
+                      -SecondaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)1601'
+                      -Mode 'Failover'
+          - ${{ if eq(variables.IsEventHub, true) }}:
+              - name: event
+                path: templates/event
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
+          - ${{ if eq(variables.IsASP, true) }}:
+              - name: appServicePlan
+                path: templates/appServicePlan
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+          - ${{ if eq(variables.IsWebApps, true) }}:
+              - name: webApps
+                path: templates/webApps
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+                preDeployScriptsList:
+                  - displayName: Get WebApp image tag if it exists
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Get-ExistingWebAppVersion.ps1"
+                    ScriptArguments: >
+                      -WebAppNames '$(webAppNames)'
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+                      -IsSlotsEnabled $$(slotsEnabled)
+                postDeployScriptsList:
+                  - displayName: Set AppServices list if deployment slots are enabled
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-AppServiceSlotNames.ps1"
+                    ScriptArguments: >
+                      -IsSlotsEnabled $$(slotsEnabled)
+                      -WebAppNames '$(webAppNames)'
+                  - displayName: Resolve Private Endpoint IP for WebApps
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
+                    ScriptArguments: >
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+                      -ResourceName '$(webApps)'
+                  - displayName: Set DNS record for WebApps
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
+                    ScriptArguments: >
+                      -UpdateAllDnsZones $true
+          - ${{ if eq(variables.IsFuncApps, true) }}:
+              - name: functionApps
+                path: templates/functionApps
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+                preDeployScriptsList:
+                  - displayName: Get FunctionApp image tag if it exists
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Get-ExistingWebAppVersion.ps1"
+                    ScriptArguments: >
+                      -WebAppNames '$(functionApps)'
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+                      -IsSlotsEnabled $$(slotsEnabled)
+                postDeployScriptsList:
+                  - displayName: Set AppServices list if deployment slots are enabled
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-AppServiceSlotNames.ps1"
+                    ScriptArguments: >
+                      -IsSlotsEnabled $$(slotsEnabled)
+                      -WebAppNames '$(functionAppName)'
+                  - displayName: Resolve Private Endpoint IP for '$(functionAppName)'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
+                    ScriptArguments: >
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+                      -ResourceName '$(webApps)'
+                  - displayName: Set DNS record for '$(functionAppName)'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
+                    ScriptArguments: >
+                      -UpdateAllDnsZones $true
+          - ${{ if eq(variables.IsKeyVaultRoleAssignments, true) }}:
+              - name: keyVaultRoleAssignments
+                path: templates/keyVaults
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
+          - ${{ if eq(variables.IsLogicAppsAsp, true) }}:
+              - name: logicAppsAsp
+                isDeployToSecondaryRegions: false
+                path: templates/logicAppsStandard
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+          - ${{ if eq(variables.IsLogicApps, true) }}:
+              - name: logicApps
+                isDeployToSecondaryRegions: false
+                path: templates/logicAppsStandard
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+                postDeployScriptsList:
+                  - displayName: Set logicApps list
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-AppServiceSlotNames.ps1"
+                    ScriptArguments: >
+                      -IsSlotsEnabled $false
+                      -WebAppNames '$(logicApps)'
+                  - displayName: Resolve Private Endpoint IP for logicApps
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
+                    ScriptArguments: >
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+                      -ResourceName '$(webApps)'
+                  - displayName: Set DNS record for logicApps
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
+                    ScriptArguments: >
+                      -UpdateAllDnsZones $true
+          - ${{ if eq(variables.IsLogicAppsRoleAssignments, true) }}:
+              - name: logicAppsStorageRoleAssignments
+                path: templates/logicAppsStandard
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
+          - ${{ if eq(variables.IsLogicAppsRoleAssignments, true) }}:
+              - name: logicAppsServiceBusRoleAssignments
+                path: templates/logicAppsStandard
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+          - ${{ if eq(variables.IsExportConnString, true) }}:
+              - name: connectionStrings
+                path: templates/connectionStrings
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
+          - ${{ if eq(variables.IsLogicAppsApiConnections, true) }}:
+              - name: apiConnections
+                path: templates/apiConnections
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+          - ${{ if eq(variables.IsLogicAppsApiConnectionsPolicies, true) }}:
+              - name: apiConnectionsAccesspolicies
+                path: templates/apiConnections
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+          - ${{ if eq(variables.IsDashboard, true) }}:
+              - name: dashboard
+                path: templates/appInsights
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
     skipPRE1: ${{ parameters.skipPRE1 }}
