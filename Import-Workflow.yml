@@ -19,14 +19,18 @@ resources:
       ref: refs/heads/feature/pipeline-paths-fix 
 
 extends:
-  template: /includes/scripts-deploy.yaml@MMOPipelineCommon
+  template: /includes/infra-deploy.yaml@MMOPipelineCommon
   parameters:
-    scriptsList:
-      - displayName: "Import Reference LogicApps Workflow"
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Import-Workflows.ps1"
-        ScriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
-      - displayName: "Import Processor LogicApps Workflow"
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Import-Workflows.ps1"
-        ScriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
+    deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
+    deployToSecondaryRegion: false
+    groupedDeployments:
+      postDeployScriptsList:
+        - displayName: "Import Reference LogicApps Workflow"
+          scriptRepo: MMOPipelineCommon
+          scriptPath: "scripts/Import-Workflows.ps1"
+          ScriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
+        - displayName: "Import Processor LogicApps Workflow"
+          scriptRepo: MMOPipelineCommon
+          scriptPath: "scripts/Import-Workflows.ps1"
+          ScriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
+  skipPRE1: ${{ parameters.skipPRE1 }}
