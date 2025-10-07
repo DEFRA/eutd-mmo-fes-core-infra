@@ -9,7 +9,12 @@ trigger: none
 #       include:
 #         - main
 #     always: true
-
+parameters:
+  - name: deployToDevelopmentEnvironment
+    displayName: "Deploy from Feature Branch"
+    type: boolean
+    default: true
+    
 resources:
   repositories:
     - repository: MMOPipelineCommon
