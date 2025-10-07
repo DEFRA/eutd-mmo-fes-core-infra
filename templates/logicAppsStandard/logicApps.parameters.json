@@ -1,0 +1,69 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment": {
+      "value": "#{{ environment }}"
+    },
+    "ephemeral": {
+      "value": "#{{ ephemeral }}"
+    },
+    "comparams": {
+      "value": {
+        "appInsightsName": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-appinsights }}#{{ nc-region-id }}01",
+        "serviceBusName": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-servicebus }}#{{ nc-region-id }}01"
+      }
+    },
+    "commonApiContName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}02-api-connection-01"
+    },
+    "storageApiContName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}referencedata-api-connection-01"
+    },
+    "serviceBusApiContName": {
+      "value": "#{{ environment }}mmoservicebus-api-connection-01"
+    },
+    "refedataStorageAccountName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-storageaccount }}#{{ nc-static-res-region-id }}03"
+    },
+    "resourceGroupName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}02"
+    },
+    "primaryRegionResourceGroupName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-static-res-region-id }}02"
+    },
+    "subnetName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}07"
+    },
+    "dynamicsOrgName": {
+      "value": "#{{ dynamicsOrgName }}"
+    },
+    "logAnalyticsWorkspace": {
+      "value": "#{{ logAnalyticsWorkspace }}"
+    },
+    "vnetName": {
+      "value": "#{{ vnetName }}"
+    },
+    "vnetResourceGroupName": {
+      "value": "#{{ vnetResourceGroupName }}"
+    },
+    "ukSouthDnsZoneId": {
+      "value": "#{{ ukSouthDnsZoneIdPrefix }}/#{{ privateLinkSites }}"
+    },
+    "northEuDnsZoneId": {
+      "value": "#{{ northEuDnsZoneIdPrefix }}/#{{ privateLinkSites }}"
+    },
+    "westEuDnsZoneId": {
+      "value": "#{{ westEuDnsZoneIdPrefix }}/#{{ privateLinkSites }}"
+    },
+    "ukWestDnsZoneId": {
+      "value": "#{{ ukWestDnsZoneIdPrefix }}/#{{ privateLinkSites }}"
+    },
+    "privateEndpointSubnet": {
+      "value": "#{{ privateEndpointSubnet }}"
+    },
+    "logicApps": {
+      "value": "#{{ logicApps }}"
+    }
+  }
+}

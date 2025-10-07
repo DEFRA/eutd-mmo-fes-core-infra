@@ -442,3 +442,5 @@ extends:
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
     skipPRE1: ${{ parameters.skipPRE1 }}
+    additionalRepositories:
+      - MMOPipelineCommon

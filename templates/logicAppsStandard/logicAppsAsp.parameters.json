@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment": {
+      "value": "#{{ environment }}"
+    },
+    "ephemeral": {
+      "value": "#{{ ephemeral }}"
+    },
+    "logicApps": {
+      "value": "#{{ logicApps }}"
+    },
+    "logAnalyticsWorkspace": {
+      "value": "#{{ logAnalyticsWorkspace }}"
+    },
+    "resourceGroupName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}02"
+    },
+    "skuCapacity": {
+      "value": "#{{ aspSkuCapacity }}"
+    },
+    "zoneRedundant": {
+      "value": "#{{ aspZoneRedundant }}"
+    },
+    "skuName": {
+      "value": "#{{ logicAppsAspTier }}"
+    },
+    "maxElasticWorkerCount": {
+      "value": "#{{ maxElasticWorkerCount }}"
+    }
+  }
+}
