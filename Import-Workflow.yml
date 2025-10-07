@@ -16,7 +16,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: refs/heads/main
+      ref: feature/pipeline-paths-fix 
 
 extends:
   template: /includes/scripts-deploy.yaml@MMOPipelineCommon
