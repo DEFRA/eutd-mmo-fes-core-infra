@@ -111,8 +111,8 @@ extends:
     deployToSecondaryRegion: false
     groupedDeployments:
       - name: infraResource
-        deploymentTimeoutInMinutes: 60
-        templates:
+        timeoutInMinutes: 60
+        deployments:
           - ${{ if eq(variables.IsNetwork, true) }}:
               - name: network
                 path: templates/network
