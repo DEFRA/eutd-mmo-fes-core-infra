@@ -28,12 +28,11 @@ steps:
     inputs:
       targetType: 'inline'
       script: |
-        ls
+        Get-Location
         Write-Host "Working Directory: $(System.DefaultWorkingDirectory)"
         Get-ChildItem "$(System.DefaultWorkingDirectory)" -Directory
         Write-Host "Contents of MMOPipelineCommon:"
         Get-ChildItem "$(System.DefaultWorkingDirectory)/MMOPipelineCommon" -Recurse -ErrorAction SilentlyContinue
-        Get-ChildItem "$(Build.SourceBranchName)" 
         Get-ChildItem " workingDirectory: $(Build.SourcesDirectory)"
         Get-ChildItem " workingDirectory: $(Build.StagingDirectory)"
 
