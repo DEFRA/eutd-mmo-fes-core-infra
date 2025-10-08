@@ -30,7 +30,6 @@ extends:
     deployToSecondaryRegion: false
     additionalRepositories: 
       - MMOPipelineCommon
-      - self
     groupedDeployments:
       - name: Azure_Metric_Alerts
         timeoutInMinutes: 60
@@ -45,4 +44,9 @@ extends:
             failOnStandardError: true
             filePathsForTransform:
               - $(Pipeline.Workspace)/s/self/templates/monitoring/monitoring.json 
-        skipPRE1: ${{ parameters.skipPRE1 }}      
+        skipPRE1: ${{ parameters.skipPRE1 }}    
+    variableFiles:
+      - /vars/common.yaml@MMOPipelineCommon
+      - /vars/{environment}.yaml@MMOPipelineCommon
+    regionalVariableFiles:
+      - /vars/regional/{environment}-{region}.yaml@MMOPipelineCommon
