@@ -11,40 +11,93 @@ trigger: none
 #         - main
 #     always: true
 
+parameters:
+  - name: deployToDevelopmentEnvironment
+    displayName: "Deploy from Feature Branch"
+    type: boolean
+    default: true
+  - name: additionalRepositories
+    displayName: Additional repositories that needs reference in the process
+    type: object
+    default: []
+
 resources:
   repositories:
     - repository: MMOPipelineCommon
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: refs/heads/main
+      ref: refs/heads/feature/pipeline-paths-fix
 
 extends:
-  template: /includes/ssv-script-deploy.yaml@MMOPipelineCommon
+  template: /includes/infra-deploy.yaml@MMOPipelineCommon
   parameters:
-    scriptsList:
-      - displayName: "Get WebApps Existing Version"
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Get-ExistingWebAppVersion.ps1"
-        condition: and(succeeded(), eq(variables['ephemeral'], true))
-        ScriptArguments: -WebAppNames '$(webAppNames)' -ResourceGroupName '$(appEnvWebAppRgName)' -IsSlotsEnabled $$(slotsEnabled)
-      - displayName: "Re-tag Ephemeral Image"
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Set-EphemeralTag.ps1"
-        condition: and(succeeded(), eq(variables['ephemeral'], true))
-        ScriptArguments: -acrName '$(acrName)'
-      - displayName: "Get functionApps Existing Version"
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Get-ExistingWebAppVersion.ps1"
-        condition: and(succeeded(), eq(variables['ephemeral'], true))
-        ScriptArguments: -WebAppNames '$(functionApps)' -ResourceGroupName '$(appEnvWebAppRgName)' -IsSlotsEnabled $$(slotsEnabled)
-      - displayName: "Re-tag Ephemeral Image"
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Set-EphemeralTag.ps1"
-        condition: and(succeeded(), eq(variables['ephemeral'], true))
-        ScriptArguments: -acrName '$(acrName)'
-      - displayName: "Remove RoleAssignments"
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Remove-RoleAssignments.ps1"
-        condition: and(succeeded(), eq(variables['ephemeral'], true))
-        ScriptArguments: -ResourceName '$(acrName)' -ResourceGroupName '$(acrResourceGroup)' -ResourceType 'Microsoft.ContainerRegistry/registries' -RoleDefinitionName 'AcrPull' -AppsResourceGroup '$(appEnvWebAppRgName)'
+    deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
+    deployToSecondaryRegion: false
+    environments:
+      - name: "ssv_snd"
+        developmentEnvironment: true
+        azureRegions:
+          primary: UKSouth
+        serviceConnection: AZR-MMO-SSV5
+        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+        deploymentBranches:
+          - "*"
+      - name: "ssv_dev"
+        azureRegions:
+          primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
+        serviceConnection: AZR-MMO-SSV5
+        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+        developmentEnvironment: ${{ parameters.deployToSecondaryRegion }}
+        deploymentBranches:
+          - "*"
+      - name: "ssv_tst"
+        enableTemplateValidationBeforeDeployment: true
+        azureRegions:
+          primary: UKSouth
+        serviceConnection: AZR-MMO-SSV5
+        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+        dependsOn: "ssv_snd"
+        deploymentBranches:
+          - "refs/heads/main"
+    additionalRepositories: 
+      - MMOPipelineCommon
+    groupedDeployments:
+      - name: Ephemeral_Delete_Images_And_Roles
+        timeoutInMinutes: 60
+        deployments:
+          - name: "Get_WebApps_Existing_Version"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Get-ExistingWebAppVersion.ps1"
+            condition: and(succeeded(), eq(variables['ephemeral'], true))
+            scriptArguments: -WebAppNames '$(webAppNames)' -ResourceGroupName '$(appEnvWebAppRgName)' -IsSlotsEnabled $$(slotsEnabled)
+          - name: "Re-tag_Ephemeral_Image"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Set-EphemeralTag.ps1"
+            condition: and(succeeded(), eq(variables['ephemeral'], true))
+            scriptArguments: -acrName '$(acrName)'
+          - name: "Get_functionApps_Existing_Version"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Get-ExistingWebAppVersion.ps1"
+            condition: and(succeeded(), eq(variables['ephemeral'], true))
+            scriptArguments: -WebAppNames '$(functionApps)' -ResourceGroupName '$(appEnvWebAppRgName)' -IsSlotsEnabled $$(slotsEnabled)
+          - name: "Re_tag_Ephemeral_Image"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Set-EphemeralTag.ps1"
+            condition: and(succeeded(), eq(variables['ephemeral'], true))
+            scriptArguments: -acrName '$(acrName)'
+          - name: "Remove_RoleAssignments"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Remove-RoleAssignments.ps1"
+            condition: and(succeeded(), eq(variables['ephemeral'], true))
+            scriptArguments: -ResourceName '$(acrName)' -ResourceGroupName '$(acrResourceGroup)' -ResourceType 'Microsoft.ContainerRegistry/registries' -RoleDefinitionName 'AcrPull' -AppsResourceGroup '$(appEnvWebAppRgName)'

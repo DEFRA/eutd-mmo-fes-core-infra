@@ -6,6 +6,14 @@ parameters:
   - name: skipPRE1
     type: boolean
     default: false
+  - name: deployToDevelopmentEnvironment
+    displayName: "Deploy from Feature Branch"
+    type: boolean
+    default: true
+  - name: additionalRepositories
+    displayName: Additional repositories that needs reference in the process
+    type: object
+    default: []
 
 resources:
   repositories:
@@ -13,19 +21,27 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: refs/heads/main
+      ref: refs/heads/feature/pipeline-paths-fix
 
 extends:
-  template: /includes/scripts-deploy.yaml@MMOPipelineCommon
+  template: /includes/infra-deploy.yaml@MMOPipelineCommon
   parameters:
-    scriptsList:
-      - displayName: "Create Azure Metric Alerts"
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/CreateMetricAlertFunctions.ps1"
-        scriptArguments: >-
-          -manifestFilePath "./templates/monitoring/monitoring.json"
-        type: AzurePowerShell
-        failOnStandardError: true
-        filePathsForTransform:
-          - /templates/monitoring/monitoring.json
-    skipPRE1: ${{ parameters.skipPRE1 }}
+    deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
+    deployToSecondaryRegion: false
+    additionalRepositories: 
+      - MMOPipelineCommon
+    groupedDeployments:
+      - name: Azure_Metric_Alerts
+        timeoutInMinutes: 60
+        deployments:
+          - name: "Create_Azure_Metric_Alerts"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "/scripts/CreateMetricAlertFunctions.ps1"
+            scriptArguments: >-
+              -manifestFilePath "./templates/monitoring/monitoring.json"
+            failOnStandardError: true
+            filePathsForTransform:
+              - /templates/monitoring/monitoring.json 
+        skipPRE1: ${{ parameters.skipPRE1 }}      
