@@ -40,13 +40,9 @@ extends:
             scriptType: AzurePowerShell
             path: "scripts/CreateMetricAlertFunctions.ps1"
             scriptArguments: >-
-              -manifestFilePath "$(Pipeline.Workspace)/s/self/templates/monitoring/monitoring.json"
+              -manifestFilePath "/templates/monitoring/monitoring.json"
             failOnStandardError: true
             filePathsForTransform:
-              - $(Pipeline.Workspace)/s/self/templates/monitoring/monitoring.json 
+              - /templates/monitoring/monitoring.json 
         skipPRE1: ${{ parameters.skipPRE1 }}    
-    variableFiles:
-      - /vars/common.yaml@MMOPipelineCommon
-      - /vars/{environment}.yaml@MMOPipelineCommon
-    regionalVariableFiles:
-      - /vars/regional/{environment}-{region}.yaml@MMOPipelineCommon
+    
