@@ -23,7 +23,7 @@ parameters:
   - name: deployToSecondaryRegion
     type: boolean
     default: false
-    
+
 resources:
   repositories:
     - repository: MMOPipelineCommon
@@ -52,6 +52,7 @@ extends:
         serviceConnection: AZR-MMO-SSV5
         privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
         developmentEnvironment: ${{ parameters.deployToSecondaryRegion }}
+        dependsOn: "Validate"
         deploymentBranches:
           - "*"
       - name: "ssv_tst"

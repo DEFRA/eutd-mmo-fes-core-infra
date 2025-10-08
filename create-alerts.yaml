@@ -28,7 +28,7 @@ extends:
   parameters:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: false
-    additionalRepositories: 
+    additionalRepositories:
       - MMOPipelineCommon
     groupedDeployments:
       - name: Azure_Metric_Alerts
@@ -42,7 +42,6 @@ extends:
             scriptArguments: >-
               -manifestFilePath "$(Pipeline.Workspace)/s/self/templates/monitoring/monitoring.json"
             failOnStandardError: true
-            filePathsForTransform:
-              - templates/monitoring/monitoring.json 
-        skipPRE1: ${{ parameters.skipPRE1 }}    
-    
+            filePathsForTransform: |
+              **/templates/monitoring/monitoring.json
+        skipPRE1: ${{ parameters.skipPRE1 }}
