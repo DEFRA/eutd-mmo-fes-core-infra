@@ -20,7 +20,10 @@ parameters:
     displayName: Additional repositories that needs reference in the process
     type: object
     default: []
-
+  - name: deployToSecondaryRegion
+    type: boolean
+    default: false
+    
 resources:
   repositories:
     - repository: MMOPipelineCommon
