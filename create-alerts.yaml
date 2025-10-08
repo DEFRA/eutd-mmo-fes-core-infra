@@ -40,7 +40,7 @@ extends:
             scriptType: AzurePowerShell
             path: "scripts/CreateMetricAlertFunctions.ps1"
             scriptArguments: >-
-              -manifestFilePath "./templates/monitoring/monitoring.json"
+              -manifestFilePath "templates/monitoring/monitoring.json"
             failOnStandardError: true
             filePathsForTransform:
               - /templates/monitoring/monitoring.json 
