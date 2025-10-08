@@ -30,6 +30,8 @@ extends:
     deployToSecondaryRegion: false
     additionalRepositories:
       - MMOPipelineCommon
+    filePathsForTransform: |
+      **/templates/monitoring/monitoring.json  
     groupedDeployments:
       - name: Azure_Metric_Alerts
         timeoutInMinutes: 60
@@ -41,7 +43,5 @@ extends:
             path: "scripts/CreateMetricAlertFunctions.ps1"
             scriptArguments: >-
               -manifestFilePath "$(Pipeline.Workspace)/s/self/templates/monitoring/monitoring.json"
-            failOnStandardError: true
-            filePathsForTransform: |
-              **/templates/monitoring/monitoring.json
+            failOnStandardError: true            
         skipPRE1: ${{ parameters.skipPRE1 }}
