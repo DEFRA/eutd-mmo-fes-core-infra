@@ -38,7 +38,7 @@ extends:
             scriptRepo: MMOPipelineCommon
             type: script
             scriptType: AzurePowerShell
-            path: "/scripts/CreateMetricAlertFunctions.ps1"
+            path: "scripts/CreateMetricAlertFunctions.ps1"
             scriptArguments: >-
               -manifestFilePath "./templates/monitoring/monitoring.json"
             failOnStandardError: true
