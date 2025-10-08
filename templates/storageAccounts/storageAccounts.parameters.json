@@ -1,0 +1,86 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "storageAccounts": {
+      "value": "#{{ storageAccounts }}"
+    },
+    "environment": {
+      "value": "#{{ environment }}"
+    },
+    "skuName": {
+      "value": "#{{ storageAccountSkuName }}"
+    },
+    "kind": {
+      "value": "StorageV2"
+    },
+    "accessTier": {
+      "value": "Hot"
+    },
+    "ukSouthDnsZoneId": {
+      "value": "#{{ ukSouthDnsZoneIdPrefix }}/#{{ privateLinkBlob }}"
+    },
+    "northEuDnsZoneId": {
+      "value": "#{{ northEuDnsZoneIdPrefix }}/#{{ privateLinkBlob }}"
+    },
+    "westEuDnsZoneId": {
+      "value": "#{{ westEuDnsZoneIdPrefix }}/#{{ privateLinkBlob }}"
+    },
+    "ukWestDnsZoneId": {
+      "value": "#{{ ukWestDnsZoneIdPrefix }}/#{{ privateLinkBlob }}"
+    },
+    "ukSouthDnsTableZoneId": {
+      "value": "#{{ ukSouthDnsZoneIdPrefix }}/#{{ privateLinkTable }}"
+    },
+    "northEuDnsTableZoneId": {
+      "value": "#{{ northEuDnsZoneIdPrefix }}/#{{ privateLinkTable }}"
+    },
+    "westEuDnsTableZoneId": {
+      "value": "#{{ westEuDnsZoneIdPrefix }}/#{{ privateLinkTable }}"
+    },
+    "ukWestDnsTableZoneId": {
+      "value": "#{{ ukWestDnsZoneIdPrefix }}/#{{ privateLinkTable }}"
+    },
+    "ukSouthDnsStorageQueueZoneId": {
+      "value": "#{{ ukSouthDnsZoneIdPrefix }}/#{{ privateLinkStorageQueue }}"
+    },
+    "northEuDnsStorageQueueZoneId": {
+      "value": "#{{ northEuDnsZoneIdPrefix }}/#{{ privateLinkStorageQueue }}"
+    },
+    "westEuDnsStorageQueueZoneId": {
+      "value": "#{{ westEuDnsZoneIdPrefix }}/#{{ privateLinkStorageQueue }}"
+    },
+    "ukWestDnsStorageQueueZoneId": {
+      "value": "#{{ ukWestDnsZoneIdPrefix }}/#{{ privateLinkStorageQueue }}"
+    },
+    "logAnalyticsWorkspace": {
+      "value": "#{{ logAnalyticsWorkspace }}"
+    },
+    "vnetName": {
+      "value": "#{{ vnetName }}"
+    },
+    "vnetResourceGroupName": {
+      "value": "#{{ vnetResourceGroupName }}"
+    },
+    "privateEndpointSubnet": {
+      "value": "#{{ privateEndpointSubnet }}"
+    },
+    "subnets": {
+      "value": [
+        "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}01",
+        "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}02",
+        "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}03",
+        "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}04",
+        "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}05",
+        "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}06",
+        "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}07"
+      ]
+    },
+    "cefasSubnets": {
+      "value": "#{{ cefasSubnets }}"
+    },
+    "firewallIps": {
+      "value": "#{{ firewallIps }}"
+    }
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "cosmosDBName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-database }}#{{ nc-resource-cosmosdb }}#{{ nc-region-id }}01"
+    },
+    "environment": {
+      "value": "#{{ environment }}"
+    },
+    "vnetName": {
+      "value": "#{{ vnetName }}"
+    },
+    "vnetResourceGroupName": {
+      "value": "#{{ vnetResourceGroupName }}"
+    },
+    "logAnalyticsWorkspace": {
+      "value": "#{{ logAnalyticsWorkspace }}"
+    },
+    "ukSouthDnsZoneId": {
+      "value": "#{{ ukSouthDnsZoneIdPrefix }}/#{{ privateLinkCosmosMongo }}"
+    },
+    "northEuDnsZoneId": {
+      "value": "#{{ northEuDnsZoneIdPrefix }}/#{{ privateLinkCosmosMongo }}"
+    },
+    "westEuDnsZoneId": {
+      "value": "#{{ westEuDnsZoneIdPrefix }}/#{{ privateLinkCosmosMongo }}"
+    },
+    "ukWestDnsZoneId": {
+      "value": "#{{ ukWestDnsZoneIdPrefix }}/#{{ privateLinkCosmosMongo }}"
+    },
+    "ukSouthDnsZoneIdMongoCluster": {
+      "value": "#{{ ukSouthDnsZoneIdPrefix }}/#{{ privateLinkCosmosMongoCluster }}"
+    },
+    "northEuDnsZoneIdMongoCluster": {
+      "value": "#{{ northEuDnsZoneIdPrefix }}/#{{ privateLinkCosmosMongoCluster }}"
+    },
+    "westEuDnsZoneIdMongoCluster": {
+      "value": "#{{ westEuDnsZoneIdPrefix }}/#{{ privateLinkCosmosMongoCluster }}"
+    },
+    "ukWestDnsZoneIdMongoCluster": {
+      "value": "#{{ ukWestDnsZoneIdPrefix }}/#{{ privateLinkCosmosMongoCluster }}"
+    },
+    "privateEndpointSubnet": {
+      "value": "#{{ privateEndpointSubnet }}"
+    },
+    "serverVersion": {
+      "value": "#{{ cosmosMongoServerversion }}"
+    },
+    "cosmosMultiRegionWrite": {
+      "value": false
+    },
+    "databaseAccountOfferType": {
+      "value": "Standard"
+    },
+    "defaultConsistencyLevel": {
+      "value": "Session"
+    },
+    "cosmosReadOnlyLocation": {
+      "value": "#{{ secondaryRegion }}"
+    },
+    "keyVaultName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-keyvault }}#{{ nc-region-id }}01"
+    },
+    "cosmosDbWriteConnStringSecretName": {
+      "value": "COSMOS-DB-RW-CONNECTION-URI"
+    },
+    "cosmosDbReadOnlyConnStringSecretName": {
+      "value": "COSMOS-DB-RO-CONNECTION-URI"
+    },
+    "isPrimaryZoneRedundant": {
+      "value": "#{{ cosmosPrimaryZoneRedundant }}"
+    },
+    "isSecondaryZoneRedundant": {
+      "value": "#{{ cosmosSecondaryZoneRedundant }}"
+    },
+    "isServerless": {
+      "value": "#{{ cosmosServerless }}"
+    },
+    "isGeoRedundant": {
+      "value": "#{{ cosmosGeoRedundant }}"
+    },
+    "isVcore": {
+      "value": "#{{ cosmosVcore }}"
+    },
+    "vCoreTier": {
+      "value": "#{{ cosmosVcoreTier }}"
+    },
+    "vCoreZoneRedundancy": {
+      "value": "#{{ cosmosVcoreZoneRedundancy }}"
+    },
+    "vCoreStorageSizeInGB": {
+      "value": "#{{ cosmosVcoreStorageSizeInGB}}"
+    },
+    "exportCertMongoDbCollection": {
+      "value": "#{{ cosmosDbCollections }}"
+    },
+    "cosmosAdminPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/#{{ subscriptionId }}/resourceGroups/#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-static-res-region-id }}02/providers/Microsoft.KeyVault/vaults/#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-keyvault }}#{{ nc-region-id }}01"
+        },
+        "secretName": "COSMOS-VCORE-ADMIN-PASSWORD"
+      }
+    },
+    "secondaryCosmosDBName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-database }}#{{ nc-resource-cosmosdb }}1601"
+    },
+    "secondaryRegionResourceGroup": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}1602"
+    },
+    "secondaryRegionVnetName": {
+      "value": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-virtualnetwork }}1601"
+    },
+    "secondaryRegionVnetResourceGroupName": {
+      "value": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-resourcegroup }}1601"
+    },
+    "secondaryRegionPrivateEndpointSubnet": {
+      "value": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}1606"
+    },
+    "secondaryRegionLogAnalyticsName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-analytics }}1601"
+    },
+    "geoReplicaExists": {
+      "value": "#{{ geoReplicaExists }}"
+    }
+  }
+}

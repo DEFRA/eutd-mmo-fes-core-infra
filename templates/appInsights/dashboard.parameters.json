@@ -1,0 +1,18 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "dashboardName": {
+      "value": "#{{ environment }}-FES-APPS-DASHBOARD"
+    },
+    "resourceGroupName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}01"
+    },
+    "aspNames": {
+      "value": "#{{ aspNames }}"
+    },
+    "logicAppAspName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-appserviceplan }}#{{ nc-resource-logicapps }}#{{ nc-region-id }}01"
+    }
+  }
+}

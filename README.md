@@ -54,6 +54,7 @@ This repo delivers the repeatable, idempotent deployment of foundational cloud r
 ### Module Conventions
 
 - Each module folder: `*.bicep` (resource composition) + matching `*.bicepparam` (environment parameters)
+- Some of the modules have bicepparams that are compiled to `*.parameters.json`. This is to enable proper validation in CI pipeline when the variables with json content are being replaced on the bicepparam files. Compiling it in the source code helps to overcome this validation issue.
 - Naming & tagging centralised via parameters and/or parent orchestration templates
 - Outputs intentionally expose connection endpoints, identities, and keys (never commit secret values)
 - Role assignment modules split out (e.g. `acrRoleAssignments`) for principle-of-least-change
