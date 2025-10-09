@@ -121,8 +121,9 @@ extends:
         templates:
           - ${{ if eq(variables.IsNetwork, true) }}:
               - name: network
-                path: templates/network/ssv5
+                path: templates/network
                 type: bicep
+                parameterFilePath: templates/network/ssv5
                 scope: "Resource Group"
                 resourceGroupName: $(environmentName)$(nc-deptService)$(nc-function-network)$(nc-resource-resourcegroup)$(nc-region-id)01
           - ${{ if and(eq(parameters.deployToSecondaryRegion, false), eq(variables.IsContainerRegistry, true)) }}:

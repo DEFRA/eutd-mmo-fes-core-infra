@@ -4,12 +4,11 @@ param location string = resourceGroup().location
 param environment string
 param subnets array
 param dnsServers string
-
+param serviceEndpoints array
 param routeTableObject object
 param nsgObject object
 param routeTableRoutes string
 param nsgRules string
-
 param customTags object
 
 var defaultTags = {
@@ -26,17 +25,6 @@ param deploymentDate string = utcNow('yyyyMMdd-HHmmss')
 param createdDate string = utcNow('yyyy-MM-dd')
 
 var virtualNetworkDeployment = '${vnetName}-${deploymentDate}'
-var serviceEndpoints = [
-  'Microsoft.ContainerRegistry'
-  'Microsoft.AzureActiveDirectory'
-  'Microsoft.KeyVault'
-  'Microsoft.ServiceBus'
-  'Microsoft.Sql'
-  'Microsoft.AzureCosmosDB'
-  'Microsoft.Storage'
-  'Microsoft.Web'
-  'Microsoft.EventHub'
-]
 
 var routeTable = union(routeTableObject, {
   routes: json(routeTableRoutes)
@@ -74,16 +62,15 @@ module virtualNetwork 'br/avm:network/virtual-network:0.4.0' = {
     location: location
     tags: union(defaultTags, customTags)
     subnets: [
-      for item in subnets: {
+      for item in subnets: union({
         name: item.name
         addressPrefix: item.addressPrefix
         serviceEndpoints: serviceEndpoints
         privateEndpointNetworkPolicies: 'Enabled'
         privateLinkServiceNetworkPolicies: 'Enabled'
-        delegation: item.delegation
         networkSecurityGroupResourceId: networkSecurityGroup.outputs.resourceId
         routeTableResourceId: routeTableInstance.outputs.resourceId
-      }
+      }, contains(item, 'delegation') && !empty(item.delegation) ? { delegation: item.delegation } : {})
     ]
     dnsServers: json(dnsServers)
   }
