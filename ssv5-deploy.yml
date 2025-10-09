@@ -117,8 +117,10 @@ extends:
                 - "refs/heads/main"
     groupedDeployments:
       - name: SSV5
-        deploymentTimeoutInMinutes: 60
-        templates:
+        timeoutInMinutes: 60
+        additionalRepositories:
+          - MMOPipelineCommon
+        deployments:
           - ${{ if eq(variables.IsNetwork, true) }}:
               - name: network
                 path: templates/network
