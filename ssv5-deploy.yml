@@ -60,6 +60,8 @@ extends:
   parameters:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: ${{ parameters.deployToSecondaryRegion }}
+    additionalRepositories:
+      - MMOPipelineCommon
     ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
       environments:
         - name: ssv_pre
@@ -118,8 +120,6 @@ extends:
     groupedDeployments:
       - name: SSV5
         timeoutInMinutes: 60
-        additionalRepositories:
-          - MMOPipelineCommon
         deployments:
           - ${{ if eq(variables.IsNetwork, true) }}:
               - name: network
