@@ -77,7 +77,7 @@ var ipRules = [
   }
 ]
 
-module storageAccount 'br/avm:storage/storage-account:0.27.1' = [
+module storageAccount 'br/avm:storage/storage-account:0.19.0' = [
   for (strAcc, i) in strAccArray: {
     name: '${strAcc.Name}-${deploymentDate}'
     params: {
