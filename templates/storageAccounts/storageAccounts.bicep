@@ -229,6 +229,8 @@ module storageAccount 'br/avm:storage/storage-account:0.27.1' = [
   }
 ]
 
+// Disable ARM TTK warning about outputs containing secrets since we only output non-sensitive information
+#disable-next-line outputs-should-not-contain-secrets
 // Only output non-sensitive information to comply with ARM TTK validation
 output deployedResources array = [
   for (strAcc, i) in strAccArray: {
