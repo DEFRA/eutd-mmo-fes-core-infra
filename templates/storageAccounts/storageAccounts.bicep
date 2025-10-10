@@ -230,11 +230,8 @@ module storageAccount 'br/avm:storage/storage-account:0.27.1' = [
 ]
 
 // Only output non-sensitive information to comply with ARM TTK validation
-@description('Array of storage account information including resource IDs and endpoints')
-output storageAccountIds array = [
+output storageAccounts array = [
   for (strAcc, i) in strAccArray: {
     name: strAcc.Name
-    resourceId: storageAccount[i].outputs.resourceId
-    location: storageAccount[i].outputs.location
   }
 ]
