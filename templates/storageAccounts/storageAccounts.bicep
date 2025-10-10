@@ -228,14 +228,3 @@ module storageAccount 'br/avm:storage/storage-account:0.27.1' = [
     }
   }
 ]
-
-// Suppress ARM TTK warning about secrets in outputs
-// The AVM storage account module outputs sensitive information by default
-// even though we only expose non-sensitive resource metadata
-#disable-next-line outputs-should-not-contain-secrets
-output storageInfo array = [
-  for (strAcc, i) in strAccArray: {
-    name: strAcc.Name
-    resourceId: storageAccount[i].outputs.resourceId
-  }
-]
