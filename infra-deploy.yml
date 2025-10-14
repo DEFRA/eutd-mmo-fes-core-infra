@@ -176,67 +176,67 @@ extends:
                       -Permissions $(storageSasTokenPermissions)
                       -KeyVaultName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01'
                       -KeyVaultResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
-          # - ${{ if eq(variables.IsCosmos, true) }}:
-          #     - name: cosmosDB
-          #       path: templates/cosmosDB
-          #       type: bicep
-          #       scope: "Resource Group"
-          #       resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
-          #       preDeployScriptsList:
-          #         - displayName: Check if Cosmos MongoCluster GeoReplica exists
-          #           condition: and(eq(variables['cosmosVcore'], true), eq(variables['cosmosGeoRedundant'], true))
-          #           inlineScript: |
-          #             $ErrorActionPreference = "Stop"
-          #             $geoReplicaName = "$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601"
-          #             $resourceGroupName = "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
-          #             $geoReplica = Get-AzResource -ResourceType "Microsoft.DocumentDB/mongoClusters" -ResourceGroupName $resourceGroupName -Name $geoReplicaName -ErrorAction SilentlyContinue
-          #             if ($null -eq $geoReplica) {
-          #               Write-Host "##vso[task.setvariable variable=geoReplicaExists]false"
-          #             } else {
-          #               Write-Host "##vso[task.setvariable variable=geoReplicaExists]true"
-          #             }
-          #       postDeployScriptsList:
-          #         - displayName: Resolve Private Endpoint IP for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
-          #           scriptRepo: MMOPipelineCommon
-          #           scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
-          #           ScriptArguments: >
-          #             -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
-          #             -ResourceName '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
-          #             -OverrideFqdnPrefix $true
-          #         - displayName: Set DNS record for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
-          #           scriptRepo: MMOPipelineCommon
-          #           scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
-          #           ScriptArguments: >
-          #             -UpdateAllDnsZones $true
-          #         - displayName: Resolve Private Endpoint IP for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601'
-          #           scriptRepo: MMOPipelineCommon
-          #           scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
-          #           condition: and(succeeded(), eq(variables['cosmosVcore'], true), eq(variables['cosmosGeoRedundant'], true))
-          #           ScriptArguments: >
-          #             -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
-          #             -ResourceName '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601'
-          #             -IsSecondaryRegion $true
-          #             -OverrideFqdnPrefix $true
-          #         - displayName: Set DNS record for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601'
-          #           scriptRepo: MMOPipelineCommon
-          #           scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
-          #           condition: and(succeeded(), eq(variables['cosmosVcore'], true), eq(variables['cosmosGeoRedundant'], true))
-          #           ScriptArguments: >
-          #             -UpdateAllDnsZones $true
-          #         - displayName: Create database collection in '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
-          #           condition: and(succeeded(), eq(variables['cosmosVcore'], 'true'))
-          #           scriptRepo: MMOPipelineCommon
-          #           scriptPath: "scripts/New-CosmosMongoDatabase.ps1"
-          #           ScriptArguments: >
-          #             -KeyVaultName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01'
-          #             -DbCollectionsJson '$(cosmosDbCollections)'
-          #         - displayName: Ensure failback to original primary cluster
-          #           scriptRepo: MMOPipelineCommon
-          #           scriptPath: "scripts/Switch-CosmosToSecondary.ps1"
-          #           ScriptArguments: >
-          #             -SubscriptionId '$(subscriptionId)'
-          #             -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
-          #             -ReplicaClusterName '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
+          - ${{ if eq(variables.IsCosmos, true) }}:
+              - name: cosmosDB
+                path: templates/cosmosDB
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
+                preDeployScriptsList:
+                  - displayName: Check if Cosmos MongoCluster GeoReplica exists
+                    condition: and(eq(variables['cosmosVcore'], true), eq(variables['cosmosGeoRedundant'], true))
+                    inlineScript: |
+                      $ErrorActionPreference = "Stop"
+                      $geoReplicaName = "$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601"
+                      $resourceGroupName = "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
+                      $geoReplica = Get-AzResource -ResourceType "Microsoft.DocumentDB/mongoClusters" -ResourceGroupName $resourceGroupName -Name $geoReplicaName -ErrorAction SilentlyContinue
+                      if ($null -eq $geoReplica) {
+                        Write-Host "##vso[task.setvariable variable=geoReplicaExists]false"
+                      } else {
+                        Write-Host "##vso[task.setvariable variable=geoReplicaExists]true"
+                      }
+                postDeployScriptsList:
+                  - displayName: Resolve Private Endpoint IP for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
+                    ScriptArguments: >
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
+                      -ResourceName '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
+                      -OverrideFqdnPrefix $true
+                  - displayName: Set DNS record for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
+                    ScriptArguments: >
+                      -UpdateAllDnsZones $true
+                  - displayName: Resolve Private Endpoint IP for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
+                    condition: and(succeeded(), eq(variables['cosmosVcore'], true), eq(variables['cosmosGeoRedundant'], true))
+                    ScriptArguments: >
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
+                      -ResourceName '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601'
+                      -IsSecondaryRegion $true
+                      -OverrideFqdnPrefix $true
+                  - displayName: Set DNS record for '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)1601'
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
+                    condition: and(succeeded(), eq(variables['cosmosVcore'], true), eq(variables['cosmosGeoRedundant'], true))
+                    ScriptArguments: >
+                      -UpdateAllDnsZones $true
+                  - displayName: Create database collection in '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
+                    condition: and(succeeded(), eq(variables['cosmosVcore'], 'true'))
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/New-CosmosMongoDatabase.ps1"
+                    ScriptArguments: >
+                      -KeyVaultName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01'
+                      -DbCollectionsJson '$(cosmosDbCollections)'
+                  - displayName: Ensure failback to original primary cluster
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Switch-CosmosToSecondary.ps1"
+                    ScriptArguments: >
+                      -SubscriptionId '$(subscriptionId)'
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
+                      -ReplicaClusterName '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
           - ${{ if eq(variables.IsServiceBus, true) }}:
               - name: serviceBus
                 path: templates/serviceBus
