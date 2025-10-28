@@ -11,7 +11,7 @@ trigger:
 
 # Schedule configuration
 schedules:
-  - cron: "15 18 * * 1-5"
+  - cron: "0 19 * * 1-5"
     displayName: Daily Deploy at 6:00 AM UTC
     branches:
       include:

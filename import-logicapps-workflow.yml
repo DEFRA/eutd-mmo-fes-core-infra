@@ -3,7 +3,7 @@ name: $(BuildID)
 trigger: none
 
 schedules:
-  - cron: "45 18 * * 1-5"
+  - cron: "30 19 * * 1-5"
     displayName: Daily Deploy at 6:30 AM UTC
     branches:
       include:
