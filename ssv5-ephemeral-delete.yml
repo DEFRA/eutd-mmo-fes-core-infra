@@ -3,13 +3,14 @@ name: $(BuildID)
 trigger: none
 
 # Schedule configuration
-# schedules:
-#   - cron: "0 19 * * 1-5"
-#     displayName: Daily Delete at 7:00 PM UTC
-#     branches:
-#       include:
-#         - main
-#     always: true
+schedules:
+  - cron: "15 17 * * 1-5"
+    displayName: Daily Delete at 7:00 PM UTC
+    branches:
+      include:
+        # - main
+        - refs/heads/feature/pipeline-paths-fix
+    always: true
 
 parameters:
   - name: deployToDevelopmentEnvironment
