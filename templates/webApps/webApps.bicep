@@ -76,7 +76,7 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' exis
 }
 
 // Create Web App
-module webApp 'br/avm:web/site:0.12.1' = [
+module webApp 'br/avm:web/site:0.19.3' = [
   for (app, i) in webAppNamesArray: {
     name: '${app.Name}-${deploymentDate}'
     params: {
@@ -84,29 +84,42 @@ module webApp 'br/avm:web/site:0.12.1' = [
       location: location
       kind: 'app,linux,container'
       serverFarmResourceId: resourceId('Microsoft.Web/serverfarms', app.ASP)
-      appInsightResourceId: appInsights.id
       siteConfig: union(siteConfig, {
         linuxFxVersion: filter(
           appVersionsArray,
           a => (toUpper(a.Name) == toUpper(app.Name)) && (a.Slot != true)
         )[0].LinuxFxVersion
       })
-      appSettingsKeyValuePairs: union(appSettingsKeyValuePairs[i], {
-        INSTRUMENTATION_KEY: appInsights.properties.InstrumentationKey
-      })
+      configs: [
+        {
+          name: 'appsettings'
+          properties: union(appSettingsKeyValuePairs[i], {
+            INSTRUMENTATION_KEY: appInsights.properties.InstrumentationKey
+            APPLICATIONINSIGHTS_CONNECTION_STRING: appInsights.properties.ConnectionString
+          })
+        }
+      ]
       slots: bool(slotsEnabled)
         ? [
             {
               name: 'staging'
-              appSettingsKeyValuePairs: union(
-                appSettingsKeyValuePairs[i],
-                appSettingsSlotKeyValuePairs[i],
+              configs: [
                 {
-                  INSTRUMENTATION_KEY: appInsights.properties.InstrumentationKey
+                  name: 'appsettings'
+                  properties: union(
+                    appSettingsKeyValuePairs[i],
+                    appSettingsSlotKeyValuePairs[i],
+                    {
+                      INSTRUMENTATION_KEY: appInsights.properties.InstrumentationKey
+                      APPLICATIONINSIGHTS_CONNECTION_STRING: appInsights.properties.ConnectionString
+                    }
+                  )
                 }
-              )
-              vnetRouteAllEnabled: true
-              vnetImagePullEnabled: true
+              ]
+              outboundVnetRouting: {
+                allTraffic: true
+                imagePullTraffic: true
+              }
               siteConfig: union(siteConfig, {
                 linuxFxVersion: filter(
                   appVersionsArray,
@@ -164,15 +177,17 @@ module webApp 'br/avm:web/site:0.12.1' = [
         : []
       publicNetworkAccess: (ephemeralFlag && bool(app.IsFrontEnd)) ? 'Enabled' : 'Disabled'
       httpsOnly: true
-      vnetImagePullEnabled: true
-      vnetRouteAllEnabled: true
-      vnetContentShareEnabled: false
+      outboundVnetRouting: {
+        imagePullTraffic: true
+        allTraffic: true
+        contentShareTraffic: false
+      }
       clientAffinityEnabled: false
       tags: union(WebAppdefaultTags, customTagsForWebApp[i])
       managedIdentities: {
         systemAssigned: true
       }
-      virtualNetworkSubnetId: resourceId(
+      virtualNetworkSubnetResourceId: resourceId(
         vnetResourceGroupName,
         'Microsoft.Network/virtualNetworks/subnets',
         vnetName,
