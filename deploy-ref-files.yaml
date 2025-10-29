@@ -1,13 +1,21 @@
 name: $(BuildID)
 
-# This template will copy all the Reference Data Files to the service/services chosen, and then restart the services.
-
 trigger: none
+
+pr: none
 
 parameters:
   - name: skipPRE1
     type: boolean
     default: false
+  - name: deployToDevelopmentEnvironment
+    displayName: "Deploy from Feature Branch"
+    type: boolean
+    default: true
+  - name: additionalRepositories
+    displayName: Additional repositories that needs reference in the process
+    type: object
+    default: []
 
 resources:
   repositories:
@@ -18,43 +26,68 @@ resources:
       ref: refs/heads/main
 
 extends:
-  template: /includes/scripts-deploy.yaml@MMOPipelineCommon
+  template: /includes/infra-deploy.yaml@MMOPipelineCommon
   parameters:
-    scriptsList:
-      - displayName: uploadFile commodity_code.txt to storage Account
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Add-FileToAzureStorageContainer.ps1"
-        ScriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'commoditycodedata' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/commodity_code.txt' -BlobName 'commodity_code.txt'
-      - displayName: uploadFile allSpecies.csv to storage Account
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Add-FileToAzureStorageContainer.ps1"
-        ScriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'allspecies' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/allSpecies.csv' -BlobName 'allSpecies.csv'
-      - displayName: uploadFile exporter_behaviour.csv to storage Account
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Add-FileToAzureStorageContainer.ps1"
-        ScriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'exporterbehaviour' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/exporter_behaviour.csv' -BlobName 'exporter_behaviour.csv'
-      - displayName: uploadFile speciesmismatch.json to storage Account
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Add-FileToAzureStorageContainer.ps1"
-        ScriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'speciesmismatch' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/speciesmismatch.json' -BlobName 'speciesmismatch.json'
-      - displayName: uploadFile conversionfactors.csv to storage Account
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Add-FileToAzureStorageContainer.ps1"
-        ScriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'conversionfactors' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/conversionfactors.csv' -BlobName 'conversionfactors.csv'
-      - displayName: uploadFile commodity_code_ps_sd.txt to storage Account
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Add-FileToAzureStorageContainer.ps1"
-        ScriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'commoditycodedata' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/commodity_code_ps_sd.txt' -BlobName 'commodity_code_ps_sd.txt'
-      - displayName: uploadFile seasonal_fish.csv to storage Account
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Add-FileToAzureStorageContainer.ps1"
-        ScriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'seasonalfish' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/seasonal_fish.csv' -BlobName 'seasonal_fish.csv'
-      - displayName: uploadFile geartypes.csv to storage Account
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Add-FileToAzureStorageContainer.ps1"
-        ScriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'geartype' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/geartypes.csv' -BlobName 'geartypes.csv'
-      - displayName: uploadFile catcharea-RFMOList.csv to storage Account
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/Add-FileToAzureStorageContainer.ps1"
-        ScriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'catcharea' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/RFMOList.csv' -BlobName 'RFMOList.csv'
-    skipPRE1: ${{ parameters.skipPRE1 }}
+    deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
+    deployToSecondaryRegion: false
+    additionalRepositories: 
+      - MMOPipelineCommon
+    groupedDeployments:
+      - name: Upload_Files_to_Storage_Account
+        timeoutInMinutes: 60
+        deployments:
+          - name: uploadFile_commodity_code.txt_to_storage_Account
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Add-FileToAzureStorageContainer.ps1"
+            scriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'commoditycodedata' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/commodity_code.txt' -BlobName 'commodity_code.txt'
+          - name: uploadFile_allSpecies.csv_to_storage_Account
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Add-FileToAzureStorageContainer.ps1"
+            scriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'allspecies' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/allSpecies.csv' -BlobName 'allSpecies.csv'
+          - name: uploadFile_exporter_behaviour.csv_to_storage_Account
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Add-FileToAzureStorageContainer.ps1"
+            scriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'exporterbehaviour' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/exporter_behaviour.csv' -BlobName 'exporter_behaviour.csv'
+          - name: uploadFile_speciesmismatch.json_to_storage_Account
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Add-FileToAzureStorageContainer.ps1"
+            scriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'speciesmismatch' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/speciesmismatch.json' -BlobName 'speciesmismatch.json'
+          - name: uploadFile_conversionfactors.csv_to_storage_Account
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Add-FileToAzureStorageContainer.ps1"
+            scriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'conversionfactors' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/conversionfactors.csv' -BlobName 'conversionfactors.csv'
+          - name: uploadFile_commodity_code_ps_sd.txt_to_storage_Account
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Add-FileToAzureStorageContainer.ps1"
+            scriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'commoditycodedata' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/commodity_code_ps_sd.txt' -BlobName 'commodity_code_ps_sd.txt'
+          - name: uploadFile_seasonal_fish.csv_to_storage_Account
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Add-FileToAzureStorageContainer.ps1"
+            scriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'seasonalfish' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/seasonal_fish.csv' -BlobName 'seasonal_fish.csv'
+          - name: uploadFile_geartypes.csv_to_storage_Account
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Add-FileToAzureStorageContainer.ps1"
+            scriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'geartype' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/geartypes.csv' -BlobName 'geartypes.csv'
+          - name: uploadFile_catcharea-RFMOList.csv_to_storage_Account
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Add-FileToAzureStorageContainer.ps1"
+            scriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'catcharea' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/RFMOList.csv' -BlobName 'RFMOList.csv'
+        skipPRE1: ${{ parameters.skipPRE1 }}

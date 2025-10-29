@@ -1,6 +1,8 @@
 name: $(BuildID)_${{ parameters.deployResources }}
 
-trigger:
+trigger: none
+
+pr:
   branches:
     include:
       - main
@@ -9,13 +11,13 @@ trigger:
       - "**/network/ssv5/**"
       - "**/containerRegistries/**"
 
-# schedules:
-#   - cron: "30 6 * * 1-5"
-#     displayName: Daily Deploy at 6:30 AM UTC
-#     branches:
-#       include:
-#         - main
-#     always: true
+schedules:
+  - cron: "30 6 * * 1-5"
+    displayName: Daily Deploy at 6:30 AM UTC
+    branches:
+      include:
+        - main
+    always: true
 
 parameters:
   - name: deployToDevelopmentEnvironment
@@ -60,9 +62,11 @@ extends:
   parameters:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: ${{ parameters.deployToSecondaryRegion }}
+    additionalRepositories:
+      - MMOPipelineCommon
     ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
       environments:
-        - name: SSV_PRE
+        - name: ssv_pre
           azureRegions:
             primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
           developmentEnvironment: true
@@ -70,8 +74,8 @@ extends:
           privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
           deploymentBranches:
             - "*"
-        - name: SSV_PRD
-          dependsOn: SSV_PRE
+        - name: ssv_prd
+          dependsOn: ssv_pre
           azureRegions:
             primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
           serviceConnection: AZR-MMO-SSV5
@@ -79,8 +83,8 @@ extends:
           deploymentBranches:
             - "*"
         - ${{ if eq(parameters.deployToSecondaryRegion, false) }}:
-            - name: SSV_PRE2
-              dependsOn: SSV_PRE
+            - name: ssv_pre2
+              dependsOn: ssv_pre
               azureRegions:
                 primary: UKSouth
               serviceConnection: AZR-MMO-SSV5
@@ -90,7 +94,7 @@ extends:
     ${{ else }}:
       environments:
         - ${{ if eq(parameters.deployToSecondaryRegion, false) }}:
-            - name: SSV_SND
+            - name: ssv_snd
               developmentEnvironment: true
               azureRegions:
                 primary: UKSouth
@@ -98,7 +102,7 @@ extends:
               privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
               deploymentBranches:
                 - "*"
-        - name: SSV_DEV
+        - name: ssv_dev
           azureRegions:
             primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
           developmentEnvironment: ${{ parameters.deployToSecondaryRegion }}
@@ -107,22 +111,23 @@ extends:
           deploymentBranches:
             - "*"
         - ${{ if eq(parameters.deployToSecondaryRegion, false) }}:
-            - name: SSV_TST
+            - name: ssv_tst
               azureRegions:
                 primary: UKSouth
-              dependsOn: SSV_SND
+              dependsOn: ssv_snd
               serviceConnection: AZR-MMO-SSV5
               privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
               deploymentBranches:
                 - "refs/heads/main"
-    groupedTemplates:
+    groupedDeployments:
       - name: SSV5
-        deploymentTimeoutInMinutes: 60
-        templates:
+        timeoutInMinutes: 60
+        deployments:
           - ${{ if eq(variables.IsNetwork, true) }}:
               - name: network
-                path: templates/network/ssv5
+                path: templates/network
                 type: bicep
+                parameterFilePath: templates/network/ssv5
                 scope: "Resource Group"
                 resourceGroupName: $(environmentName)$(nc-deptService)$(nc-function-network)$(nc-resource-resourcegroup)$(nc-region-id)01
           - ${{ if and(eq(parameters.deployToSecondaryRegion, false), eq(variables.IsContainerRegistry, true)) }}:

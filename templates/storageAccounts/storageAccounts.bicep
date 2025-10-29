@@ -228,11 +228,3 @@ module storageAccount 'br/avm:storage/storage-account:0.27.1' = [
     }
   }
 ]
-
-// Output the storage account name and resource IDs for use in other modules
-output storageAccounts array = [
-  for (strAcc, i) in strAccArray: {
-    name: strAcc.Name
-    resourceId: storageAccount[i].outputs.resourceId
-  }
-]

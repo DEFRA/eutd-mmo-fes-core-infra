@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment": {
+      "value": "#{{ environment }}"
+    },
+    "aspNames": {
+      "value": "#{{ aspNames }}"
+    },
+    "logAnalyticsWorkspace": {
+      "value": "#{{ logAnalyticsWorkspace }}"
+    },
+    "resourceGroupName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}02"
+    },
+    "skuCapacity": {
+      "value": "#{{ aspSkuCapacity }}"
+    },
+    "zoneRedundant": {
+      "value": "#{{ aspZoneRedundant }}"
+    },
+    "ephemeral": {
+      "value": "#{{ ephemeral }}"
+    }
+  }
+}

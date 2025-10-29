@@ -2,10 +2,26 @@ name: $(BuildID)
 
 trigger: none
 
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - "**/monitoring/**"
+
 parameters:
   - name: skipPRE1
     type: boolean
     default: false
+  - name: deployToDevelopmentEnvironment
+    displayName: "Deploy from Feature Branch"
+    type: boolean
+    default: true
+  - name: additionalRepositories
+    displayName: Additional repositories that needs reference in the process
+    type: object
+    default: []
 
 resources:
   repositories:
@@ -16,16 +32,24 @@ resources:
       ref: refs/heads/main
 
 extends:
-  template: /includes/scripts-deploy.yaml@MMOPipelineCommon
+  template: /includes/infra-deploy.yaml@MMOPipelineCommon
   parameters:
-    scriptsList:
-      - displayName: "Create Azure Metric Alerts"
-        scriptRepo: MMOPipelineCommon
-        scriptPath: "scripts/CreateMetricAlertFunctions.ps1"
-        scriptArguments: >-
-          -manifestFilePath "./templates/monitoring/monitoring.json"
-        type: AzurePowerShell
-        failOnStandardError: true
-        filePathsForTransform:
-          - /templates/monitoring/monitoring.json
-    skipPRE1: ${{ parameters.skipPRE1 }}
+    deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
+    deployToSecondaryRegion: false
+    additionalRepositories:
+      - MMOPipelineCommon
+    filePathsForTransform: |
+      **/templates/monitoring/monitoring.json
+    groupedDeployments:
+      - name: Azure_Metric_Alerts
+        timeoutInMinutes: 60
+        deployments:
+          - name: "Create_Azure_Metric_Alerts"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/CreateMetricAlertFunctions.ps1"
+            scriptArguments: >-
+              -manifestFilePath "$(Pipeline.Workspace)/s/self/templates/monitoring/monitoring.json"
+            failOnStandardError: true
+        skipPRE1: ${{ parameters.skipPRE1 }}

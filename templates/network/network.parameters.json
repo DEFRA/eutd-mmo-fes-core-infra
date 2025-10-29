@@ -1,0 +1,104 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vnetName": {
+      "value": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-virtualnetwork }}#{{ nc-region-id }}01"
+    },
+    "addressPrefixes": {
+      "value": [
+        "#{{ vnetRange }}"
+      ]
+    },
+    "environment": {
+      "value": "#{{ environmentName }}"
+    },
+    "subnets": {
+      "value": [
+        {
+          "name": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}01",
+          "addressPrefix": "#{{ subnet01Range }}",
+          "delegation": "Microsoft.Web/serverFarms"
+        },
+        {
+          "name": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}02",
+          "addressPrefix": "#{{ subnet02Range }}",
+          "delegation": "Microsoft.Web/serverFarms"
+        },
+        {
+          "name": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}03",
+          "addressPrefix": "#{{ subnet03Range }}",
+          "delegation": "Microsoft.Web/serverFarms"
+        },
+        {
+          "name": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}04",
+          "addressPrefix": "#{{ subnet04Range }}",
+          "delegation": "Microsoft.Web/serverFarms"
+        },
+        {
+          "name": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}05",
+          "addressPrefix": "#{{ subnet05Range }}",
+          "delegation": "Microsoft.Web/serverFarms"
+        },
+        {
+          "name": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}06",
+          "addressPrefix": "#{{ subnet06Range }}",
+          "delegation": ""
+        },
+        {
+          "name": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}#{{ nc-region-id }}07",
+          "addressPrefix": "#{{ subnet07Range }}",
+          "delegation": "Microsoft.Web/serverFarms"
+        }
+      ]
+    },
+    "dnsServers": {
+      "value": "#{{ dnsServers }}"
+    },
+    "customTags": {
+      "value": {
+        "Name": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-virtualnetwork }}#{{ nc-region-id }}01",
+        "Purpose": "#{{ #{{ nc-deptService }} }}-VNet"
+      }
+    },
+    "routeTableObject": {
+      "value": {
+        "name": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-routetable }}#{{ nc-region-id }}01",
+        "routes": [],
+        "customTags": {
+          "Name": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-routetable }}#{{ nc-region-id }}01",
+          "Purpose": "#{{ #{{ nc-deptService }} }}-RouteTable"
+        }
+      }
+    },
+    "routeTableRoutes": {
+      "value": "#{{ networkRouteTableRoutes }}"
+    },
+    "nsgObject": {
+      "value": {
+        "name": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-nsg }}#{{ nc-region-id }}01",
+        "rules": [],
+        "customTags": {
+          "Name": "#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-nsg }}#{{ nc-region-id }}01",
+          "Purpose": "#{{ #{{ nc-deptService }} }}-Networksecurity"
+        }
+      }
+    },
+    "nsgRules": {
+      "value": "#{{ networkNsgRules }}"
+    },
+    "serviceEndpoints": {
+      "value": [
+        "Microsoft.ContainerRegistry",
+        "Microsoft.AzureActiveDirectory",
+        "Microsoft.KeyVault",
+        "Microsoft.ServiceBus",
+        "Microsoft.Sql",
+        "Microsoft.AzureCosmosDB",
+        "Microsoft.Storage",
+        "Microsoft.Web",
+        "Microsoft.EventHub"
+      ]
+    }
+  }
+}

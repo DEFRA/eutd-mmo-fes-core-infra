@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "webAppNames": {
+      "value": "#{{ webAppNames }}"
+    },
+    "webAppResourceGroupName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}01"
+    },
+    "keyVaultName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-keyvault }}#{{ nc-static-res-region-id }}01"
+    },
+    "functionAppName": {
+      "value": "#{{ functionAppName }}"
+    },
+    "slotsEnabled": {
+      "value": "#{{ slotsEnabled }}"
+    }
+  }
+}

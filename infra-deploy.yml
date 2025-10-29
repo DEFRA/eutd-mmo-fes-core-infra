@@ -1,6 +1,8 @@
 name: $(BuildID)_${{ parameters.deployResources }}
 
-trigger:
+trigger: none 
+
+pr:
   branches:
     include:
       - "main"
@@ -8,15 +10,15 @@ trigger:
     exclude:
       - "**/network/ssv5/**"
       - "**/containerRegistries/**"
+      - "**/monitoring/**"
 
-# Schedule configuration
-# schedules:
-#   - cron: "0 6 * * 1-5"
-#     displayName: Daily Deploy at 6:00 AM UTC
-#     branches:
-#       include:
-#         - main
-#     always: true
+schedules:
+  - cron: "0 6 * * 1-5"
+    displayName: Daily Deploy at 6:00 AM UTC
+    branches:
+      include:
+        - main
+    always: true
 
 parameters:
   - name: deployToDevelopmentEnvironment
@@ -111,8 +113,8 @@ extends:
     deployToSecondaryRegion: false
     groupedDeployments:
       - name: infraResource
-        deploymentTimeoutInMinutes: 60
-        templates:
+        timeoutInMinutes: 60
+        deployments:
           - ${{ if eq(variables.IsNetwork, true) }}:
               - name: network
                 path: templates/network
@@ -442,3 +444,5 @@ extends:
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
     skipPRE1: ${{ parameters.skipPRE1 }}
+    additionalRepositories:
+      - MMOPipelineCommon

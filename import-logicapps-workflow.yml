@@ -1,0 +1,55 @@
+name: $(BuildID)
+
+trigger: none
+
+pr: none
+
+schedules:
+  - cron: "30 6 * * 1-5"
+    displayName: Daily Deploy at 6:30 AM UTC
+    branches:
+      include:
+        - main
+    always: true
+
+parameters:
+  - name: deployToDevelopmentEnvironment
+    displayName: "Deploy from Feature Branch"
+    type: boolean
+    default: true
+  - name: additionalRepositories
+    displayName: Additional repositories that needs reference in the process
+    type: object
+    default: []
+
+resources:
+  repositories:
+    - repository: MMOPipelineCommon
+      name: "DEFRA/eutd-mmo-fes-pipeline-common"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+
+extends:
+  template: /includes/infra-deploy.yaml@MMOPipelineCommon
+  parameters:
+    deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
+    deployToSecondaryRegion: false
+    additionalRepositories: 
+      - MMOPipelineCommon
+    groupedDeployments:
+      - name: Import_LogicApps_Workflows
+        timeoutInMinutes: 60
+        deployments:
+          - name: "Import_Reference_LogicApps_Workflow"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "/scripts/Import-Workflows.ps1"
+            scriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
+          - name: "Import_Processor_LogicApps_Workflow"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "/scripts/Import-Workflows.ps1"
+            scriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
