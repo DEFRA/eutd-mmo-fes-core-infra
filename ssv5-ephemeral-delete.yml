@@ -2,14 +2,14 @@ name: $(BuildID)
 
 trigger: none
 
-# Schedule configuration
+pr: none
+
 schedules:
-  - cron: "15 17 * * 1-5"
+  - cron: "0 19 * * 1-5"
     displayName: Daily Delete at 7:00 PM UTC
     branches:
       include:
-        # - main
-        - refs/heads/feature/pipeline-paths-fix
+        - main
     always: true
 
 parameters:
@@ -31,7 +31,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: refs/heads/feature/pipeline-paths-fix
+      ref: refs/heads/main
 
 extends:
   template: /includes/infra-deploy.yaml@MMOPipelineCommon

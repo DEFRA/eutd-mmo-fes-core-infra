@@ -2,6 +2,8 @@ name: $(BuildID)_${{ parameters.deployResources }}
 
 trigger: none
 
+pr: none
+
 parameters:
   - name: deployToDevelopmentEnvironment
     displayName: "Deploy from Feature Branch"

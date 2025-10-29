@@ -2,6 +2,14 @@ name: $(BuildID)
 
 trigger: none
 
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - "**/monitoring/**"
+
 parameters:
   - name: skipPRE1
     type: boolean
@@ -21,7 +29,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: refs/heads/feature/pipeline-paths-fix
+      ref: refs/heads/main
 
 extends:
   template: /includes/infra-deploy.yaml@MMOPipelineCommon
@@ -31,7 +39,7 @@ extends:
     additionalRepositories:
       - MMOPipelineCommon
     filePathsForTransform: |
-      **/templates/monitoring/monitoring.json  
+      **/templates/monitoring/monitoring.json
     groupedDeployments:
       - name: Azure_Metric_Alerts
         timeoutInMinutes: 60
@@ -43,5 +51,5 @@ extends:
             path: "scripts/CreateMetricAlertFunctions.ps1"
             scriptArguments: >-
               -manifestFilePath "$(Pipeline.Workspace)/s/self/templates/monitoring/monitoring.json"
-            failOnStandardError: true            
+            failOnStandardError: true
         skipPRE1: ${{ parameters.skipPRE1 }}

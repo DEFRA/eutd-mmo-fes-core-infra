@@ -1,8 +1,8 @@
 name: $(BuildID)
 
-# This template will copy all the Reference Data Files to the service/services chosen, and then restart the services.
-
 trigger: none
+
+pr: none
 
 parameters:
   - name: skipPRE1
@@ -23,7 +23,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: refs/heads/feature/pipeline-paths-fix
+      ref: refs/heads/main
 
 extends:
   template: /includes/infra-deploy.yaml@MMOPipelineCommon
