@@ -11,6 +11,7 @@ pr:
       - "**/network/ssv5/**"
       - "**/containerRegistries/**"
       - "**/monitoring/**"
+      - ".github/**"
 
 schedules:
   - cron: "0 6 * * 1-5"
