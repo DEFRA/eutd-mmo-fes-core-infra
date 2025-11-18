@@ -295,5 +295,6 @@ Handled via `deploy-ref-files.yaml` pipeline which pushes curated CSV / JSON to 
 - Azure CLI (latest)
 - Logged into correct subscription + tenant (`az account show`)
 - (Optional) PSRule for Azure / ARM Analyzer for policy alignment
-
+- VSCode Extensions for MCP - Azure MCP Server, Microsoft Learn, Azure DevOps
+  
 ---
