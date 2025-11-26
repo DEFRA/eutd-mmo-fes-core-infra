@@ -227,12 +227,14 @@ extends:
                     ScriptArguments: >
                       -UpdateAllDnsZones $true
                   - displayName: Create database collection in '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
-                    condition: and(succeeded(), eq(variables['cosmosVcore'], 'true'))
+                    condition: succeeded()
                     scriptRepo: MMOPipelineCommon
                     scriptPath: "scripts/New-CosmosMongoDatabase.ps1"
                     ScriptArguments: >
                       -KeyVaultName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01'
                       -DbCollectionsJson '$(cosmosDbCollections)'
+                      -UserName '$(cosmosReadOnlyUsername)'
+                      -cosmosVcore '$(cosmosVcore)'
                   - displayName: Ensure failback to original primary cluster
                     scriptRepo: MMOPipelineCommon
                     scriptPath: "scripts/Switch-CosmosToSecondary.ps1"

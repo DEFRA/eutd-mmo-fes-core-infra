@@ -92,7 +92,7 @@
     "vCoreStorageSizeInGB": {
       "value": "#{{ cosmosVcoreStorageSizeInGB}}"
     },
-    "exportCertMongoDbCollection": {
+    "cosmosMongoDbCollections": {
       "value": "#{{ cosmosDbCollections }}"
     },
     "cosmosAdminPassword": {

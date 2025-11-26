@@ -20,7 +20,7 @@ param cosmosMultiRegionWrite bool
 param databaseAccountOfferType string
 param defaultConsistencyLevel string
 param cosmosReadOnlyLocation string
-param exportCertMongoDbCollection object
+param cosmosMongoDbCollections object
 param isServerless string
 param isPrimaryZoneRedundant string
 param isSecondaryZoneRedundant string
@@ -57,6 +57,7 @@ var secondaryLocation = [
 var capabilites = [
   'EnableMongo'
   'DisableRateLimitingResponses'
+  'EnableUniqueCompoundNestedDocs'
 ]
 
 var defaultTags = {
@@ -114,94 +115,131 @@ module secondaryRegionRG 'br/avm:resources/resource-group:0.4.1' = if (isGeoRedu
   }
 }
 
-module cosmosDbThroughput 'br/avm:document-db/database-account:0.15.0' = if (!isCosmosVcore) {
-  name: '${toLower(cosmosDBName)}-${deploymentDate}'
-  params: {
-    name: toLower(cosmosDBName)
-    location: location
-    tags: union(defaultTags, customTags)
-    automaticFailover: true
+// UNABLE TO ADD CERTAIN CAPABILITIES VIA AVM. SO USING BICEP
+resource cosmosDbThroughputAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = if (!isCosmosVcore) {
+  name: toLower(cosmosDBName)
+  location: location
+  tags: union(defaultTags, customTags)
+  kind: 'MongoDB'
+  properties: {
     databaseAccountOfferType: databaseAccountOfferType
-    capabilitiesToAdd: bool(isCosmosServerless)
-      ? union(capabilites, ['EnableServerless'])
-      : capabilites
-    defaultConsistencyLevel: defaultConsistencyLevel
-    serverVersion: serverVersion
+    enableAutomaticFailover: true
     enableMultipleWriteLocations: cosmosMultiRegionWrite
-    failoverLocations: isGeoRedundant ? union(primaryLocation, secondaryLocation) : primaryLocation
-    mongodbDatabases: [
-      {
-        name: exportCertMongoDbCollection.name
-        collections: []
-      }
-    ]
-    zoneRedundant: bool(isPrimaryZoneRedundant)
-    backupPolicyType: 'Periodic'
-    backupRetentionIntervalInHours: 8
-    backupIntervalInMinutes: 240
-    backupStorageRedundancy: isGeoRedundant == 'true'
-      ? 'Geo'
-      : (isPrimaryZoneRedundant == 'true' ? 'Zone' : 'Local')
-    networkRestrictions: {
-      publicNetworkAccess: 'Disabled'
+    publicNetworkAccess: 'Disabled'
+    consistencyPolicy: {
+      defaultConsistencyLevel: defaultConsistencyLevel
     }
-    privateEndpoints: [
-      {
-        name: toUpper('${cosmosDBName}-PE')
-        service: 'MongoDB'
-        privateDnsZoneGroup: {
-          privateDnsZoneGroupConfigs: [
-            {
-              privateDnsZoneResourceId: ukSouthDnsZoneId
-              name: 'uks-privatelink-mongodb'
-            }
-            {
-              privateDnsZoneResourceId: northEuDnsZoneId
-              name: 'neu-privatelink-mongodb'
-            }
-            {
-              privateDnsZoneResourceId: westEuDnsZoneId
-              name: 'weu-privatelink-mongodb'
-            }
-            {
-              privateDnsZoneResourceId: ukWestDnsZoneId
-              name: 'ukw-privatelink-mongodb'
-            }
-          ]
-        }
-        subnetResourceId: vnet::subnet.id
-        tags: privateEndpointTags
+    apiProperties: {
+      serverVersion: serverVersion
+    }
+    capabilities: [
+      for c in (bool(isCosmosServerless) ? union(capabilites, ['EnableServerless']) : capabilites): {
+        name: c
       }
     ]
-    diagnosticSettings: [
+    locations: [
+      for loc in (isGeoRedundant ? union(primaryLocation, secondaryLocation) : primaryLocation): {
+        locationName: loc.locationName
+        failoverPriority: loc.failoverPriority
+        isZoneRedundant: loc.isZoneRedundant
+      }
+    ]
+    backupPolicy: {
+      type: 'Periodic'
+      periodicModeProperties: {
+        backupIntervalInMinutes: 240
+        backupRetentionIntervalInHours: 8
+        backupStorageRedundancy: isGeoRedundant == 'true'
+          ? 'Geo'
+          : (isPrimaryZoneRedundant == 'true' ? 'Zone' : 'Local')
+      }
+    }
+  }
+}
+
+resource exportCertMongoDbDatabase 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@2024-11-15' = if (!isCosmosVcore) {
+  name: cosmosMongoDbCollections.name
+  parent: cosmosDbThroughputAccount
+  properties: {
+    resource: {
+      id: cosmosMongoDbCollections.name
+    }
+    options: {}
+  }
+}
+
+resource privateEndpointCosmosThroughput 'Microsoft.Network/privateEndpoints@2024-03-01' = if (!isCosmosVcore) {
+  name: '${toUpper(cosmosDBName)}-PE'
+  location: location
+  tags: privateEndpointTags
+  properties: {
+    subnet: {
+      id: vnet::subnet.id
+    }
+    privateLinkServiceConnections: [
       {
-        name: '${toLower(cosmosDBName)}-diagnosticSettings'
-        metricCategories: [
-          {
-            category: 'AllMetrics'
-            enabled: true
-          }
-        ]
-        logCategoriesAndGroups: [
-          {
-            categoryGroup: 'allLogs'
-            enabled: true
-          }
-        ]
-        workspaceResourceId: logAnalytics.id
+        name: '${toUpper(cosmosDBName)}-MongoDB-0'
+        properties: {
+          privateLinkServiceId: cosmosDbThroughputAccount.id
+          groupIds: [ 'MongoDB' ]
+        }
       }
     ]
   }
+  resource privateDnsZoneGroupsCosmosThroughput 'privateDnsZoneGroups@2024-03-01' = {
+    name: 'default'
+    properties: {
+      privateDnsZoneConfigs: [
+        {
+          name: 'uks-privatelink-mongodb'
+          properties: { privateDnsZoneId: ukSouthDnsZoneId }
+        }
+        {
+          name: 'neu-privatelink-mongodb'
+          properties: { privateDnsZoneId: northEuDnsZoneId }
+        }
+        {
+          name: 'weu-privatelink-mongodb'
+          properties: { privateDnsZoneId: westEuDnsZoneId }
+        }
+        {
+          name: 'ukw-privatelink-mongodb'
+          properties: { privateDnsZoneId: ukWestDnsZoneId }
+        }
+      ]
+    }
+  }
+}
+
+// Diagnostic settings for throughput account
+resource cosmosThroughputDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!isCosmosVcore) {
+  name: '${toLower(cosmosDBName)}-diagnosticSettings'
+  properties: {
+    workspaceId: logAnalytics.id
+    logs: [
+      {
+        enabled: true
+        categoryGroup: 'allLogs'
+      }
+    ]
+    metrics: [
+      {
+        enabled: true
+        category: 'AllMetrics'
+      }
+    ]
+  }
+  scope: cosmosDbThroughputAccount
 }
 
 @batchSize(4)
 resource exportCertMongoDbCollections 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases/collections@2024-11-15' = [
-  for item in exportCertMongoDbCollection.collections: if (!isCosmosVcore) {
-    name: '${toLower(cosmosDBName)}/mmo_exportcert/${item.name}'
+  for item in cosmosMongoDbCollections.collections: if (!isCosmosVcore) {
+    name: item.name
+    parent: exportCertMongoDbDatabase
     properties: {
       resource: {
         id: item.name
-        indexes: item.indexes
         shardKey: {
           _id: 'Hash'
         }
@@ -214,7 +252,6 @@ resource exportCertMongoDbCollections 'Microsoft.DocumentDB/databaseAccounts/mon
             }
           }
     }
-    dependsOn: [cosmosDbThroughput]
   }
 ]
 

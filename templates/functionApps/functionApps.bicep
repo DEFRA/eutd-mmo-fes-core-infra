@@ -59,7 +59,7 @@ var siteConfig = {
   acrUseManagedIdentityCreds: true
   http20Enabled: true
   ftpsState: 'Disabled'
-  minTlsVersion: '1.2'
+  minTlsVersion: '1.3'
 }
 
 resource vnet 'Microsoft.Network/virtualNetworks@2021-02-01' existing = {

@@ -19,7 +19,7 @@ param cosmosMultiRegionWrite bool
 param databaseAccountOfferType string
 param defaultConsistencyLevel string
 param cosmosReadOnlyLocation string
-param exportCertMongoDbCollection string
+param cosmosMongoDbCollections string
 param isServerless string
 param keyVaultName string
 param cosmosDbWriteConnStringSecretName string
@@ -41,7 +41,7 @@ param vCoreTier string
 param vCoreZoneRedundancy string
 param vCoreStorageSizeInGB string
 
-var exportCertMongoDbCollectionObj = json(exportCertMongoDbCollection)
+var cosmosMongoDbCollectionsObj = json(cosmosMongoDbCollections)
 var geoReplicaExistsBool = empty(geoReplicaExists) ? false : bool(geoReplicaExists)
 var validatedvCoreStorageSizeInGB = empty(vCoreStorageSizeInGB) ? 0 : int(vCoreStorageSizeInGB)
 var geoRedundantBool = empty(isGeoRedundant) ? false : bool(isGeoRedundant)
@@ -69,7 +69,7 @@ module cosmosDb '.bicep/cosmos.bicep' = {
     databaseAccountOfferType: databaseAccountOfferType
     defaultConsistencyLevel: defaultConsistencyLevel
     cosmosReadOnlyLocation: cosmosReadOnlyLocation
-    exportCertMongoDbCollection: exportCertMongoDbCollectionObj
+    cosmosMongoDbCollections: cosmosMongoDbCollectionsObj
     isServerless: isServerless
     isPrimaryZoneRedundant: isPrimaryZoneRedundant
     isSecondaryZoneRedundant: isSecondaryZoneRedundant
