@@ -99,7 +99,7 @@
         },
         {
           "INSTRUMENTATION_CLOUD_ROLE": "#{{ repoName6 }}-staging",
-          "WEBSITE_NAME": "#{{ ENVIRONMENT }}-#{{ REPONAME5 }}-#{{ NC-RESOURCE-WEBAPP }}-staging",
+          "WEBSITE_NAME": "#{{ ENVIRONMENT }}-#{{ REPONAME6 }}-#{{ NC-RESOURCE-WEBAPP }}-staging",
           "EXTERNAL_APP_URL": "#{{ externalFrontendStgBaseUrl }}",
           "INTERNAL_ADMIN_URL": "#{{ internalAdminFrontendStgBaseUrl }}"
         }
