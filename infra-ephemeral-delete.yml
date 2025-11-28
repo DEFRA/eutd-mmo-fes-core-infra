@@ -64,17 +64,17 @@ extends:
             path: "scripts/Export-Workflows.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "DEV-MMO-FES-BATCH-DATA-PROCESS-WA" -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
-          - name: "Export_Web_Apps_Variables"
-            scriptRepo: MMOPipelineCommon
-            type: inlineScript
-            scriptType: AzurePowerShell
-            condition: and(succeeded(), eq(variables['ephemeral'], true))
-            inlineScript: |
-              '$(webAppNames)' | ConvertFrom-Json | ForEach-Object {
-              $scriptRoot = "$(System.DefaultWorkingDirectory)/MMOPipelineCommon/scripts"
-              $exportWorkflowsScript = Join-Path $scriptRoot 'Export-Workflows.ps1'
-                & $exportWorkflowsScript -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName $_.Name -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
-              }
+          # - name: "Export_Web_Apps_Variables"
+          #   scriptRepo: MMOPipelineCommon
+          #   type: inlineScript
+          #   scriptType: AzurePowerShell
+          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
+          #   inlineScript: |
+          #     '$(webAppNames)' | ConvertFrom-Json | ForEach-Object {
+          #     $scriptRoot = "$(System.DefaultWorkingDirectory)/MMOPipelineCommon/scripts"
+          #     $exportWorkflowsScript = Join-Path $scriptRoot 'Export-Workflows.ps1'
+          #       & $exportWorkflowsScript -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName $_.Name -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
+          #     }
           # - name: "Export Function Apps Variables"
           #   scriptRepo: MMOPipelineCommon
           #   condition: and(succeeded(), eq(variables['ephemeral'], true))
