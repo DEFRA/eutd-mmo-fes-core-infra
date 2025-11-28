@@ -63,7 +63,7 @@ extends:
             scriptType: AzurePowerShell
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             path: "scripts/Export-Workflows.ps1"
-            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -StorageAccountName "$(storageAccountName)" -WebAppNamesJson '$(webAppNames)' -EnvironmentVariablesOnly -ContainerName "apps"
+            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(webAppNames)" -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
           # - name: "Export_Web_Apps_Variables"
           #   scriptRepo: MMOPipelineCommon
           #   type: inlineScript
