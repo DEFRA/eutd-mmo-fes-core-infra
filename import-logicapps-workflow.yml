@@ -56,14 +56,14 @@ extends:
             path: "/scripts/Import-Workflows.ps1"
             scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
           - name: "Import Web Apps Variables" 
-            scriptRepo: MMOPipelineCommon
-            inlineScript: |
-              '$(webAppNames)' | ConvertFrom-Json | ForEach-Object {
-                & "$(System.DefaultWorkingDirectory)/MMOPipelineCommon/scripts/Import-Workflows.ps1" -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName $_.Name -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
-              }
+            scriptRepo: self
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Invoke-Import-WebApps.ps1"
+            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -StorageAccountName "$(storageAccountName)" -WebAppNamesJson '$(webAppNames)'
           - name: "Import Function Apps Variables"
-            scriptRepo: MMOPipelineCommon
-            inlineScript: |
-              '$(functionApps)' | ConvertFrom-Json | ForEach-Object {
-                & "$(System.DefaultWorkingDirectory)/MMOPipelineCommon/scripts/Import-Workflows.ps1" -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName $_.Name -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
-              }
+            scriptRepo: self
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Invoke-Import-WebApps.ps1"
+            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -StorageAccountName "$(storageAccountName)" -WebAppNamesJson '$(functionApps)'

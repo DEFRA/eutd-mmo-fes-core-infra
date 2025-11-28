@@ -59,24 +59,11 @@ extends:
             scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
           - name: "Export_Web_Apps"
             scriptRepo: MMOPipelineCommon
-            type: inlineScript
+            type: script
             scriptType: AzurePowerShell
             condition: and(succeeded(), eq(variables['ephemeral'], true))
-            inlineScript: |
-              $scriptRoot = "$(System.DefaultWorkingDirectory)/MMOPipelineCommon/scripts"
-              $exportWorkflowsScript = Join-Path $scriptRoot 'Export-Workflows.ps1'
-              $appsJson = '$(webAppNames)'
-              if ([string]::IsNullOrWhiteSpace($appsJson)) { Write-Error 'webAppNames variable is empty or not set.'; exit 1 }
-              $apps = $appsJson | ConvertFrom-Json
-              if (-not $apps) { Write-Error 'webAppNames JSON did not deserialize to any items.'; exit 1 }
-              Write-Host "Exporting environment variables for $($apps.Count) web apps..."
-              foreach ($app in $apps) {
-                $appName = $app.Name
-                if ([string]::IsNullOrWhiteSpace($appName)) { Write-Warning 'Encountered app entry without Name property. Skipping.'; continue }
-                Write-Host "Exporting variables for web app: $appName"
-                & $exportWorkflowsScript -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName $appName -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
-                if ($LASTEXITCODE -ne 0) { Write-Error "Export script failed for $appName"; exit $LASTEXITCODE }
-              }
+            path: "scripts/Invoke-Export-WebApps.ps1"
+            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -StorageAccountName "$(storageAccountName)" -WebAppNamesJson '$(webAppNames)'
           # - name: "Export_Web_Apps_Variables"
           #   scriptRepo: MMOPipelineCommon
           #   type: inlineScript
