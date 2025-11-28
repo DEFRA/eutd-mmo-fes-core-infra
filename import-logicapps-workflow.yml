@@ -28,7 +28,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: feature/apps-variables-export 
+      ref: refs/heads/feature/apps-variables-export 
 
 #refs/heads/main
 
