@@ -4,13 +4,13 @@ trigger: none
 
 pr: none
 
-schedules:
-  - cron: "30 19 * * 1-5"
-    displayName: Daily Delete at 7:30 PM UTC
-    branches:
-      include:
-        - main
-    always: true
+# schedules:
+#   - cron: "30 19 * * 1-5"
+#     displayName: Daily Delete at 7:30 PM UTC
+#     branches:
+#       include:
+#         - main
+#     always: true
 
 parameters:
   - name: deployToDevelopmentEnvironment
@@ -28,7 +28,9 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: refs/heads/main
+      ref: feature/apps-variables-export 
+
+# refs/heads/main
 
 extends:
   template: /includes/infra-deploy.yaml@MMOPipelineCommon
@@ -47,14 +49,28 @@ extends:
             scriptType: AzurePowerShell
             path: "scripts/Export-Workflows.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -LogicAppRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -LogicAppName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
+            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
           - name: "Export_Processor_LogicApps_Workflow"
             scriptRepo: MMOPipelineCommon
             type: script
             scriptType: AzurePowerShell
             path: "scripts/Export-Workflows.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -LogicAppRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -LogicAppName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
+            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
+          - name: "Export Web Apps Variables"
+            scriptRepo: MMOPipelineCommon
+            condition: and(succeeded(), eq(variables['ephemeral'], true))
+            inlineScript: |
+              '$(webAppNames)' | ConvertFrom-Json | ForEach-Object {
+                & "$(System.DefaultWorkingDirectory)/MMOPipelineCommon/scripts/Export-Workflows.ps1" -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName $_.Name -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
+              }
+          - name: "Export Function Apps Variables"
+            scriptRepo: MMOPipelineCommon
+            condition: and(succeeded(), eq(variables['ephemeral'], true))
+            inlineScript: |
+              '$(functionApps)' | ConvertFrom-Json | ForEach-Object {
+                & "$(System.DefaultWorkingDirectory)/MMOPipelineCommon/scripts/Export-Workflows.ps1" -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName $_.Name -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
+              }
           - name: "Remove_Access_Policies"
             scriptRepo: MMOPipelineCommon
             type: script

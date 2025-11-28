@@ -4,13 +4,13 @@ trigger: none
 
 pr: none
 
-schedules:
-  - cron: "30 6 * * 1-5"
-    displayName: Daily Deploy at 6:30 AM UTC
-    branches:
-      include:
-        - main
-    always: true
+# schedules:
+#   - cron: "30 6 * * 1-5"
+#     displayName: Daily Deploy at 6:30 AM UTC
+#     branches:
+#       include:
+#         - main
+#     always: true
 
 parameters:
   - name: deployToDevelopmentEnvironment
@@ -28,7 +28,9 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: refs/heads/main
+      ref: feature/apps-variables-export 
+
+#refs/heads/main
 
 extends:
   template: /includes/infra-deploy.yaml@MMOPipelineCommon
@@ -46,10 +48,22 @@ extends:
             type: script
             scriptType: AzurePowerShell
             path: "/scripts/Import-Workflows.ps1"
-            scriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
+            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
           - name: "Import_Processor_LogicApps_Workflow"
             scriptRepo: MMOPipelineCommon
             type: script
             scriptType: AzurePowerShell
             path: "/scripts/Import-Workflows.ps1"
-            scriptArguments: -LogicAppRG "$(resourceGroupName)" -storageAccountRGName "$(storageAccountRGName)" -LogicAppName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
+            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
+          - name: "Import Web Apps Variables" 
+            scriptRepo: MMOPipelineCommon
+            inlineScript: |
+              '$(webAppNames)' | ConvertFrom-Json | ForEach-Object {
+                & "$(System.DefaultWorkingDirectory)/MMOPipelineCommon/scripts/Import-Workflows.ps1" -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName $_.Name -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
+              }
+          - name: "Import Function Apps Variables"
+            scriptRepo: MMOPipelineCommon
+            inlineScript: |
+              '$(functionApps)' | ConvertFrom-Json | ForEach-Object {
+                & "$(System.DefaultWorkingDirectory)/MMOPipelineCommon/scripts/Import-Workflows.ps1" -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName $_.Name -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
+              }
