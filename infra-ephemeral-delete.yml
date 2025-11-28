@@ -59,11 +59,24 @@ extends:
             scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
           - name: "Export_Web_Apps"
             scriptRepo: MMOPipelineCommon
-            type: script
+            type: inlineScript
             scriptType: AzurePowerShell
-            path: "scripts/Export-Workflows.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "DEV-MMO-FES-BATCH-DATA-PROCESS-WA" -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
+            inlineScript: |
+              $scriptRoot = "$(System.DefaultWorkingDirectory)/MMOPipelineCommon/scripts"
+              $exportWorkflowsScript = Join-Path $scriptRoot 'Export-Workflows.ps1'
+              $appsJson = '$(webAppNames)'
+              if ([string]::IsNullOrWhiteSpace($appsJson)) { Write-Error 'webAppNames variable is empty or not set.'; exit 1 }
+              $apps = $appsJson | ConvertFrom-Json
+              if (-not $apps) { Write-Error 'webAppNames JSON did not deserialize to any items.'; exit 1 }
+              Write-Host "Exporting environment variables for $($apps.Count) web apps..."
+              foreach ($app in $apps) {
+                $appName = $app.Name
+                if ([string]::IsNullOrWhiteSpace($appName)) { Write-Warning 'Encountered app entry without Name property. Skipping.'; continue }
+                Write-Host "Exporting variables for web app: $appName"
+                & $exportWorkflowsScript -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName $appName -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
+                if ($LASTEXITCODE -ne 0) { Write-Error "Export script failed for $appName"; exit $LASTEXITCODE }
+              }
           # - name: "Export_Web_Apps_Variables"
           #   scriptRepo: MMOPipelineCommon
           #   type: inlineScript
