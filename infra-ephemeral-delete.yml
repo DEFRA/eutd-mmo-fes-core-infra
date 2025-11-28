@@ -57,13 +57,15 @@ extends:
             path: "scripts/Export-Workflows.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
-          # - name: "Export Web Apps Variables"
-          #   scriptRepo: MMOPipelineCommon
-          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
-          #   inlineScript: |
-          #     '$(webAppNames)' | ConvertFrom-Json | ForEach-Object {
-          #       & "$(System.DefaultWorkingDirectory)/MMOPipelineCommon/scripts/Export-Workflows.ps1" -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName $_.Name -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
-          #     }
+          - name: "Export Web Apps Variables"
+            scriptRepo: MMOPipelineCommon
+            type: inlineScript
+            scriptType: AzurePowerShell
+            condition: and(succeeded(), eq(variables['ephemeral'], true))
+            inlineScript: |
+              '$(webAppNames)' | ConvertFrom-Json | ForEach-Object {
+                & "$(System.DefaultWorkingDirectory)/MMOPipelineCommon/scripts/Export-Workflows.ps1" -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName $_.Name -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
+              }
           # - name: "Export Function Apps Variables"
           #   scriptRepo: MMOPipelineCommon
           #   condition: and(succeeded(), eq(variables['ephemeral'], true))
