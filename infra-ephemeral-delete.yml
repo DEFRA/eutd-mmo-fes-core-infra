@@ -64,12 +64,12 @@ extends:
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             path: "scripts/Export-Workflows.ps1"
             scriptArguments: >
-              -AppsRG "$(resourceGroupName)" 
-              -StorageRG "$(storageAccountRGName)" 
-              -AppsName "$(webAppNames)" 
-              -StorageAccountName "$(storageAccountName)" 
+              -AppsRG '$(resourceGroupName)' 
+              -StorageRG '$(storageAccountRGName)' 
+              -AppsName '$(webAppNames)' 
+              -StorageAccountName '$(storageAccountName)' 
               -EnvironmentVariablesOnly $true 
-              -ContainerName "apps"
+              -ContainerName 'apps'
           # - name: "Export_Web_Apps_Variables"
           #   scriptRepo: MMOPipelineCommon
           #   type: inlineScript
