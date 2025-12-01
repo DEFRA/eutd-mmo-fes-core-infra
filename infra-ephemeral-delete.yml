@@ -43,27 +43,27 @@ extends:
       - name: Ephemeral_Delete_Workflows_And_Resources
         timeoutInMinutes: 60
         deployments:
-          - name: "Export_Reference_Logicapps_Workflow"
-            scriptRepo: MMOPipelineCommon
-            type: script
-            scriptType: AzurePowerShell
-            path: "scripts/Export-Workflows.ps1"
-            condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
-          - name: "Export_Processor_LogicApps_Workflow"
-            scriptRepo: MMOPipelineCommon
-            type: script
-            scriptType: AzurePowerShell
-            path: "scripts/Export-Workflows.ps1"
-            condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
+          # - name: "Export_Reference_Logicapps_Workflow"
+          #   scriptRepo: MMOPipelineCommon
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "scripts/Export-Workflows.ps1"
+          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
+          #   scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
+          # - name: "Export_Processor_LogicApps_Workflow"
+          #   scriptRepo: MMOPipelineCommon
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "scripts/Export-Workflows.ps1"
+          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
+          #   scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
           - name: "Export_Web_Apps"
             scriptRepo: MMOPipelineCommon
             type: script
             scriptType: AzurePowerShell
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             path: "scripts/Export-Workflows.ps1"
-            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(webAppNames)" -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
+            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "DEV-mmo-fes-batch-data-process-WA" -StorageAccountName "$(storageAccountName)" -EnvironmentVariablesOnly -ContainerName "apps"
           # - name: "Export_Web_Apps_Variables"
           #   scriptRepo: MMOPipelineCommon
           #   type: inlineScript
