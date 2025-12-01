@@ -63,7 +63,7 @@ extends:
             scriptType: AzurePowerShell
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             path: "scripts/Export-Workflows.ps1"
-            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "DEV-mmo-fes-batch-data-process-WA" -StorageAccountName "$(storageAccountName)"
+            scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(webAppNames)" -StorageAccountName "$(storageAccountName)"
           # - name: "Export_Web_Apps_Variables"
           #   scriptRepo: MMOPipelineCommon
           #   type: inlineScript
