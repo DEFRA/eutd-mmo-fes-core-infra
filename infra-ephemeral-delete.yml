@@ -62,7 +62,6 @@ extends:
               -AppsName '$(logicApps)'
               -StorageAccountName '$(storageAccountName)'
               -EnvironmentVariablesOnly $false
-              -ContainerName 'apps'
           - name: "Export_Web_Apps"
             scriptRepo: MMOPipelineCommon
             type: script
@@ -75,6 +74,7 @@ extends:
               -AppsName '$(webAppNames)' 
               -StorageAccountName '$(storageAccountName)' 
               -EnvironmentVariablesOnly $true 
+              -ContainerName 'apps'
           # - name: "Export_Web_Apps_Variables"
           #   scriptRepo: MMOPipelineCommon
           #   type: inlineScript
