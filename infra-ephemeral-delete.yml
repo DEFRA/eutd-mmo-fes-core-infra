@@ -50,13 +50,17 @@ extends:
           #   path: "scripts/Export-Workflows.ps1"
           #   condition: and(succeeded(), eq(variables['ephemeral'], true))
           #   scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
-          # - name: "Export_Processor_LogicApps_Workflow"
-          #   scriptRepo: MMOPipelineCommon
-          #   type: script
-          #   scriptType: AzurePowerShell
-          #   path: "scripts/Export-Workflows.ps1"
-          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
-          #   scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
+          - name: "Export_Processor_LogicApps_Workflow"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Export-Workflows.ps1"
+            condition: and(succeeded(), eq(variables['ephemeral'], true))
+            scriptArguments: >
+              -AppsRG "$(resourceGroupName)" 
+              -StorageRG "$(storageAccountRGName)" 
+              -AppsName "$(logicApps)" 
+              -StorageAccountName "$(storageAccountName)"
           - name: "Export_Web_Apps"
             scriptRepo: MMOPipelineCommon
             type: script
