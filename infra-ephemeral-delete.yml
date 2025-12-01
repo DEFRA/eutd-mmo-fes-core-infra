@@ -75,6 +75,19 @@ extends:
               -StorageAccountName '$(storageAccountName)' 
               -EnvironmentVariablesOnly $true 
               -ContainerName 'apps'
+          - name: "Export_Function_Apps"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            condition: and(succeeded(), eq(variables['ephemeral'], true))
+            path: "scripts/Export-Workflows.ps1"
+            scriptArguments: >
+              -AppsRG '$(resourceGroupName)' 
+              -StorageRG '$(storageAccountRGName)' 
+              -AppsName '$(functionApps)' 
+              -StorageAccountName '$(storageAccountName)' 
+              -EnvironmentVariablesOnly $true 
+              -ContainerName 'apps'    
           # - name: "Export_Web_Apps_Variables"
           #   scriptRepo: MMOPipelineCommon
           #   type: inlineScript
