@@ -1,0 +1,107 @@
+name: $(BuildID)
+
+trigger: none
+
+pr: none
+
+# schedules:
+#   - cron: "30 6 * * 1-5"
+#     displayName: Daily Deploy at 6:30 AM UTC
+#     branches:
+#       include:
+#         - main
+#     always: true
+
+parameters:
+  - name: deployToDevelopmentEnvironment
+    displayName: "Deploy from Feature Branch"
+    type: boolean
+    default: true
+  - name: additionalRepositories
+    displayName: Additional repositories that needs reference in the process
+    type: object
+    default: []
+
+resources:
+  repositories:
+    - repository: MMOPipelineCommon
+      name: "DEFRA/eutd-mmo-fes-pipeline-common"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/feature/apps-variables-export 
+
+#refs/heads/main
+
+extends:
+  template: /includes/infra-deploy.yaml@MMOPipelineCommon
+  parameters:
+    deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
+    deployToSecondaryRegion: false
+    additionalRepositories: 
+      - MMOPipelineCommon
+    groupedDeployments:
+      - name: Import_LogicApps_Workflows
+        timeoutInMinutes: 60
+        deployments:
+          - name: "Export_LogicApps_Workflow"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Export-AppFiles.ps1"
+            condition: and(succeeded(), eq(variables['ephemeral'], true))
+            scriptArguments: >
+              -AppsRG '$(resourceGroupName)'
+              -StorageRG '$(storageAccountRGName)'
+              -AppsName '$(logicApps)'
+              -StorageAccountName '$(storageAccountName)'
+              -EnvironmentVariablesOnly $false
+          - name: "Export_Web_Apps_Files"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            condition: and(succeeded(), eq(variables['ephemeral'], true))
+            path: "scripts/Export-AppFiles.ps1"
+            scriptArguments: >
+              -AppsRG '$(resourceGroupName)' 
+              -StorageRG '$(storageAccountRGName)' 
+              -AppsName '$(webAppNames)' 
+              -StorageAccountName '$(storageAccountName)' 
+              -EnvironmentVariablesOnly $true 
+              -ContainerName 'AppsFiles'
+          - name: "Export_Function_Apps_Files"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            condition: and(succeeded(), eq(variables['ephemeral'], true))
+            path: "scripts/Export-AppFiles.ps1"
+            scriptArguments: >
+              -AppsRG '$(resourceGroupName)' 
+              -StorageRG '$(storageAccountRGName)' 
+              -AppsName '$(functionApps)' 
+              -StorageAccountName '$(storageAccountName)' 
+              -EnvironmentVariablesOnly $true 
+              -ContainerName 'AppsFiles'  
+          # - name: "Import_Reference_LogicApps_Workflow"
+          #   scriptRepo: MMOPipelineCommon
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "/scripts/Import-Workflows.ps1"
+          #   scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
+          # - name: "Import_Processor_LogicApps_Workflow"
+          #   scriptRepo: MMOPipelineCommon
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "/scripts/Import-Workflows.ps1"
+          #   scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -AppsName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
+          # - name: "Import Web Apps Variables" 
+          #   scriptRepo: self
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "scripts/Invoke-Import-WebApps.ps1"
+          #   scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -StorageAccountName "$(storageAccountName)" -WebAppNamesJson '$(webAppNames)'
+          # - name: "Import Function Apps Variables"
+          #   scriptRepo: self
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "scripts/Invoke-Import-WebApps.ps1"
+          #   scriptArguments: -AppsRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -StorageAccountName "$(storageAccountName)" -WebAppNamesJson '$(functionApps)'
