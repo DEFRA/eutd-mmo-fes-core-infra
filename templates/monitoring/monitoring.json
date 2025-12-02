@@ -10,7 +10,7 @@
   "alertRecipientPolicy": {
     "productionEnvironment": {
       "name": "EmailPolicy",
-      "emailRecipients": ["#{{ monitoringAlertProdRecipient }}"]
+      "emailRecipients": ["#{{ monitoringAlertProdRecipient1 }}", "#{{ monitoringAlertProdRecipient2 }}"]
     },
     "nonProductionEnvironment": {
       "name": "EmailPolicy",
