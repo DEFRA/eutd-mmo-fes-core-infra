@@ -67,7 +67,7 @@ extends:
               -AppsName '$(webAppNames)' 
               -StorageAccountName '$(storageAccountName)' 
               -EnvironmentVariablesOnly $true 
-              -ContainerName 'AppsFiles'
+              -ContainerName 'app-files'
           - name: "Export_Function_Apps_Files"
             scriptRepo: MMOPipelineCommon
             type: script
@@ -80,7 +80,7 @@ extends:
               -AppsName '$(functionApps)' 
               -StorageAccountName '$(storageAccountName)' 
               -EnvironmentVariablesOnly $true 
-              -ContainerName 'AppsFiles'    
+              -ContainerName 'app-files'    
           # - name: "Remove_Access_Policies"
           #   scriptRepo: MMOPipelineCommon
           #   type: script
