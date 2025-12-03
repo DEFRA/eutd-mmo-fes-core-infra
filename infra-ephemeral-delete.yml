@@ -47,7 +47,7 @@ extends:
             scriptType: AzurePowerShell
             path: "scripts/Export-AppFiles.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -AppsRG '$(resourceGroupName)' -StorageRG '$(storageAccountRGName)' -AppsName '$(logicApps)' -StorageAccountName '$(storageAccountName)' -EnvironmentVariablesOnly $false
+            scriptArguments: -AppsRG '$(resourceGroupName)' -StorageRG '$(storageAccountRGName)' -AppsName '$(logicApps)' -StorageAccountName '$(storageAccountName)' -EnvironmentVariablesOnly $false -ContainerName 'workflows'
           - name: "Export_Web_Apps_Files"
             scriptRepo: MMOPipelineCommon
             type: script
