@@ -62,59 +62,59 @@ extends:
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             path: "scripts/Export-AppFiles.ps1"
             scriptArguments: -AppsRG '$(resourceGroupName)' -StorageRG '$(storageAccountRGName)' -AppsName '$(functionApps)' -StorageAccountName '$(storageAccountName)' -EnvironmentVariablesOnly $true -ContainerName 'app-files'    
-          - name: "Remove_Access_Policies"
-            scriptRepo: MMOPipelineCommon
-            type: script
-            scriptType: AzurePowerShell
-            path: "scripts/Remove-AccessPolicies.ps1"
-            condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -ResourceGroupName "$(resourceGroupName)" -LogicAppNames "$(logicappsrefdataName)","$(logicappsprocessorName)"
-          - name: "Remove_KeyVault_RoleAssignments"
-            scriptRepo: MMOPipelineCommon
-            type: script
-            scriptType: AzurePowerShell
-            path: "scripts/Remove-RoleAssignments.ps1"
-            condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -ResourceType 'Microsoft.KeyVault/vaults' -RoleDefinitionName 'Key Vault Secrets User' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
-          - name: "Remove_Storage_RoleAssignments"
-            scriptRepo: MMOPipelineCommon
-            type: script
-            scriptType: AzurePowerShell
-            path: "scripts/Remove-RoleAssignments.ps1"
-            condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-static-res-region-id)03' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -ResourceType 'Microsoft.Storage/storageAccounts' -RoleDefinitionName 'Storage Account Contributor' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
-          - name: "Remove_Storage_RoleAssignments"
-            scriptRepo: MMOPipelineCommon
-            type: script
-            scriptType: AzurePowerShell
-            path: "scripts/Remove-RoleAssignments.ps1"
-            condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-static-res-region-id)03' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -ResourceType 'Microsoft.Storage/storageAccounts' -RoleDefinitionName 'Storage Blob Data Contributor' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
-          - name: "Remove_Storage_RoleAssignments"
-            scriptRepo: MMOPipelineCommon
-            type: script
-            scriptType: AzurePowerShell
-            path: "scripts/Remove-RoleAssignments.ps1"
-            condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-static-res-region-id)03' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -ResourceType 'Microsoft.Storage/storageAccounts' -RoleDefinitionName 'Storage Table Data Contributor' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
-          - name: "Remove_ServiceBus_RoleAssignments"
-            scriptRepo: MMOPipelineCommon
-            type: script
-            scriptType: AzurePowerShell
-            path: "scripts/Remove-RoleAssignments.ps1"
-            condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-servicebus)$(nc-region-id)01' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01' -ResourceType 'Microsoft.ServiceBus/namespaces' -RoleDefinitionName 'Azure Service Bus Data Receiver' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
-          - name: "Remove_ServiceBus_RoleAssignments"
-            scriptRepo: MMOPipelineCommon
-            type: script
-            scriptType: AzurePowerShell
-            path: "scripts/Remove-RoleAssignments.ps1"
-            condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-servicebus)$(nc-region-id)01' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01' -ResourceType 'Microsoft.ServiceBus/namespaces' -RoleDefinitionName 'Azure Service Bus Data Sender' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
-          - name: "Remove_Ephemeral_Resources"
-            scriptRepo: MMOPipelineCommon
-            type: script
-            scriptType: AzurePowerShell
-            path: "scripts/Remove-EphemeralResources.ps1"
-            condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+          # - name: "Remove_Access_Policies"
+          #   scriptRepo: MMOPipelineCommon
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "scripts/Remove-AccessPolicies.ps1"
+          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
+          #   scriptArguments: -ResourceGroupName "$(resourceGroupName)" -LogicAppNames "$(logicappsrefdataName)","$(logicappsprocessorName)"
+          # - name: "Remove_KeyVault_RoleAssignments"
+          #   scriptRepo: MMOPipelineCommon
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "scripts/Remove-RoleAssignments.ps1"
+          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
+          #   scriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -ResourceType 'Microsoft.KeyVault/vaults' -RoleDefinitionName 'Key Vault Secrets User' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+          # - name: "Remove_Storage_RoleAssignments"
+          #   scriptRepo: MMOPipelineCommon
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "scripts/Remove-RoleAssignments.ps1"
+          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
+          #   scriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-static-res-region-id)03' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -ResourceType 'Microsoft.Storage/storageAccounts' -RoleDefinitionName 'Storage Account Contributor' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+          # - name: "Remove_Storage_RoleAssignments"
+          #   scriptRepo: MMOPipelineCommon
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "scripts/Remove-RoleAssignments.ps1"
+          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
+          #   scriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-static-res-region-id)03' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -ResourceType 'Microsoft.Storage/storageAccounts' -RoleDefinitionName 'Storage Blob Data Contributor' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+          # - name: "Remove_Storage_RoleAssignments"
+          #   scriptRepo: MMOPipelineCommon
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "scripts/Remove-RoleAssignments.ps1"
+          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
+          #   scriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-static-res-region-id)03' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -ResourceType 'Microsoft.Storage/storageAccounts' -RoleDefinitionName 'Storage Table Data Contributor' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+          # - name: "Remove_ServiceBus_RoleAssignments"
+          #   scriptRepo: MMOPipelineCommon
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "scripts/Remove-RoleAssignments.ps1"
+          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
+          #   scriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-servicebus)$(nc-region-id)01' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01' -ResourceType 'Microsoft.ServiceBus/namespaces' -RoleDefinitionName 'Azure Service Bus Data Receiver' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+          # - name: "Remove_ServiceBus_RoleAssignments"
+          #   scriptRepo: MMOPipelineCommon
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "scripts/Remove-RoleAssignments.ps1"
+          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
+          #   scriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-servicebus)$(nc-region-id)01' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01' -ResourceType 'Microsoft.ServiceBus/namespaces' -RoleDefinitionName 'Azure Service Bus Data Sender' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+          # - name: "Remove_Ephemeral_Resources"
+          #   scriptRepo: MMOPipelineCommon
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "scripts/Remove-EphemeralResources.ps1"
+          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
+          #   scriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'

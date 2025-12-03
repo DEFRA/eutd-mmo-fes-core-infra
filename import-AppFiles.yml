@@ -41,21 +41,21 @@ extends:
       - name: Import_LogicApps_Workflows
         timeoutInMinutes: 60
         deployments:
-          - name: "Export_LogicApps_Workflow"
+          - name: "Import_LogicApps_Workflow"
             scriptRepo: MMOPipelineCommon
             type: script
             scriptType: AzurePowerShell
             path: "scripts/Import-AppFiles.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             scriptArguments: -AppsRG '$(resourceGroupName)' -StorageRG '$(storageAccountRGName)' -AppsName '$(logicApps)' -StorageAccountName '$(storageAccountName)' -EnvironmentVariablesOnly $false -ContainerName 'workflows'
-          - name: "Export_WebApp_Files"
+          - name: "Import_WebApp_Files"
             scriptRepo: MMOPipelineCommon
             type: script
             scriptType: AzurePowerShell
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             path: "scripts/Import-AppFiles.ps1"
             scriptArguments: -AppsRG '$(resourceGroupName)' -StorageRG '$(storageAccountRGName)' -AppsName '$(webAppNames)' -StorageAccountName '$(storageAccountName)' -EnvironmentVariablesOnly $true -ContainerName 'app-files'
-          - name: "Export_FunctionApp_Files"
+          - name: "Import_FunctionApp_Files"
             scriptRepo: MMOPipelineCommon
             type: script
             scriptType: AzurePowerShell
