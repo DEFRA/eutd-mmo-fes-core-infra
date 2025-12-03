@@ -68,7 +68,7 @@ extends:
             scriptType: AzurePowerShell
             path: "scripts/Remove-AccessPolicies.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -ResourceGroupName "$(resourceGroupName)" -LogicAppNames "$(logicApps)"
+            scriptArguments: -ResourceGroupName "$(resourceGroupName)" -LogicAppNames "$(logicappsrefdataName)","$(logicappsprocessorName)"
           - name: "Remove_KeyVault_RoleAssignments"
             scriptRepo: MMOPipelineCommon
             type: script
