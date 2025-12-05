@@ -41,20 +41,27 @@ extends:
       - name: Ephemeral_Delete_Workflows_And_Resources
         timeoutInMinutes: 60
         deployments:
-          - name: "Export_Reference_Logicapps_Workflow"
+          - name: "Export_LogicApps_Workflow"
             scriptRepo: MMOPipelineCommon
             type: script
             scriptType: AzurePowerShell
-            path: "scripts/Export-Workflows.ps1"
+            path: "scripts/Export-app-files.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -LogicAppRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -LogicAppName "$(logicappsrefdataName)" -StorageAccountName "$(storageAccountName)"
-          - name: "Export_Processor_LogicApps_Workflow"
+            scriptArguments: -AppsRG '$(resourceGroupName)' -StorageRG '$(storageAccountRGName)' -AppsName '$(logicApps)' -StorageAccountName '$(storageAccountName)' -EnvironmentVariablesOnly $false -ContainerName 'workflows'
+          - name: "Export_Web_Apps_Files"
             scriptRepo: MMOPipelineCommon
             type: script
             scriptType: AzurePowerShell
-            path: "scripts/Export-Workflows.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -LogicAppRG "$(resourceGroupName)" -StorageRG "$(storageAccountRGName)" -LogicAppName "$(logicappsprocessorName)" -StorageAccountName "$(storageAccountName)"
+            path: "scripts/Export-app-files.ps1"
+            scriptArguments: -AppsRG '$(resourceGroupName)' -StorageRG '$(storageAccountRGName)' -AppsName '$(webAppNames)' -StorageAccountName '$(storageAccountName)' -EnvironmentVariablesOnly $true -ContainerName 'app-files'
+          - name: "Export_Function_Apps_Files"
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            condition: and(succeeded(), eq(variables['ephemeral'], true))
+            path: "scripts/Export-app-files.ps1"
+            scriptArguments: -AppsRG '$(resourceGroupName)' -StorageRG '$(storageAccountRGName)' -AppsName '$(functionApps)' -StorageAccountName '$(storageAccountName)' -EnvironmentVariablesOnly $true -ContainerName 'app-files'    
           - name: "Remove_Access_Policies"
             scriptRepo: MMOPipelineCommon
             type: script
