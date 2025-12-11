@@ -364,6 +364,7 @@
           "REF_BOOMI_API_OAUTH_TOKEN_URL": "#{{ REF-BOOMI-API-OAUTH-TOKEN-URL }}",
           "REF_BOOMI_API_OAUTH_AL_SCOPE": "#{{ REF-BOOMI-API-OAUTH-AL-SCOPE }}",
           "REF_BOOMI_API_OAUTH_MMO_SCOPE": "#{{ REF-BOOMI-API-OAUTH-MMO-SCOPE }}",
+          "REF_BOOMI_CATCH_API_OAUTH_SCOPE": "#{{ REF-BOOMI-CATCH-API-OAUTH-SCOPE }}",
           "REF_SERVICE_BASIC_AUTH_PASSWORD": "@Microsoft.KeyVault(VaultName=#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-keyvault }}#{{ nc-static-res-region-id }}01;SecretName=REF-SERVICE-BASIC-AUTH-PASSWORD)",
           "REF_SERVICE_BASIC_AUTH_USER": "@Microsoft.KeyVault(VaultName=#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-keyvault }}#{{ nc-static-res-region-id }}01;SecretName=REF-SERVICE-BASIC-AUTH-USER)",
           "REFERENCE_DATA_AZURE_STORAGE": "@Microsoft.KeyVault(VaultName=#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-keyvault }}#{{ nc-static-res-region-id }}01;SecretName=REFDATA-STORAGE-CONNECTION-STRING)",
