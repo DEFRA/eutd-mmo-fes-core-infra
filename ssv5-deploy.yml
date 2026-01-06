@@ -12,11 +12,11 @@ pr:
       - "**/containerRegistries/**"
 
 schedules:
-  - cron: "10 15 * * 1-5"
+  - cron: "25 15 * * 1-5"
     displayName: Daily Deploy at 6:30 AM UTC
     branches:
       include:
-        - main
+        - feature/fix-ephemeral-envs
     always: true
 
 parameters:
