@@ -5,7 +5,7 @@ trigger: none
 pr: none
 
 schedules:
-  - cron: "25 14 * * 1-5"
+  - cron: "30 6 * * 1-5"
     displayName: Daily Deploy at 6:30 AM UTC
     branches:
       include:
