@@ -1,6 +1,6 @@
 name: $(BuildID)_${{ parameters.deployResources }}
 
-trigger: none 
+trigger: none
 
 pr:
   branches:

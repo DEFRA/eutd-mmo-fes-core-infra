@@ -56,16 +56,7 @@ extends:
         dependsOn: "Validate"
         deploymentBranches:
           - "*"
-      - name: "ssv_tst"
-        enableTemplateValidationBeforeDeployment: true
-        azureRegions:
-          primary: UKSouth
-        serviceConnection: AZR-MMO-SSV5
-        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
-        dependsOn: "ssv_snd"
-        deploymentBranches:
-          - "refs/heads/main"
-    additionalRepositories: 
+    additionalRepositories:
       - MMOPipelineCommon
     groupedDeployments:
       - name: Ephemeral_Delete_Images_And_Roles

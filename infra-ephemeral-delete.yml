@@ -35,7 +35,7 @@ extends:
   parameters:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: false
-    additionalRepositories: 
+    additionalRepositories:
       - MMOPipelineCommon
     groupedDeployments:
       - name: Ephemeral_Delete_Workflows_And_Resources
@@ -61,7 +61,7 @@ extends:
             scriptType: AzurePowerShell
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             path: "scripts/Export-app-files.ps1"
-            scriptArguments: -AppsRG '$(resourceGroupName)' -StorageRG '$(storageAccountRGName)' -AppsName '$(functionApps)' -StorageAccountName '$(storageAccountName)' -EnvironmentVariablesOnly $true -ContainerName 'app-files'    
+            scriptArguments: -AppsRG '$(resourceGroupName)' -StorageRG '$(storageAccountRGName)' -AppsName '$(functionApps)' -StorageAccountName '$(storageAccountName)' -EnvironmentVariablesOnly $true -ContainerName 'app-files'
           - name: "Remove_Access_Policies"
             scriptRepo: MMOPipelineCommon
             type: script

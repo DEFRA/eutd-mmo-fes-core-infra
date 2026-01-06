@@ -110,7 +110,7 @@ extends:
           privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
           deploymentBranches:
             - "*"
-        - ${{ if eq(parameters.deployToSecondaryRegion, false) }}:
+        - ${{ if and(eq(parameters.deployToSecondaryRegion, false), ne(variables['Build.Reason'], 'schedule')) }}:
             - name: ssv_tst
               azureRegions:
                 primary: UKSouth
