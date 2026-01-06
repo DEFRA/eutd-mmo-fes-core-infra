@@ -5,7 +5,7 @@ trigger: none
 pr: none
 
 schedules:
-  - cron: "0 19 * * 1-5"
+  - cron: "10 15 * * 1-5"
     displayName: Daily Delete at 7:00 PM UTC
     branches:
       include:
@@ -31,7 +31,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: refs/heads/main
+      ref: refs/heads/feature/fix-ephemeral-envs #refs/heads/main
 
 extends:
   template: /includes/infra-deploy.yaml@MMOPipelineCommon

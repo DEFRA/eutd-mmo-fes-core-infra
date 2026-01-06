@@ -14,11 +14,11 @@ pr:
       - ".github/**"
 
 schedules:
-  - cron: "40 14 * * 1-5"
+  - cron: "10 15 * * 1-5"
     displayName: Daily Deploy at 6:00 AM UTC
     branches:
       include:
-        - feature/fix-ephemeral-envs
+        - main
     always: true
 
 parameters:
