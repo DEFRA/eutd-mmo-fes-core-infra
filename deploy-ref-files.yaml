@@ -30,7 +30,7 @@ extends:
   parameters:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: false
-    additionalRepositories: 
+    additionalRepositories:
       - MMOPipelineCommon
     groupedDeployments:
       - name: Upload_Files_to_Storage_Account
@@ -90,4 +90,10 @@ extends:
             scriptType: AzurePowerShell
             path: "scripts/Add-FileToAzureStorageContainer.ps1"
             scriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'catcharea' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/RFMOList.csv' -BlobName 'RFMOList.csv'
+          - name: uploadFile_eu_member_states _to_storage_Account
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            path: "scripts/Add-FileToAzureStorageContainer.ps1"
+            scriptArguments: -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -StorageAccountName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-storageaccount)$(nc-region-id)02' -ContainerName 'eumemberstates' -Filepath '$(Pipeline.Workspace)/s/MMOPipelineCommon/reference-data-files/eumemberstates.csv' -BlobName 'eumemberstates.csv'
         skipPRE1: ${{ parameters.skipPRE1 }}
