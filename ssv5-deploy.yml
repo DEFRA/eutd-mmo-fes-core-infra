@@ -12,11 +12,11 @@ pr:
       - "**/containerRegistries/**"
 
 schedules:
-  - cron: "25 15 * * 1-5"
+  - cron: "30 6 * * 1-5"
     displayName: Daily Deploy at 6:30 AM UTC
     branches:
       include:
-        - feature/fix-ephemeral-envs
+        - main
     always: true
 
 parameters:
@@ -47,7 +47,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: refs/heads/feature/fix-ephemeral-envs #refs/heads/main
+      ref: refs/heads/main
 
 variables:
   - name: IsNetwork
