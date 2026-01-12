@@ -317,6 +317,7 @@ extends:
                 preDeployScriptsList:
                   - displayName: Check if ASPs are ready for web app deployment
                     scriptRepo: MMOPipelineCommon
+                    condition: and(succeeded(), eq(variables['Build.Reason'], 'schedule'))
                     scriptPath: "scripts/Confirm-AppServicePlanReady.ps1"
                     ScriptArguments: >
                       -AppServicePlanNames '$(aspNames)'
