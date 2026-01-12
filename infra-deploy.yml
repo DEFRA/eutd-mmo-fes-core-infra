@@ -18,7 +18,8 @@ schedules:
     displayName: Daily Deploy at 6:00 AM UTC
     branches:
       include:
-        - main
+        - feature/fix-webapp-prov-issue
+        # - main
     always: true
 
 parameters:
