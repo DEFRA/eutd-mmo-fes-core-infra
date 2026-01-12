@@ -1,6 +1,6 @@
 name: $(BuildID)_${{ parameters.deployResources }}
 
-trigger: none 
+trigger: none
 
 pr:
   branches:
@@ -315,6 +315,12 @@ extends:
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
                 preDeployScriptsList:
+                  - displayName: Check if ASPs are ready for web app deployment
+                    scriptRepo: MMOPipelineCommon
+                    scriptPath: "scripts/Confirm-AppServicePlanReady.ps1"
+                    ScriptArguments: >
+                      -AppServicePlanNames '$(aspNames)'
+                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
                   - displayName: Get WebApp image tag if it exists
                     scriptRepo: MMOPipelineCommon
                     scriptPath: "scripts/Get-ExistingWebAppVersion.ps1"
