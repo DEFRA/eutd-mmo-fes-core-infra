@@ -288,7 +288,7 @@
           "DB_NAME": "mmo_exportcert",
           "DISABLE_AUTH": "false",
           "ENABLE_PDF_GEN": "true",
-          "ENABLE_EU_CATCH_PS_NMD": "true",
+          "ENABLE_EU_CATCH_PS_NMD": "false",
           "eventHubConnectionString": "@Microsoft.KeyVault(VaultName=#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-keyvault }}#{{ nc-static-res-region-id }}01;SecretName=EVENTHUB-CONNECTION-STRING)",
           "eventHubNamespace": "insights-application-logs",
           "EU_CATCH_MAX_EEZ": "5",
