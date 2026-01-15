@@ -75,7 +75,8 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' exis
   scope: resourceGroup(resourceGroupName)
 }
 
-// Create Web App
+// Create Web Apps in batches
+@batchSize(2)
 module webApp 'br/avm:web/site:0.19.3' = [
   for (app, i) in webAppNamesArray: {
     name: '${app.Name}-${deploymentDate}'
