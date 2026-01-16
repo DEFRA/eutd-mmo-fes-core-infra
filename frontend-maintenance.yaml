@@ -61,7 +61,15 @@ extends:
                 Write-Host "Default hostname: $externalDefaultHostname"
                 Write-Host "Updating IDENTITY_APPDOMAIN for production slot only to: https://$externalDefaultHostname"
                 
-                az webapp config appsettings set --name $externalAppName --resource-group $resourceGroupName --settings "IDENTITY_APPDOMAIN=https://$externalDefaultHostname"
+                # Get current app settings and update only IDENTITY_APPDOMAIN
+                $currentSettings = $externalWebApp.SiteConfig.AppSettings
+                $appSettingsHashtable = @{}
+                foreach ($setting in $currentSettings) {
+                    $appSettingsHashtable[$setting.Name] = $setting.Value
+                }
+                $appSettingsHashtable['IDENTITY_APPDOMAIN'] = "https://$externalDefaultHostname"
+                
+                Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $externalAppName -AppSettings $appSettingsHashtable -ErrorAction Stop | Out-Null
                 
                 Write-Host "Successfully updated IDENTITY_APPDOMAIN to maintenance mode domain for production slot"
                 Write-Host ""
@@ -77,7 +85,15 @@ extends:
                 Write-Host "Default hostname: $internalDefaultHostname"
                 Write-Host "Updating BASE_URL for production slot only to: https://$internalDefaultHostname"
                 
-                az webapp config appsettings set --name $internalAppName --resource-group $resourceGroupName --settings "BASE_URL=https://$internalDefaultHostname"
+                # Get current app settings and update only BASE_URL
+                $currentSettings = $internalWebApp.SiteConfig.AppSettings
+                $appSettingsHashtable = @{}
+                foreach ($setting in $currentSettings) {
+                    $appSettingsHashtable[$setting.Name] = $setting.Value
+                }
+                $appSettingsHashtable['BASE_URL'] = "https://$internalDefaultHostname"
+                
+                Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $internalAppName -AppSettings $appSettingsHashtable -ErrorAction Stop | Out-Null
                 
                 Write-Host "Successfully updated BASE_URL to maintenance mode domain for production slot"
                 Write-Host ""
@@ -87,6 +103,8 @@ extends:
       - name: DISABLE_MAINTENANCE_MODE_APPROVAL
         timeoutInMinutes: 60
         ${{ if eq(parameters.removeMaintenanceMode, false) }}:
+          dependsOnGroupedDeployments:
+            - SETUP_MAINTENANCE_MODE
           preDeployManualTasks:
             - displayName: Approve to disable maintenance mode
               timeoutInMinutes: 1440
@@ -118,7 +136,16 @@ extends:
               
               Write-Host "Restoring IDENTITY_APPDOMAIN for production slot to: $externalFrontendBaseUrl"
               
-              az webapp config appsettings set --name $externalAppName --resource-group $resourceGroupName --settings "IDENTITY_APPDOMAIN=$externalFrontendBaseUrl"
+              # Get current app settings and update only IDENTITY_APPDOMAIN
+              $externalWebApp = Get-AzWebApp -ResourceGroupName $resourceGroupName -Name $externalAppName -ErrorAction Stop
+              $currentSettings = $externalWebApp.SiteConfig.AppSettings
+              $appSettingsHashtable = @{}
+              foreach ($setting in $currentSettings) {
+                  $appSettingsHashtable[$setting.Name] = $setting.Value
+              }
+              $appSettingsHashtable['IDENTITY_APPDOMAIN'] = $externalFrontendBaseUrl
+              
+              Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $externalAppName -AppSettings $appSettingsHashtable -ErrorAction Stop | Out-Null
               
               Write-Host "Successfully restored IDENTITY_APPDOMAIN to production value"
               Write-Host ""
@@ -130,7 +157,16 @@ extends:
               
               Write-Host "Restoring BASE_URL for production slot to: $internalAdminFrontendBaseUrl"
               
-              az webapp config appsettings set --name $internalAppName --resource-group $resourceGroupName --settings "BASE_URL=$internalAdminFrontendBaseUrl"
+              # Get current app settings and update only BASE_URL
+              $internalWebApp = Get-AzWebApp -ResourceGroupName $resourceGroupName -Name $internalAppName -ErrorAction Stop
+              $currentSettings = $internalWebApp.SiteConfig.AppSettings
+              $appSettingsHashtable = @{}
+              foreach ($setting in $currentSettings) {
+                  $appSettingsHashtable[$setting.Name] = $setting.Value
+              }
+              $appSettingsHashtable['BASE_URL'] = $internalAdminFrontendBaseUrl
+              
+              Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $internalAppName -AppSettings $appSettingsHashtable -ErrorAction Stop | Out-Null
               
               Write-Host "Successfully restored BASE_URL to production value"
               Write-Host ""
