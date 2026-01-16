@@ -34,7 +34,8 @@ extends:
       - MMOPipelineCommon
     groupedDeployments:
       - ${{ if eq(parameters.removeMaintenanceMode, false) }}:
-        - name: Enable maintenance mode on frontend production slots
+        - name: ENABLE_MAINTENANCE_MODE
+          displayName: Enable maintenance mode on frontend production slots
           timeoutInMinutes: 60
           deployments:
             - name: Update Frontend apps to maintenance mode
@@ -83,7 +84,7 @@ extends:
                 Write-Host "All frontend apps updated to maintenance mode"
           skipPRE1: ${{ parameters.skipPRE1 }}
       
-      - name: Disable maintenance mode on frontend production slots
+      - name: DISABLE_MAINTENANCE_MODE_APPROVAL
         timeoutInMinutes: 60
         ${{ if eq(parameters.removeMaintenanceMode, false) }}:
           preDeployManualTasks:
@@ -96,7 +97,7 @@ extends:
                 - External Frontend App: IDENTITY_APPDOMAIN will be restored
                 - Internal Admin Frontend App: BASE_URL will be restored
         deployments:
-          - name: Restore Frontend apps to normal operation
+          - name: DISABLE_MAINTENANCE_MODE
             scriptRepo: MMOPipelineCommon
             type: script
             scriptType: AzurePowerShell
