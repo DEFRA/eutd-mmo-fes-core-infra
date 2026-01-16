@@ -13,7 +13,7 @@ parameters:
     type: boolean
     default: true
   - name: removeMaintenanceMode
-    displayName: "Remove Maintenance Mode (skip enable, go directly to disable)"
+    displayName: "Disable Maintenance Mode"
     type: boolean
     default: false
 
