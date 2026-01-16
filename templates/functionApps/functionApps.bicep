@@ -19,8 +19,8 @@ param webjobsStorageAccount string
 param vnetName string
 param vnetResourceGroupName string
 param slotsEnabled string
-param appSettingsSlotKeyValuePairs object
-param appSettingsKeyValuePairs object
+// param appSettingsSlotKeyValuePairs object
+// param appSettingsKeyValuePairs object
 param appVersions string
 param aadclientId string
 param aadTenantId string
@@ -100,11 +100,11 @@ module functionapp 'br/avm:web/site:0.9.0' = {
     tags: union(funcAppdefaultTags, customTags)
     serverFarmResourceId: appServicePlan.id
     appInsightResourceId: appInsights.id
-    appSettingsKeyValuePairs: union(appSettingsKeyValuePairs, {
+    appSettingsKeyValuePairs: {
       AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${toLower(webjobsStorageAccount)};AccountKey=${storageAccount.listKeys().keys[0].value}'
       APPINSIGHTS_INSTRUMENTATIONKEY: appInsights.properties.InstrumentationKey
       AAD_CLIENTSECRET: aadClientSecret
-    })
+    }
     authSettingV2Configuration: {
       globalValidation: {
         requireAuthentication: true
@@ -133,15 +133,12 @@ module functionapp 'br/avm:web/site:0.9.0' = {
       ? [
           {
             name: 'staging'
-            appSettingsKeyValuePairs: union(
-              appSettingsKeyValuePairs,
-              appSettingsSlotKeyValuePairs,
-              {
+            appSettingsKeyValuePairs: {
                 AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${toLower(webjobsStorageAccount)};AccountKey=${storageAccount.listKeys().keys[0].value}'
                 APPINSIGHTS_INSTRUMENTATIONKEY: appInsights.properties.InstrumentationKey
                 AAD_CLIENTSECRET: aadClientSecret
-              }
-            )
+            }
+            
             authSettingV2Configuration: {
               globalValidation: {
                 requireAuthentication: true
@@ -288,13 +285,13 @@ resource createdFuncApp 'Microsoft.Web/sites@2024-04-01' existing = if (bool(slo
   ]
 }
 
-resource slotsStickyConfig 'Microsoft.Web/sites/config@2022-09-01' = if (bool(slotsEnabled)) {
-  name: 'slotConfigNames'
-  parent: createdFuncApp
-  properties: {
-    appSettingNames: objectKeys(appSettingsSlotKeyValuePairs)
-  }
-  dependsOn: [
-    createdFuncApp
-  ]
-}
+// resource slotsStickyConfig 'Microsoft.Web/sites/config@2022-09-01' = if (bool(slotsEnabled)) {
+//   name: 'slotConfigNames'
+//   parent: createdFuncApp
+//   properties: {
+//     appSettingNames: objectKeys(appSettingsSlotKeyValuePairs)
+//   }
+//   dependsOn: [
+//     createdFuncApp
+//   ]
+// }
