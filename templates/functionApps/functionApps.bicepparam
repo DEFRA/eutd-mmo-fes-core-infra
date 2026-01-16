@@ -41,29 +41,29 @@ param aadAppIdUri = '#{{ aadAppIdUri }}'
 
 param slotsEnabled = '#{{ slotsEnabled }}'
 param appVersions = '#{{ appVersions }}'
-param appSettingsSlotKeyValuePairs = {
-  DATA_READER_URL: toLower('https://#{{ environment }}-#{{ repoName1 }}-#{{ nc-resource-webapp }}-staging.azurewebsites.net/v1/jobs/landings')
-}
+// param appSettingsSlotKeyValuePairs = {
+//   DATA_READER_URL: toLower('https://#{{ environment }}-#{{ repoName1 }}-#{{ nc-resource-webapp }}-staging.azurewebsites.net/v1/jobs/landings')
+// }
 
-param appSettingsKeyValuePairs = {
-  CRONTIME: '#{{ REF_DATA_READER_REFRESH_REPORT_JOB }}'
-  DATA_READER_URL: toLower('https://#{{ environment }}-#{{ repoName1 }}-#{{ nc-resource-webapp }}.azurewebsites.net/v1/jobs/landings')
-  FUNCTIONS_EXTENSION_VERSION: '~4'
-  FUNCTIONS_WORKER_RUNTIME: 'node'
-  NUMBER_OF_RETRIES: '4'
-  RETRY_DELAY_IN_MS: '300000'
-  TIMEOUT_IN_MS: '600000'
-  WEBSITE_HTTPLOGGING_RETENTION_DAYS: '5'
-  WEBSITE_NODE_DEFAULT_VERSION: '~18'
-  WEBSITE_RUN_FROM_PACKAGE: '1'
-  WEBSITE_TIME_ZONE: 'UTC'
-  BATCH_CERTIFICATES_NUMBER: '#{{ batchCertificatesNumber }}'
-  DB_NAME: 'mmo_exportcert'
-  DB_CONNECTION_URI: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=COSMOS-DB-RW-CONNECTION-URI)'
-  QUERY_START_DATE: '#{{ queryStartDate }}'
-  QUERY_END_DATE: '#{{ queryEndDate }}'
-  BUSINESS_CONTINUITY_URL: '#{{ businessContinuityUrl }}'
-  BUSINESS_CONTINUITY_KEY: '#{{ businessContinuityKey }}'
-  API_NAME: '/api/certificates'
-  WEBSITE_AUTH_AAD_ALLOWED_TENANTS: '#{{ aadAllowedTenants }}'
-}
+// param appSettingsKeyValuePairs = {
+//   CRONTIME: '#{{ REF_DATA_READER_REFRESH_REPORT_JOB }}'
+//   DATA_READER_URL: toLower('https://#{{ environment }}-#{{ repoName1 }}-#{{ nc-resource-webapp }}.azurewebsites.net/v1/jobs/landings')
+//   FUNCTIONS_EXTENSION_VERSION: '~4'
+//   FUNCTIONS_WORKER_RUNTIME: 'node'
+//   NUMBER_OF_RETRIES: '4'
+//   RETRY_DELAY_IN_MS: '300000'
+//   TIMEOUT_IN_MS: '600000'
+//   WEBSITE_HTTPLOGGING_RETENTION_DAYS: '5'
+//   WEBSITE_NODE_DEFAULT_VERSION: '~18'
+//   WEBSITE_RUN_FROM_PACKAGE: '1'
+//   WEBSITE_TIME_ZONE: 'UTC'
+//   BATCH_CERTIFICATES_NUMBER: '#{{ batchCertificatesNumber }}'
+//   DB_NAME: 'mmo_exportcert'
+//   DB_CONNECTION_URI: '@Microsoft.KeyVault(VaultName=${comparams.keyVaultName};SecretName=COSMOS-DB-RW-CONNECTION-URI)'
+//   QUERY_START_DATE: '#{{ queryStartDate }}'
+//   QUERY_END_DATE: '#{{ queryEndDate }}'
+//   BUSINESS_CONTINUITY_URL: '#{{ businessContinuityUrl }}'
+//   BUSINESS_CONTINUITY_KEY: '#{{ businessContinuityKey }}'
+//   API_NAME: '/api/certificates'
+//   WEBSITE_AUTH_AAD_ALLOWED_TENANTS: '#{{ aadAllowedTenants }}'
+// }
