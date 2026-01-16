@@ -34,11 +34,11 @@ extends:
       - MMOPipelineCommon
     groupedDeployments:
       - ${{ if eq(parameters.removeMaintenanceMode, false) }}:
-        - name: ENABLE_MAINTENANCE_MODE
+        - name: SETUP_MAINTENANCE_MODE
           displayName: Enable maintenance mode on frontend production slots
           timeoutInMinutes: 60
           deployments:
-            - name: Update Frontend apps to maintenance mode
+            - name: ENABLE_MAINTENANCE_MODE
               scriptRepo: MMOPipelineCommon
               type: script
               scriptType: AzurePowerShell
