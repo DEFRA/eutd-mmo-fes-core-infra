@@ -1,0 +1,137 @@
+name: $(BuildID)
+
+trigger: none
+
+pr: none
+
+parameters:
+  - name: skipPRE1
+    type: boolean
+    default: false
+  - name: deployToDevelopmentEnvironment
+    displayName: "Deploy from Feature Branch"
+    type: boolean
+    default: true
+  - name: removeMaintenanceMode
+    displayName: "Remove Maintenance Mode (skip enable, go directly to disable)"
+    type: boolean
+    default: false
+
+resources:
+  repositories:
+    - repository: MMOPipelineCommon
+      name: "DEFRA/eutd-mmo-fes-pipeline-common"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+
+extends:
+  template: /includes/infra-deploy.yaml@MMOPipelineCommon
+  parameters:
+    deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
+    deployToSecondaryRegion: false
+    additionalRepositories:
+      - MMOPipelineCommon
+    groupedDeployments:
+      - ${{ if eq(parameters.removeMaintenanceMode, false) }}:
+        - name: Enable maintenance mode on frontend production slots
+          timeoutInMinutes: 60
+          deployments:
+            - name: Update Frontend apps to maintenance mode
+              scriptRepo: MMOPipelineCommon
+              type: script
+              scriptType: AzurePowerShell
+              inlineScript: |
+                # Update app settings to point to the app service production slot default domain with *.azurewebsites.net
+                # This only affects the production slot, not the staging slot
+                
+                $resourceGroupName = "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+                $externalAppName = "$(appEnvironment)-$(repoName2)-$(nc-resource-webapp)"
+                $internalAppName = "$(appEnvironment)-$(repoName3)-$(nc-resource-webapp)"
+                
+                # Update External Frontend App - IDENTITY_APPDOMAIN setting
+                Write-Host "================================================"
+                Write-Host "Updating External Frontend App: $externalAppName"
+                Write-Host "================================================"
+                
+                $externalWebApp = Get-AzWebApp -ResourceGroupName $resourceGroupName -Name $externalAppName -ErrorAction Stop
+                $externalDefaultHostname = $externalWebApp.DefaultHostName
+                
+                Write-Host "Default hostname: $externalDefaultHostname"
+                Write-Host "Updating IDENTITY_APPDOMAIN for production slot only to: https://$externalDefaultHostname"
+                
+                az webapp config appsettings set --name $externalAppName --resource-group $resourceGroupName --settings "IDENTITY_APPDOMAIN=https://$externalDefaultHostname"
+                
+                Write-Host "Successfully updated IDENTITY_APPDOMAIN to maintenance mode domain for production slot"
+                Write-Host ""
+                
+                # Update Internal Admin Frontend App - BASE_URL setting
+                Write-Host "================================================"
+                Write-Host "Updating Internal Admin Frontend App: $internalAppName"
+                Write-Host "================================================"
+                
+                $internalWebApp = Get-AzWebApp -ResourceGroupName $resourceGroupName -Name $internalAppName -ErrorAction Stop
+                $internalDefaultHostname = $internalWebApp.DefaultHostName
+                
+                Write-Host "Default hostname: $internalDefaultHostname"
+                Write-Host "Updating BASE_URL for production slot only to: https://$internalDefaultHostname"
+                
+                az webapp config appsettings set --name $internalAppName --resource-group $resourceGroupName --settings "BASE_URL=https://$internalDefaultHostname"
+                
+                Write-Host "Successfully updated BASE_URL to maintenance mode domain for production slot"
+                Write-Host ""
+                Write-Host "All frontend apps updated to maintenance mode"
+          skipPRE1: ${{ parameters.skipPRE1 }}
+      
+      - name: Disable maintenance mode on frontend production slots
+        timeoutInMinutes: 60
+        ${{ if eq(parameters.removeMaintenanceMode, false) }}:
+          preDeployManualTasks:
+            - displayName: Approve to disable maintenance mode
+              timeoutInMinutes: 1440
+              instructions: |
+                Review the maintenance work and approve to restore frontend apps to normal operation.
+                
+                This will restore the app settings to their production values:
+                - External Frontend App: IDENTITY_APPDOMAIN will be restored
+                - Internal Admin Frontend App: BASE_URL will be restored
+        deployments:
+          - name: Restore Frontend apps to normal operation
+            scriptRepo: MMOPipelineCommon
+            type: script
+            scriptType: AzurePowerShell
+            inlineScript: |
+              # Restore app settings to production values
+              # This only affects the production slot, not the staging slot
+              
+              $resourceGroupName = "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+              $externalAppName = "$(appEnvironment)-$(repoName2)-$(nc-resource-webapp)"
+              $internalAppName = "$(appEnvironment)-$(repoName3)-$(nc-resource-webapp)"
+              $externalFrontendBaseUrl = "$(externalFrontendBaseUrl)"
+              $internalAdminFrontendBaseUrl = "$(internalAdminFrontendBaseUrl)"
+              
+              # Restore External Frontend App - IDENTITY_APPDOMAIN setting
+              Write-Host "================================================"
+              Write-Host "Restoring External Frontend App: $externalAppName"
+              Write-Host "================================================"
+              
+              Write-Host "Restoring IDENTITY_APPDOMAIN for production slot to: $externalFrontendBaseUrl"
+              
+              az webapp config appsettings set --name $externalAppName --resource-group $resourceGroupName --settings "IDENTITY_APPDOMAIN=$externalFrontendBaseUrl"
+              
+              Write-Host "Successfully restored IDENTITY_APPDOMAIN to production value"
+              Write-Host ""
+              
+              # Restore Internal Admin Frontend App - BASE_URL setting
+              Write-Host "================================================"
+              Write-Host "Restoring Internal Admin Frontend App: $internalAppName"
+              Write-Host "================================================"
+              
+              Write-Host "Restoring BASE_URL for production slot to: $internalAdminFrontendBaseUrl"
+              
+              az webapp config appsettings set --name $internalAppName --resource-group $resourceGroupName --settings "BASE_URL=$internalAdminFrontendBaseUrl"
+              
+              Write-Host "Successfully restored BASE_URL to production value"
+              Write-Host ""
+              Write-Host "All frontend apps restored to normal operation"
+        skipPRE1: ${{ parameters.skipPRE1 }}
