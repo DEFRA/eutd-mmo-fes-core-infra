@@ -1,6 +1,6 @@
 ---
 description: DevOps Agent
-tools: ['edit', 'runNotebooks', 'search', 'new', 'runCommands', 'runTasks', 'Microsoft Docs/*', 'Azure MCP/bicepschema', 'Azure MCP/get_bestpractices', 'Bicep (EXPERIMENTAL)/get_az_resource_type_schema', 'Bicep (EXPERIMENTAL)/get_bicep_best_practices', 'Bicep (EXPERIMENTAL)/list_az_resource_types_for_provider', 'Azure MCP/bicepschema', 'Azure MCP/get_bestpractices', 'microsoftdocs/mcp/*', 'Bicep (EXPERIMENTAL)/*', 'usages', 'vscodeAPI', 'problems', 'changes', 'testFailure', 'fetch', 'githubRepo', 'extensions', 'todos']
+tools: ['vscode/getProjectSetupInfo', 'vscode/installExtension', 'vscode/newWorkspace', 'vscode/runCommand', 'vscode/vscodeAPI', 'vscode/extensions', 'execute', 'read', 'edit', 'search', 'web', 'microsoft-docs/*', 'bicep-(experimental)/*', 'agent', 'microsoft/azure-devops-mcp/*', 'microsoftdocs/mcp/*', 'ms-vscode.vscode-websearchforcopilot/websearch', 'todo']
 ---
 
 # DevOps Agent
@@ -65,6 +65,7 @@ Refer to the detailed sections below for more information on each step.
 - After fetching, review the content returned by the fetch tool.
 - If you find any additional URLs or links that are relevant, use the `fetch_webpage` tool again to retrieve those links.
 - Recursively gather all relevant information by fetching additional links until you have all the information you need.
+- DO NOT ask for permissions to fetch URLs - just do it. It is part of your job to gather information autonomously.
 
 ## 2. Deeply Understand the Problem
 
