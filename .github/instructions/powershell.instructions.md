@@ -205,6 +205,53 @@ function Update-ResourceStatus {
   - Support automation scenarios
   - Document all required inputs
 
+## Logging Standards
+
+- **Use Write-Host for Logging:**
+  - Use `Write-Host` for all informational and progress logging messages
+  - **Do NOT use color parameters** (`-ForegroundColor`, `-BackgroundColor`) with `Write-Host`
+  - Keep log messages plain text without formatting for consistency in pipeline logs
+  - Use clear, descriptive messages that include relevant context
+
+- **Restrict Write-Output Usage:**
+  - Use `Write-Output` **only** when setting Azure DevOps pipeline variables via `##vso[task.setvariable]`
+  - Do NOT use `Write-Output` for general logging or informational messages
+  - When returning data from functions, prefer `Write-Output` with structured objects
+
+- **Avoid Write-Verbose and Write-Warning:**
+  - Do NOT use `Write-Verbose` unless explicitly requested by the user
+  - Do NOT use `Write-Warning` unless explicitly requested by the user
+  - Use `Write-Host` for all standard logging instead
+
+- **Write-Error Usage:**
+  - Use `Write-Error` only when there is a genuine error condition that needs to be reported
+  - Pair with `throw` for terminating errors when the script should stop execution
+  - Do NOT use `Write-Error` for informational or warning messages
+
+- **Pipeline Variable Pattern:**
+  - Use `Write-Output` with `##vso[task.setvariable variable=VariableName]value` for setting pipeline variables
+  - Use `Write-Output` with `##vso[task.setvariable variable=VariableName;isOutput=true]value` for output variables
+
+### Logging Example
+
+```powershell
+# CORRECT: Use Write-Host without colors for logging
+Write-Host "Starting deployment process..."
+Write-Host "Processing resource: $ResourceName"
+Write-Host "Deployment completed successfully"
+
+# INCORRECT: Do NOT use colors with Write-Host
+# Write-Host "Success!" -ForegroundColor Green
+# Write-Host "Warning!" -ForegroundColor Yellow
+
+# CORRECT: Use Write-Output ONLY for setting pipeline variables
+Write-Output "##vso[task.setvariable variable=DeploymentStatus]Completed"
+Write-Output "##vso[task.setvariable variable=ResourceId;isOutput=true]$resourceId"
+
+# INCORRECT: Do NOT use Write-Output for general logging
+# Write-Output "Starting deployment..."
+```
+
 ### Example
 
 ```powershell
