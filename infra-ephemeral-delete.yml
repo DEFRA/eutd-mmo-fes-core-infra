@@ -28,7 +28,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: feature/app-settings-update #refs/heads/main
+      ref: feature/fix-ephemeral-delete #refs/heads/main
 
 extends:
   template: /includes/infra-deploy.yaml@MMOPipelineCommon
