@@ -40,32 +40,32 @@ extends:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: false
     environments:
-      - name: "ssv_snd"
-        developmentEnvironment: true
-        azureRegions:
-          primary: UKSouth
-        serviceConnection: AZR-MMO-SSV5
-        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
-        deploymentBranches:
-          - "*"
+      # - name: "ssv_snd"
+      #   developmentEnvironment: true
+      #   azureRegions:
+      #     primary: UKSouth
+      #   serviceConnection: AZR-MMO-SSV5
+      #   privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+      #   deploymentBranches:
+      #     - "*"
       - name: "ssv_dev"
         azureRegions:
           primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
         serviceConnection: AZR-MMO-SSV5
         privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
-        developmentEnvironment: ${{ parameters.deployToSecondaryRegion }}
+        developmentEnvironment: true #${{ parameters.deployToSecondaryRegion }}
         dependsOn: "Validate"
         deploymentBranches:
           - "*"
-      - name: "ssv_tst"
-        enableTemplateValidationBeforeDeployment: true
-        azureRegions:
-          primary: UKSouth
-        serviceConnection: AZR-MMO-SSV5
-        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
-        dependsOn: "ssv_snd"
-        deploymentBranches:
-          - "refs/heads/main"
+      # - name: "ssv_tst"
+      #   enableTemplateValidationBeforeDeployment: true
+      #   azureRegions:
+      #     primary: UKSouth
+      #   serviceConnection: AZR-MMO-SSV5
+      #   privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+      #   dependsOn: "ssv_snd"
+      #   deploymentBranches:
+      #     - "refs/heads/main"
     additionalRepositories: 
       - MMOPipelineCommon
     groupedDeployments:

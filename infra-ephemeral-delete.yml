@@ -5,11 +5,12 @@ trigger: none
 pr: none
 
 schedules:
-  - cron: "30 19 * * 1-5"
+  - cron: "30 8 * * 1-5"
     displayName: Daily Delete at 7:30 PM UTC
     branches:
       include:
         - main
+        - feature/*
     always: true
 
 parameters:
