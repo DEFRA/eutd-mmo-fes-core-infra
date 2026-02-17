@@ -10,7 +10,7 @@ schedules:
     branches:
       include:
         - main
-        - feature/*
+        # - feature/*
     always: true
 
 parameters:
