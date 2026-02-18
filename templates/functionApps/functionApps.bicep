@@ -95,7 +95,7 @@ module functionapp 'br/avm:web/site:0.9.0' = {
   name: '${funcAppName}-${deploymentDate}'
   params: {
     name: toUpper(funcAppName)
-    kind: 'functionapp'
+    kind: 'functionapp,linux,container'
     location: location
     tags: union(funcAppdefaultTags, customTags)
     serverFarmResourceId: appServicePlan.id
