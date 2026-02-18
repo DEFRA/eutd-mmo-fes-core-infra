@@ -79,7 +79,7 @@ extends:
             path: "scripts/Get-ExistingWebAppVersion.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             scriptArguments: -WebAppNames '$(webAppNames)' -ResourceGroupName '$(appEnvWebAppRgName)' -IsSlotsEnabled $$(slotsEnabled)
-          - name: "Re-tag_Ephemeral_Image"
+          - name: "WebApps_ReTag_Ephemeral_Image"
             scriptRepo: MMOPipelineCommon
             type: script
             scriptType: AzurePowerShell
@@ -93,7 +93,7 @@ extends:
             path: "scripts/Get-ExistingWebAppVersion.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             scriptArguments: -WebAppNames '$(functionApps)' -ResourceGroupName '$(appEnvWebAppRgName)' -IsSlotsEnabled $$(slotsEnabled)
-          - name: "Re_tag_Ephemeral_Image"
+          - name: "FunctionApps_ReTag_Ephemeral_Image"
             scriptRepo: MMOPipelineCommon
             type: script
             scriptType: AzurePowerShell
