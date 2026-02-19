@@ -186,11 +186,11 @@ function Update-ResourceStatus {
   - Use `ShouldContinue()` for additional confirmations
 
 - **Message Streams:**
-  - `Write-Verbose` for operational details with `-Verbose`
-  - `Write-Warning` for warning conditions
+  - `Write-Host` for informational and progress logging (see Logging Standards below)
+  - `Write-Verbose` only when explicitly requested by the user
+  - `Write-Warning` only when explicitly requested by the user
   - `Write-Error` for non-terminating errors
   - `throw` for terminating errors
-  - Avoid `Write-Host` except for user interface text
 
 - **Error Handling Pattern:**
   - Use try/catch blocks for error management
