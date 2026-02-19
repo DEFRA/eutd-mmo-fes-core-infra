@@ -4,13 +4,13 @@ trigger: none
 
 pr: none
 
-schedules:
-  - cron: "30 19 * * 1-5"
-    displayName: Daily Delete at 7:30 PM UTC
-    branches:
-      include:
-        - main
-    always: true
+# schedules:
+#   - cron: "30 19 * * 1-5"
+#     displayName: Daily Delete at 7:30 PM UTC
+#     branches:
+#       include:
+#         - main
+#     always: true
 
 parameters:
   - name: deployToDevelopmentEnvironment
