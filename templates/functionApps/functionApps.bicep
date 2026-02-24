@@ -25,7 +25,7 @@ param appVersions string
 param aadclientId string
 param aadTenantId string
 @secure()
-param aadClientSecret string
+// param aadClientSecret string
 param aadAppIdUri string
 
 var aadIssuerUrl = 'https://sts.windows.net/${aadTenantId}/v2.0'
@@ -103,7 +103,6 @@ module functionapp 'br/avm:web/site:0.9.0' = {
     appSettingsKeyValuePairs: {
       AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${toLower(webjobsStorageAccount)};AccountKey=${storageAccount.listKeys().keys[0].value}'
       APPINSIGHTS_INSTRUMENTATIONKEY: appInsights.properties.InstrumentationKey
-      AAD_CLIENTSECRET: aadClientSecret
     }
     authSettingV2Configuration: {
       globalValidation: {
@@ -136,7 +135,6 @@ module functionapp 'br/avm:web/site:0.9.0' = {
             appSettingsKeyValuePairs: {
                 AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${toLower(webjobsStorageAccount)};AccountKey=${storageAccount.listKeys().keys[0].value}'
                 APPINSIGHTS_INSTRUMENTATIONKEY: appInsights.properties.InstrumentationKey
-                AAD_CLIENTSECRET: aadClientSecret
             }
             
             authSettingV2Configuration: {
@@ -277,21 +275,3 @@ module functionapp 'br/avm:web/site:0.9.0' = {
     ]
   }
 }
-
-resource createdFuncApp 'Microsoft.Web/sites@2024-04-01' existing = if (bool(slotsEnabled)) {
-  name: toUpper(funcAppName)
-  dependsOn: [
-    functionapp
-  ]
-}
-
-// resource slotsStickyConfig 'Microsoft.Web/sites/config@2022-09-01' = if (bool(slotsEnabled)) {
-//   name: 'slotConfigNames'
-//   parent: createdFuncApp
-//   properties: {
-//     appSettingNames: objectKeys(appSettingsSlotKeyValuePairs)
-//   }
-//   dependsOn: [
-//     createdFuncApp
-//   ]
-// }
