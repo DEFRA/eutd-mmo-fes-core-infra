@@ -1,6 +1,6 @@
 using 'keyVaults.bicep'
 
-param keyVaultName = '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-keyvault }}#{{ nc-region-id }}01'
+param keyVaultName = '#{{ keyVaultName }}'
 param environment = '#{{ environment }}'
 param sku = 'standard'
 

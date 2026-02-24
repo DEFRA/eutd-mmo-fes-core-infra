@@ -1,7 +1,7 @@
 using './keyVaultSecondaryPE.bicep'
 
 param environment = '#{{ environment }}'
-param keyVaultName = '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-keyvault }}#{{ nc-static-res-region-id }}01'
+param keyVaultName = '#{{ keyVaultName }}'
 param keyVaultResourceGroupName = '#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-static-res-region-id }}02'
 param vnetName = '#{{ vnetName }}'
 param vnetResourceGroupName = '#{{ vnetResourceGroupName }}'
