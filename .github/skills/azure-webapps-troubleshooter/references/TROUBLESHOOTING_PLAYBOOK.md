@@ -10,11 +10,15 @@ Use table-specific queries (`requests`, `dependencies`, `exceptions`, `traces`, 
 ## A) Input checklist
 
 - Environment name provided and mapped to `vars/<environment>.yaml`
+- Subscription context resolved from `vars/<environment>.yaml` (`serviceConnection` pattern `AZR-MMO-<ENV>1`, and/or `subscriptionId`)
 - Impacted applications list
 - Time window provided or defaulted to 1 hour
 - Deployed branch confirmed per impacted repo
 - Resource names resolved from `common.yaml` + env vars + templates
 - User is connected to client network/VPN (required for private endpoint-integrated resources)
+- Azure MCP server/session is available before querying Azure resources
+- No local git operations and no local cloning of application repositories
+- No `az` CLI usage (Azure MCP only)
 
 ## B) KQL starter snippets (adapt per table schema)
 
@@ -105,6 +109,63 @@ AzureActivity
 Use this exact style when private endpoint-integrated resources are unreachable:
 
 "Read-only troubleshooting is currently blocked by network access constraints. These app and monitoring resources are private endpoint-integrated and require client network/VPN connectivity. Please confirm you are connected to the client network, then retry. No Azure resources were modified."
+
+## G) Chat debug/status message templates
+
+Use these messages before each troubleshooting action so the user sees progress and target resource context.
+Use them for every Azure connect/read action and every repository inspection action (mandatory).
+After each action, post the corresponding completion message (mandatory).
+
+- Subscription selection:
+  - `Checking subscription context: AZR-MMO-DEV1`
+  - `Checking subscription context: 6605237e-040b-4bdd-a6b0-5dd29b734fc9`
+- Azure connection:
+  - `Connecting to Azure subscription: AZR-MMO-DEV1`
+  - `Connecting to Azure subscription: 6605237e-040b-4bdd-a6b0-5dd29b734fc9`
+  - `Connected to Azure subscription: AZR-MMO-DEV1`
+- Resource lookup:
+  - `Resolving resources for DEV: Web App DEV-MMO-FES-EXTERNAL-FE-WA`
+  - `Resolving resources for DEV: Log Analytics workspace DEVMMOINFLW1401`
+  - `Resolved resources for DEV: Web App DEV-MMO-FES-EXTERNAL-FE-WA`
+- Log checks:
+  - `Checking logs for DEV-MMO-FES-EXTERNAL-FE-WA app`
+  - `Checking platform logs for DEV-MMO-FES-EXTERNAL-FE-WA app`
+  - `Checking AzureDiagnostics for DEV environment resources`
+  - `Completed log check for DEV-MMO-FES-EXTERNAL-FE-WA app`
+- Resource reads:
+  - `Reading Web App DEV-MMO-FES-EXTERNAL-FE-WA in AZR-MMO-DEV1`
+  - `Reading Log Analytics workspace DEVMMOINFLW1401 in AZR-MMO-DEV1`
+  - `Completed reading Web App DEV-MMO-FES-EXTERNAL-FE-WA in AZR-MMO-DEV1`
+- Correlation step:
+  - `Correlating errors across DEV-MMO-FES-EXTERNAL-FE-WA -> DEV-MMO-FES-ORCHESTRATION-WA`
+  - `Completed correlation across DEV-MMO-FES-EXTERNAL-FE-WA -> DEV-MMO-FES-ORCHESTRATION-WA`
+- Repository checks:
+  - `Checking code in eutd-mmo-fes-core-infra`
+  - `Checking code in eutd-mmo-fes-pipeline-common`
+  - `Checking code in DEFRA/eutd-mmo-fes-function-app`
+  - `Completed code check in eutd-mmo-fes-core-infra`
+
+## H) Message sequence checklist (Start -> Action -> Complete)
+
+For each troubleshooting unit of work, use this 3-step sequence (mandatory):
+
+- **Start**: announce intent and target.
+
+`Connecting to Azure subscription: AZR-MMO-DEV1`
+
+- **Action**: announce the exact read/query operation.
+
+`Reading Web App DEV-MMO-FES-EXTERNAL-FE-WA in AZR-MMO-DEV1`
+
+- **Complete**: confirm completion for the same target.
+
+`Completed reading Web App DEV-MMO-FES-EXTERNAL-FE-WA in AZR-MMO-DEV1`
+
+Apply the same sequence to repository inspections:
+
+- `Checking code in eutd-mmo-fes-core-infra`
+- `Checking code in DEFRA/eutd-mmo-fes-function-app`
+- `Completed code check in DEFRA/eutd-mmo-fes-function-app`
 
 ## C) Iterative window procedure
 

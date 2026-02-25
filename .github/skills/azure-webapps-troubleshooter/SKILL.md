@@ -27,6 +27,11 @@ Read-only troubleshooting skill for EUTD MMO FES application services in Azure.
    - Key Vault secrets, keys, certificates values
    - Service Bus/Event Hub message payloads
    - Any other persistence/data-bearing resources
+6. **No local git operations.** Do not run git commands locally for troubleshooting, do not clone repositories, and do not pull/fetch application repos into local workspace.
+7. **Use existing open repos only for infra context.** Rely on the already-open `eutd-mmo-fes-core-infra` and `eutd-mmo-fes-pipeline-common` workspaces.
+8. **Application repos via URL only.** For app code analysis, use repository URLs through web access only; do not clone or use local git workflows.
+9. **No Azure CLI usage.** Never run `az` CLI commands for this skill. Use Azure MCP server only.
+10. **Mandatory user-visible action logging in chat.** For every Azure connection and every Azure resource read/query, post a chat status line that names the exact target subscription/resource. For every code/repository inspection, post a chat status line that names the exact repository being checked.
 
 For ACR specifically: read image/tag metadata only; never push, import, delete, quarantine-release, retag, or modify any registry configuration.
 
@@ -41,6 +46,9 @@ Collect or confirm:
 - incident symptom, impacted app(s), and start time if known
 - user-provided time window (if not provided, default to last 1 hour)
 - **deployed branch per app/repo** (mandatory for code-level root cause)
+- target subscription details resolved from variable files:
+   - preferred from `vars/<environment>.yaml` (`serviceConnection`, `subscriptionId`)
+   - expected naming pattern for service connection/subscription label: `AZR-MMO-<ENV>1` (example: `AZR-MMO-DEV1`)
 
 Connectivity prerequisite:
 - These services use private endpoint integration. If access fails due to network reachability/auth path, ask the user to confirm they are connected to the client network/VPN before continuing.
@@ -65,7 +73,37 @@ Do this before querying Azure:
 ### 3) Connect to Azure with least privilege
 
 Use Azure MCP tools with user credentials and only read/query operations.
+Before querying resources, verify Azure MCP server/session is available and initialized; if not available, request user to enable/start Azure MCP server configuration and do not fall back to Azure CLI.
 Recommended minimum RBAC scope: `Reader` + `Monitoring Reader` + `Log Analytics Data Reader` at the narrowest required scope.
+
+### 3.1) Mandatory chat debug/status messages
+
+Before each major troubleshooting action, post a short status message in chat so the user can see exactly what is being checked.
+This is strict and applies to every Azure connection/read and every repository inspection step.
+After each action completes, post a matching completion message.
+
+Required message patterns:
+- subscription selection: `Checking subscription context: <subscriptionName or subscriptionId>`
+- Azure connection start: `Connecting to Azure subscription: <subscriptionName or subscriptionId>`
+- resource discovery: `Resolving resources for <environment>: <resourceType> <resourceName>`
+- log query start: `Checking logs for <resourceName> <resourceType>`
+- resource read/query: `Reading <resourceType> <resourceName> in <subscriptionName or subscriptionId>`
+- repository inspection: `Checking code in <repoName>`
+- correlation step: `Correlating errors across <resourceA> -> <resourceB>`
+
+Required completion patterns:
+- Azure connection complete: `Connected to Azure subscription: <subscriptionName or subscriptionId>`
+- resource discovery complete: `Resolved resources for <environment>: <resourceType> <resourceName>`
+- log query complete: `Completed log check for <resourceName> <resourceType>`
+- resource read complete: `Completed reading <resourceType> <resourceName> in <subscriptionName or subscriptionId>`
+- repository inspection complete: `Completed code check in <repoName>`
+- correlation complete: `Completed correlation across <resourceA> -> <resourceB>`
+
+Example:
+- `Checking logs for DEV-MMO-FES-EXTERNAL-FE-WA app`
+- `Checking code in eutd-mmo-fes-core-infra`
+- `Checking code in DEFRA/eutd-mmo-fes-function-app`
+- `Completed log check for DEV-MMO-FES-EXTERNAL-FE-WA app`
 
 ### 4) Investigate with iterative time window
 
@@ -129,3 +167,4 @@ Then include:
 
 Use the query and triage templates in [Troubleshooting Playbook](references/TROUBLESHOOTING_PLAYBOOK.md).
 When private endpoint access fails, use the standard response in the playbook section "Network access failure response template".
+Follow the mandatory chat sequence in the playbook section "Message sequence checklist (Start -> Action -> Complete)".
