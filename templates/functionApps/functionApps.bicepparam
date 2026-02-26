@@ -31,13 +31,6 @@ param aadclientId = az.getSecret(
   '${comparams.keyVaultName}',
   'AAD-CLIENTID'
 )
-// param aadClientSecret = az.getSecret(
-//   '#{{ subscriptionId }}',
-//   '${primaryRegionResourceGroupName}',
-//   '${comparams.keyVaultName}',
-//   'AAD-CLIENTSECRET'
-// )
 param aadAppIdUri = '#{{ aadAppIdUri }}'
-
 param slotsEnabled = '#{{ slotsEnabled }}'
 param appVersions = '#{{ appVersions }}'

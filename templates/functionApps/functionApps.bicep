@@ -19,17 +19,13 @@ param webjobsStorageAccount string
 param vnetName string
 param vnetResourceGroupName string
 param slotsEnabled string
-// param appSettingsSlotKeyValuePairs object
-// param appSettingsKeyValuePairs object
 param appVersions string
 param aadclientId string
 param aadTenantId string
 @secure()
-// param aadClientSecret string
 param aadAppIdUri string
 
 var aadIssuerUrl = 'https://sts.windows.net/${aadTenantId}/v2.0'
-
 var funcAppdefaultTags = {
   ServiceCode: 'FES'
   ServiceName: 'MMO'
