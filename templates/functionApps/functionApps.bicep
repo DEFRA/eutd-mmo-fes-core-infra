@@ -102,7 +102,7 @@ module functionapp 'br/avm:web/site:0.9.0' = {
     appInsightResourceId: appInsights.id
     appSettingsKeyValuePairs: {
       AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${toLower(webjobsStorageAccount)};AccountKey=${storageAccount.listKeys().keys[0].value}'
-      APPINSIGHTS_INSTRUMENTATIONKEY: appInsights.properties.InstrumentationKey
+      INSTRUMENTATION_KEY: appInsights.properties.InstrumentationKey
     }
     authSettingV2Configuration: {
       globalValidation: {
@@ -134,7 +134,7 @@ module functionapp 'br/avm:web/site:0.9.0' = {
             name: 'staging'
             appSettingsKeyValuePairs: {
                 AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${toLower(webjobsStorageAccount)};AccountKey=${storageAccount.listKeys().keys[0].value}'
-                APPINSIGHTS_INSTRUMENTATIONKEY: appInsights.properties.InstrumentationKey
+                INSTRUMENTATION_KEY: appInsights.properties.InstrumentationKey
             }
             
             authSettingV2Configuration: {
