@@ -31,7 +31,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: feature/fix-ephemeral-delete #refs/heads/main
+      ref: refs/heads/main
 
 extends:
   template: /includes/infra-deploy.yaml@MMOPipelineCommon
@@ -39,32 +39,32 @@ extends:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: false
     environments:
-      # - name: "ssv_snd"
-      #   developmentEnvironment: true
-      #   azureRegions:
-      #     primary: UKSouth
-      #   serviceConnection: AZR-MMO-SSV5
-      #   privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
-      #   deploymentBranches:
-      #     - "*"
+      - name: "ssv_snd"
+        developmentEnvironment: true
+        azureRegions:
+          primary: UKSouth
+        serviceConnection: AZR-MMO-SSV5
+        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+        deploymentBranches:
+          - "*"
       - name: "ssv_dev"
         azureRegions:
           primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
         serviceConnection: AZR-MMO-SSV5
         privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
-        developmentEnvironment: true #${{ parameters.deployToSecondaryRegion }}
+        developmentEnvironment: ${{ parameters.deployToSecondaryRegion }}
         dependsOn: "Validate"
         deploymentBranches:
           - "*"
-      # - name: "ssv_tst"
-      #   enableTemplateValidationBeforeDeployment: true
-      #   azureRegions:
-      #     primary: UKSouth
-      #   serviceConnection: AZR-MMO-SSV5
-      #   privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
-      #   dependsOn: "ssv_snd"
-      #   deploymentBranches:
-      #     - "refs/heads/main"
+      - name: "ssv_tst"
+        enableTemplateValidationBeforeDeployment: true
+        azureRegions:
+          primary: UKSouth
+        serviceConnection: AZR-MMO-SSV5
+        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+        dependsOn: "ssv_snd"
+        deploymentBranches:
+          - "refs/heads/main"
     additionalRepositories: 
       - MMOPipelineCommon
     groupedDeployments:
