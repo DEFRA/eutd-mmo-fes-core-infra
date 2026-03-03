@@ -14,9 +14,9 @@ description: Audit for hardcoded secrets and environment-specific identifiers ac
 Read before scanning:
 
 - `.github/copilot-instructions.md`
-- `.github/instructions/bicep-code-best-practices.instructions.md`
-- `.github/instructions/azure-devops-pipelines.instructions.md`
-- `.github/instructions/powershell.instructions.md`
+- `.github/skills/bicep-linter-fixer/references/bicep-coding-standards.md`
+- `.github/skills/pipeline-best-practices/references/pipeline-coding-standards.md`
+- `.github/skills/powershell-quality-enforcer/references/powershell-coding-standards.md`
 
 ## 2. Scan scope
 

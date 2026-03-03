@@ -1,22 +1,32 @@
 ---
 name: powershell-quality-enforcer
-description: Enforce repository PowerShell quality and safety standards, and fix deterministic script quality violations when requested. Use this when asked to (1) audit or review PowerShell scripts for quality, (2) enforce Verb-Noun naming or parameter validation, (3) fix PowerShell style issues such as aliases or missing error handling, (4) add SupportsShouldProcess or WhatIf/Confirm to destructive functions, (5) improve PowerShell logging and Write-Host/Write-Output usage, or (6) ensure comment-based help is present on public functions.
+description: 'PowerShell coding standards and quality enforcement for scripts and modules. Use when (1) writing or editing PowerShell scripts (.ps1, .psm1), (2) audit or review scripts for quality, (3) enforce Verb-Noun naming or parameter validation, (4) fix style issues like aliases or missing error handling, (5) add SupportsShouldProcess or WhatIf/Confirm to destructive functions, (6) improve logging and Write-Host/Write-Output usage, or (7) ensure comment-based help is present.'
 ---
 
-# Workflow
+# PowerShell Coding Standards & Quality Enforcer
 
-## 1. Load repository guidance
+## Key Standards
 
-Read before scanning or editing:
+| Category | Rule |
+|----------|------|
+| Naming | Verb-Noun functions (approved verbs); PascalCase; no aliases in scripts |
+| Parameters | `[Parameter(Mandatory)]`; `ValidateSet`/`ValidateNotNullOrEmpty`; singular form |
+| Safety | `SupportsShouldProcess` + `-WhatIf`/`-Confirm` on destructive actions |
+| Errors | `try/catch` with `Write-Error`; `throw` for terminating errors |
+| Logging | `Write-Host` without color params for logging; `Write-Output` only for `##vso` pipeline variables |
+| Pipeline | `ValueFromPipeline`; Begin/Process/End blocks; return objects not text |
+| Documentation | Comment-based help (`.SYNOPSIS`, `.DESCRIPTION`, `.EXAMPLE`) on public functions |
+| Style | Full cmdlet names; 4-space indent; no abbreviations |
 
-- `.github/copilot-instructions.md`
-- `.github/instructions/powershell.instructions.md`
+For full standards with examples, see [PowerShell coding standards reference](./references/powershell-coding-standards.md).
 
-## 2. Target files
+## Quality Enforcement Workflow
+
+### 1. Target files
 
 Default scope: `**/*.ps1`, `**/*.psm1`. Narrow when user specifies.
 
-## 3. Quality rules
+### 2. Quality rules
 
 | Category | Rule |
 |----------|------|
@@ -27,12 +37,12 @@ Default scope: `**/*.ps1`, `**/*.psm1`. Narrow when user specifies.
 | Style | Full cmdlet and parameter names; no aliases in scripts |
 | Docs | Comment-based help on public functions |
 
-## 4. Change policy
+### 3. Change policy
 
 - **Audit-only request** — report violations, do not edit files.
 - **Fix request** — apply focused, deterministic edits only. Preserve script behaviour and interfaces.
 
-## 5. Validation and output
+### 4. Validation and output
 
 Re-check changed files, then report:
 
