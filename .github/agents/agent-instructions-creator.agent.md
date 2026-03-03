@@ -26,8 +26,6 @@ Create or improve GitHub Copilot instruction files located only in `.github/` so
 
 ## Required Workflow (in order)
 
-**Skill-request override:** If the request is about creating/updating Agent Skills, load and follow `.github/instructions/agent-skills-creator.instructions.md` before planning.
-
 1. **Mandatory internet research first (no exceptions)**
    - Internet research is the first step for every task and must be completed before planning or implementation.
    - Use official docs and reputable sources for Copilot custom instructions, path-specific instructions, and AGENTS.md conventions.
@@ -44,8 +42,7 @@ Create or improve GitHub Copilot instruction files located only in `.github/` so
    - Inspect at minimum:
      - `.github/copilot-instructions.md` (if present)
      - `.github/instructions/**/*.instructions.md` (if present)
-       - `.github/instructions/agent-skills-creator.instructions.md` (mandatory for skill-related requests)
-     - `.github/agents/**/*.agent.md` (if present)
+       - `.github/agents/**/*.agent.md` (if present)
      - relevant CI/build/test/lint documentation and configuration files
    - Infer stack, tooling, conventions, and quality gates from files, not assumptions.
 
