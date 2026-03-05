@@ -40,6 +40,10 @@ parameters:
       - Container Registry - All
       - Container Registry - Registry
       - Container Registry - Role Assignments
+  
+  - name: skipPRE1
+    type: boolean
+    default: false
 
 resources:
   repositories:
@@ -66,16 +70,22 @@ extends:
       - MMOPipelineCommon
     ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
       environments:
-        - name: ssv_pre
-          azureRegions:
-            primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
-          developmentEnvironment: true
-          serviceConnection: AZR-MMO-SSV5
-          privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
-          deploymentBranches:
-            - "*"
+        - ${{ if eq(parameters.skipPRE1, false) }}:
+          - name: ssv_pre
+            azureRegions:
+              primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
+            developmentEnvironment: true
+            enableTemplateValidationBeforeDeployment: true
+            serviceConnection: AZR-MMO-SSV5
+            privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+            deploymentBranches:
+              - "*"
         - name: ssv_prd
-          dependsOn: ssv_pre
+          enableTemplateValidationBeforeDeployment: true
+          ${{ if eq(parameters.skipPRE1, false) }}:
+            dependsOn: ssv_pre
+          ${{ else }}:
+            developmentEnvironment: true
           azureRegions:
             primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
           serviceConnection: AZR-MMO-SSV5
