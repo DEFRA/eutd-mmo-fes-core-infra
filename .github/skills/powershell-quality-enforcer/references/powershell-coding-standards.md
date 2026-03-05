@@ -1,0 +1,375 @@
+# PowerShell Coding Standards
+
+Detailed reference for PowerShell scripting conventions. Loaded on demand by the `powershell-quality-enforcer` skill.
+
+## Naming Conventions
+
+- **Verb-Noun Format:**
+  - Use approved PowerShell verbs (Get-Verb)
+  - Use singular nouns
+  - PascalCase for both verb and noun
+  - Avoid special characters and spaces
+
+- **Parameter Names:**
+  - Use PascalCase
+  - Choose clear, descriptive names
+  - Use singular form unless always multiple
+  - Follow PowerShell standard names
+
+- **Variable Names:**
+  - Use PascalCase for public variables
+  - Use camelCase for private variables
+  - Avoid abbreviations
+  - Use meaningful names
+
+- **Alias Avoidance:**
+  - Use full cmdlet names
+  - Avoid using aliases in scripts (e.g., use Get-ChildItem instead of gci)
+  - Document any custom aliases
+  - Use full parameter names
+
+### Example
+
+```powershell
+function Get-UserProfile {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Username,
+
+        [Parameter()]
+        [ValidateSet('Basic', 'Detailed')]
+        [string]$ProfileType = 'Basic'
+    )
+
+    process {
+        # Logic here
+    }
+}
+```
+
+## Parameter Design
+
+- **Standard Parameters:**
+  - Use common parameter names (`Path`, `Name`, `Force`)
+  - Follow built-in cmdlet conventions
+  - Use aliases for specialized terms
+  - Document parameter purpose
+
+- **Parameter Names:**
+  - Use singular form unless always multiple
+  - Choose clear, descriptive names
+  - Follow PowerShell conventions
+  - Use PascalCase formatting
+
+- **Type Selection:**
+  - Use common .NET types
+  - Implement proper validation
+  - Consider ValidateSet for limited options
+  - Enable tab completion where possible
+
+- **Switch Parameters:**
+  - Use [switch] for boolean flags
+  - Avoid $true/$false parameters
+  - Default to $false when omitted
+  - Use clear action names
+
+### Example
+
+```powershell
+function Set-ResourceConfiguration {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Name,
+        
+        [Parameter()]
+        [ValidateSet('Dev', 'Test', 'Prod')]
+        [string]$Environment = 'Dev',
+        
+        [Parameter()]
+        [switch]$Force,
+        
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string[]]$Tags
+    )
+    
+    process {
+        # Logic here
+    }
+}
+```
+
+## Pipeline and Output
+
+- **Pipeline Input:**
+  - Use `ValueFromPipeline` for direct object input
+  - Use `ValueFromPipelineByPropertyName` for property mapping
+  - Implement Begin/Process/End blocks for pipeline handling
+  - Document pipeline input requirements
+
+- **Output Objects:**
+  - Return rich objects, not formatted text
+  - Use PSCustomObject for structured data
+  - Avoid Write-Host for data output
+  - Enable downstream cmdlet processing
+
+- **Pipeline Streaming:**
+  - Output one object at a time
+  - Use process block for streaming
+  - Avoid collecting large arrays
+  - Enable immediate processing
+
+- **PassThru Pattern:**
+  - Default to no output for action cmdlets
+  - Implement `-PassThru` switch for object return
+  - Return modified/created object with `-PassThru`
+  - Use verbose/warning for status updates
+
+### Example
+
+```powershell
+function Update-ResourceStatus {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [string]$Name,
+
+        [Parameter(Mandatory)]
+        [ValidateSet('Active', 'Inactive', 'Maintenance')]
+        [string]$Status,
+
+        [Parameter()]
+        [switch]$PassThru
+    )
+
+    begin {
+        Write-Verbose "Starting resource status update process"
+        $timestamp = Get-Date
+    }
+
+    process {
+        # Process each resource individually
+        Write-Verbose "Processing resource: $Name"
+        
+        $resource = [PSCustomObject]@{
+            Name = $Name
+            Status = $Status
+            LastUpdated = $timestamp
+            UpdatedBy = $env:USERNAME
+        }
+
+        # Only output if PassThru is specified
+        if ($PassThru) {
+            Write-Output $resource
+        }
+    }
+
+    end {
+        Write-Verbose "Resource status update process completed"
+    }
+}
+ ```
+
+## Error Handling and Safety
+
+- **ShouldProcess Implementation:**
+  - Use `[CmdletBinding(SupportsShouldProcess = $true)]`
+  - Set appropriate `ConfirmImpact` level
+  - Call `$PSCmdlet.ShouldProcess()` for system changes
+  - Use `ShouldContinue()` for additional confirmations
+
+- **Message Streams:**
+  - `Write-Host` for informational and progress logging (see Logging Standards below)
+  - `Write-Verbose` only when explicitly requested by the user
+  - `Write-Warning` only when explicitly requested by the user
+  - `Write-Error` for non-terminating errors
+  - `throw` for terminating errors
+
+- **Error Handling Pattern:**
+  - Use try/catch blocks for error management
+  - Set appropriate ErrorAction preferences
+  - Return meaningful error messages
+  - Use ErrorVariable when needed
+  - Include proper terminating vs non-terminating error handling
+
+- **Non-Interactive Design:**
+  - Accept input via parameters
+  - Avoid `Read-Host` in scripts
+  - Support automation scenarios
+  - Document all required inputs
+
+## Logging Standards
+
+- **Use Write-Host for Logging:**
+  - Use `Write-Host` for all informational and progress logging messages
+  - **Do NOT use color parameters** (`-ForegroundColor`, `-BackgroundColor`) with `Write-Host`
+  - Keep log messages plain text without formatting for consistency in pipeline logs
+  - Use clear, descriptive messages that include relevant context
+
+- **Restrict Write-Output Usage:**
+  - Use `Write-Output` **only** when setting Azure DevOps pipeline variables via `##vso[task.setvariable]`
+  - Do NOT use `Write-Output` for general logging or informational messages
+  - When returning data from functions, prefer `Write-Output` with structured objects
+
+- **Avoid Write-Verbose and Write-Warning:**
+  - Do NOT use `Write-Verbose` unless explicitly requested by the user
+  - Do NOT use `Write-Warning` unless explicitly requested by the user
+  - Use `Write-Host` for all standard logging instead
+
+- **Write-Error Usage:**
+  - Use `Write-Error` only when there is a genuine error condition that needs to be reported
+  - Pair with `throw` for terminating errors when the script should stop execution
+  - Do NOT use `Write-Error` for informational or warning messages
+
+- **Pipeline Variable Pattern:**
+  - Use `Write-Output` with `##vso[task.setvariable variable=VariableName]value` for setting pipeline variables
+  - Use `Write-Output` with `##vso[task.setvariable variable=VariableName;isOutput=true]value` for output variables
+
+### Logging Example
+
+```powershell
+# CORRECT: Use Write-Host without colors for logging
+Write-Host "Starting deployment process..."
+Write-Host "Processing resource: $ResourceName"
+Write-Host "Deployment completed successfully"
+
+# INCORRECT: Do NOT use colors with Write-Host
+# Write-Host "Success!" -ForegroundColor Green
+# Write-Host "Warning!" -ForegroundColor Yellow
+
+# CORRECT: Use Write-Output ONLY for setting pipeline variables
+Write-Output "##vso[task.setvariable variable=DeploymentStatus]Completed"
+Write-Output "##vso[task.setvariable variable=ResourceId;isOutput=true]$resourceId"
+
+# INCORRECT: Do NOT use Write-Output for general logging
+# Write-Output "Starting deployment..."
+```
+
+### Error Handling Example
+
+```powershell
+function Remove-UserAccount {
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    param(
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Username,
+
+        [Parameter()]
+        [switch]$Force
+    )
+
+    begin {
+        Write-Verbose "Starting user account removal process"
+        $ErrorActionPreference = 'Stop'
+    }
+
+    process {
+        try {
+            # Validation
+            if (-not (Test-UserExists -Username $Username)) {
+                Write-Error "User account '$Username' not found"
+                return
+            }
+
+            # Confirmation
+            $shouldProcessMessage = "Remove user account '$Username'"
+            if ($Force -or $PSCmdlet.ShouldProcess($Username, $shouldProcessMessage)) {
+                Write-Verbose "Removing user account: $Username"
+                
+                # Main operation
+                Remove-ADUser -Identity $Username -ErrorAction Stop
+                Write-Warning "User account '$Username' has been removed"
+            }
+        }
+        catch [Microsoft.ActiveDirectory.Management.ADException] {
+            Write-Error "Active Directory error: $_"
+            throw
+        }
+        catch {
+            Write-Error "Unexpected error removing user account: $_"
+            throw
+        }
+    }
+
+    end {
+        Write-Verbose "User account removal process completed"
+    }
+}
+```
+
+## Documentation and Style
+
+- **Comment-Based Help:** Include comment-based help for any public-facing function or cmdlet. Inside the function, add a `<# ... #>` help comment with at least:
+  - `.SYNOPSIS` Brief description
+  - `.DESCRIPTION` Detailed explanation
+  - `.EXAMPLE` sections with practical usage
+  - `.PARAMETER` descriptions
+  - `.OUTPUTS` Type of output returned
+  - `.NOTES` Additional information
+
+- **Consistent Formatting:**
+  - Follow consistent PowerShell style
+  - Use proper indentation (4 spaces recommended)
+  - Opening braces on same line as statement
+  - Closing braces on new line
+  - Use line breaks after pipeline operators
+  - PascalCase for function and parameter names
+  - Avoid unnecessary whitespace
+
+- **Pipeline Support:**
+  - Implement Begin/Process/End blocks for pipeline functions
+  - Use ValueFromPipeline where appropriate
+  - Support pipeline input by property name
+  - Return proper objects, not formatted text
+
+- **Avoid Aliases:** Use full cmdlet names and parameters
+  - Avoid using aliases in scripts (e.g., use Get-ChildItem instead of gci); aliases are acceptable for interactive shell use.
+  - Use `Where-Object` instead of `?` or `where`
+  - Use `ForEach-Object` instead of `%`
+  - Use `Get-ChildItem` instead of `ls` or `dir`
+
+## Full Example: End-to-End Cmdlet Pattern
+
+```powershell
+function New-Resource {
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+    param(
+        [Parameter(Mandatory = $true,
+                   ValueFromPipeline = $true,
+                   ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Name,
+
+        [Parameter()]
+        [ValidateSet('Development', 'Production')]
+        [string]$Environment = 'Development'
+    )
+    
+    begin {
+        Write-Verbose "Starting resource creation process"
+    }
+    
+    process {
+        try {
+            if ($PSCmdlet.ShouldProcess($Name, "Create new resource")) {
+                # Resource creation logic here
+                Write-Output ([PSCustomObject]@{
+                    Name = $Name
+                    Environment = $Environment
+                    Created = Get-Date
+                })
+            }
+        }
+        catch {
+            Write-Error "Failed to create resource: $_"
+        }
+    }
+    
+    end {
+        Write-Verbose "Completed resource creation process"
+    }
+}
+```

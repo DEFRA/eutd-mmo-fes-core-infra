@@ -1,23 +1,34 @@
 ---
 name: bicep-linter-fixer
-description: Detect and fix Bicep lint and best-practice issues in this repository. Use this when asked to improve Bicep quality, enforce standards, or remediate lint findings. Triggers include requests to (1) lint or validate Bicep files, (2) fix Bicep warnings or errors, (3) enforce Bicep naming, parameter, or security conventions, (4) review Bicep templates for best-practice compliance, (5) remediate Bicep code quality issues, or (6) align Bicep code with Azure Verified Module (AVM) patterns.
+description: 'Bicep coding standards and lint/fix enforcement for infrastructure as code. Use when (1) writing or editing Bicep files, (2) lint or validate Bicep templates, (3) fix Bicep warnings or errors, (4) enforce naming, parameter, or security conventions, (5) review Bicep templates for best-practice compliance, (6) remediate code quality issues, or (7) align with Azure Verified Module (AVM) patterns.'
 ---
 
-# Workflow
+# Bicep Coding Standards & Lint Fixer
 
-## 1. Load repository guidance
+## Key Standards
 
-Read these files before making any edits:
+| Category | Rule |
+|----------|------|
+| AVM First | Prefer Azure Verified Modules; use Bicep resources only when no AVM module fits |
+| Naming | lowerCamelCase for all names; descriptive symbolic names; no `-name` suffix |
+| Parameters | `@description` on every parameter; sensible defaults; `@secure()` on secrets |
+| API Versions | Latest stable; no preview unless explicitly required |
+| References | Symbolic references; no unnecessary `dependsOn`; use `existing` keyword |
+| Security | No secrets in outputs; no hardcoded keys |
+| Variables | Use variables for complex expressions; rely on type inference |
+| Child Resources | Use parent property or nesting; avoid name construction |
+| Documentation | Include `//` comments for readability |
 
-- `.github/copilot-instructions.md`
-- `.github/instructions/bicep-code-best-practices.instructions.md`
+For full standards, AVM discovery links, and examples, see [Bicep coding standards reference](./references/bicep-coding-standards.md).
 
-## 2. Scope discovery
+## Lint/Fix Workflow
+
+### 1. Scope discovery
 
 - Default scope: `templates/**/*.bicep`. Narrow when user specifies files.
 - Preserve module structure and existing deployment intent.
 
-## 3. Checks to enforce
+### 2. Checks to enforce
 
 | Category | Rule |
 |----------|------|
@@ -28,13 +39,13 @@ Read these files before making any edits:
 | Security | No secrets in outputs; no hardcoded keys |
 | Reuse | Prefer AVM modules or existing `templates/` patterns over duplication |
 
-## 4. Fix policy
+### 3. Fix policy
 
 - Apply minimal, targeted edits to deterministic issues only.
 - Do not refactor broadly or alter runtime behavior.
 - When ambiguity exists (e.g., competing naming conventions), ask before changing.
 
-## 5. Validation and reporting
+### 4. Validation and reporting
 
 Re-scan modified files, then output:
 
