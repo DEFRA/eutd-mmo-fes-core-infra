@@ -94,7 +94,10 @@ extends:
             - "*"
         - ${{ if eq(parameters.deployToSecondaryRegion, false) }}:
             - name: ssv_pre2
-              dependsOn: ssv_pre
+              ${{ if eq(parameters.skipPRE1, false) }}:
+                dependsOn: "ssv_pre"
+              ${{ else }}:
+                dependsOn: "Validate"
               azureRegions:
                 primary: UKSouth
               serviceConnection: AZR-MMO-SSV5
