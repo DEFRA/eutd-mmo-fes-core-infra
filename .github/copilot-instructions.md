@@ -7,26 +7,13 @@ These rules guide AI assistance for this repository (infrastructure as code, Azu
 - @azure Rule - Use Azure Deployment Best Practices: Before proposing deployment steps, invoking scripts that deploy, or editing pipeline deployment stages, invoke best practices (resource=`general`, action=`deployment`).
 - @azure Rule - Prefer Idempotent & Declarative: Recommend Bicep/ARM over imperative scripting when feasible; avoid hard‑coding subscription IDs or secrets.
 
-## Bicep & Infrastructure as Code
-- @bicep Rule - Consult Bicep Best Practices: Before editing any `*.bicep` file, read `/.github/instructions/bicep-code-best-practices.instructions.md` for style, modules, parameters, secure outputs.
-- @bicep Rule - Validate Resource Types: Use Azure Bicep tooling to retrieve resource type schemas/API versions when adding new resources; prefer latest stable (not preview) unless feature requires preview.
-- @bicep Rule - Reuse & Modules: Encourage composition via existing templates under `templates/` or Azure Verified Modules (AVM) rather than duplicating code.
-- @bicep Rule - Naming & Tags: Enforce consistent naming conventions and mandatory tags (costCenter, environment, service, owner) when adding resources.
-- @bicep Rule - Secure Parameters: Mark secrets as `@secure()` and avoid outputting secrets.
-- @bicep Rule - Lint Before Commit: Recommend running bicep build/format/lint (if configured) after changes.
+## Domain-Specific Standards
 
-## Azure DevOps Pipelines (YAML)
-- @pipelines Rule - Pipeline Best Practices: Before editing any `*azure-pipelines*.yml` or pipeline include file, review `/.github/instructions/azure-devops-pipelines.instructions.md`.
-- @pipelines Rule - Separation of Concerns: Keep build, test, deploy stages distinct; do not mix infra and app build steps in a single job unless explicitly required.
-- @pipelines Rule - Use Variable Groups & KeyVault: Reference secrets via variable groups or Key Vault tasks instead of inline.
-- @pipelines Rule - Retry & Error Handling: Suggest strategy for transient failures (e.g., `retry`, `timeoutInMinutes`).
-- @pipelines Rule - Template Reuse: Prefer central templates from `../ado-pipeline-common/templates/pipelines/` or `../eutd-mmo-fes-pipeline-common/includes/` before adding new logic.
-
-## PowerShell Scripts
-- @powershell Rule - Script Guidelines: Before modifying `*.ps1`/`*.psm1`, consult `/.github/instructions/powershell.instructions.md`.
-- @powershell Rule - Functions & Verb-Noun: Use approved verbs and parameter validation (`[Parameter(Mandatory)]`). Support `-WhatIf` / `-Confirm` for destructive actions.
-- @powershell Rule - Error Handling: Use `try { } catch { Write-Error ...; throw }`; avoid silent failures.
-- @powershell Rule - Logging: Output clear progress messages with `Write-Host` (minimal) or structured logs; no secrets in logs.
+Detailed coding standards are provided through agent skills that auto-load when relevant:
+- **Bicep**: `bicep-linter-fixer` skill — naming, parameters, AVM, security conventions for `*.bicep` files
+- **Pipelines**: `pipeline-best-practices` skill — structure, variables, templates, deployment for `azure-pipelines*.yml`
+- **PowerShell**: `powershell-quality-enforcer` skill — Verb-Noun, error handling, logging for `*.ps1`/`*.psm1`
+- **Security**: `secure-parameterization-guard` skill — secrets audit, hardcoded IDs across all file types
 
 ## Security & Governance
 - @security Rule - No Secrets in Code: Never commit connection strings, SAS tokens, or passwords. Use Key Vault and parameterize.
