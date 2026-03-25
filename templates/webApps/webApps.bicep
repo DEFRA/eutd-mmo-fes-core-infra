@@ -4,8 +4,6 @@ param location string = resourceGroup().location
 param deploymentDate string = utcNow('yyyyMMdd-HHmmss')
 param createdDate string = utcNow('yyyy-MM-dd')
 param webAppNames string
-param appSettingsKeyValuePairs array
-param appSettingsSlotKeyValuePairs array
 param comparams object
 param resourceGroupName string
 param logAnalyticsWorkspace string
@@ -94,10 +92,10 @@ module webApp 'br/avm:web/site:0.19.3' = [
       configs: [
         {
           name: 'appsettings'
-          properties: union(appSettingsKeyValuePairs[i], {
+          properties: {
             INSTRUMENTATION_KEY: appInsights.properties.InstrumentationKey
             APPLICATIONINSIGHTS_CONNECTION_STRING: appInsights.properties.ConnectionString
-          })
+          }
         }
       ]
       slots: bool(slotsEnabled)
@@ -107,14 +105,10 @@ module webApp 'br/avm:web/site:0.19.3' = [
               configs: [
                 {
                   name: 'appsettings'
-                  properties: union(
-                    appSettingsKeyValuePairs[i],
-                    appSettingsSlotKeyValuePairs[i],
-                    {
+                  properties: {
                       INSTRUMENTATION_KEY: appInsights.properties.InstrumentationKey
                       APPLICATIONINSIGHTS_CONNECTION_STRING: appInsights.properties.ConnectionString
-                    }
-                  )
+                  }                  
                 }
               ]
               outboundVnetRouting: {
@@ -247,19 +241,6 @@ resource createdWebApps 'Microsoft.Web/sites@2024-04-01' existing = [
     name: toUpper(app.Name)
     dependsOn: [
       webApp[i]
-    ]
-  }
-]
-
-resource slotsStickyConfig 'Microsoft.Web/sites/config@2022-09-01' = [
-  for (app, i) in webAppNamesArray: if (bool(slotsEnabled)) {
-    name: 'slotConfigNames'
-    parent: createdWebApps[i]
-    properties: {
-      appSettingNames: objectKeys(appSettingsSlotKeyValuePairs[i])
-    }
-    dependsOn: [
-      createdWebApps[i]
     ]
   }
 ]

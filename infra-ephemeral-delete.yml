@@ -13,7 +13,7 @@ schedules:
     always: true
 
 parameters:
-  - name: deployToDevelopmentEnvironment
+  - name: deployToDevelopmentEnvironment   
     displayName: "Deploy from Feature Branch"
     type: boolean
     default: true
