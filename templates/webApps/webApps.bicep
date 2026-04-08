@@ -84,10 +84,9 @@ module webApp 'br/avm:web/site:0.19.3' = [
       kind: 'app,linux,container'
       serverFarmResourceId: resourceId('Microsoft.Web/serverfarms', app.ASP)
       siteConfig: union(siteConfig, {
-        linuxFxVersion: filter(
-          appVersionsArray,
-          a => (toUpper(a.Name) == toUpper(app.Name)) && (a.Slot != true)
-        )[0].LinuxFxVersion
+        linuxFxVersion: empty(appVersionsArray)
+          ? 'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest'
+          : filter(appVersionsArray, a => (toUpper(a.Name) == toUpper(app.Name)) && (a.Slot != true))[0].LinuxFxVersion
       })
       configs: [
         {
@@ -116,10 +115,9 @@ module webApp 'br/avm:web/site:0.19.3' = [
                 imagePullTraffic: true
               }
               siteConfig: union(siteConfig, {
-                linuxFxVersion: filter(
-                  appVersionsArray,
-                  a => (toUpper(a.Name) == toUpper(app.Name)) && (a.Slot == true)
-                )[0].LinuxFxVersion
+                linuxFxVersion: empty(appVersionsArray)
+                  ? 'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest'
+                  : filter(appVersionsArray, a => (toUpper(a.Name) == toUpper(app.Name)) && (a.Slot == true))[0].LinuxFxVersion
               })
               publicNetworkAccess: bool(app.IsFrontEnd) ? 'Enabled' : 'Disabled'
               privateEndpoints: bool(app.IsFrontEnd)
