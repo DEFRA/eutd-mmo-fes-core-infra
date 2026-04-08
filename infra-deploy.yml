@@ -19,6 +19,7 @@ schedules:
     branches:
       include:
         - main
+        - feature/fix-whatif-err
     always: true
 
 parameters:
