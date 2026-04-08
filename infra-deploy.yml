@@ -18,7 +18,7 @@ schedules:
     displayName: Daily Deploy at 6:00 AM UTC
     branches:
       include:
-        - main
+        # - main
         - feature/fix-whatif-err
     always: true
 
