@@ -158,10 +158,11 @@ module functionapp 'br/avm:web/site:0.9.0' = {
               }
             }
             siteConfig: union(siteConfig, {
-              linuxFxVersion: filter(
+              linuxFxVersion: reduce(
                 appVersionsArray,
-                a => (toUpper(a.Name) == toUpper(funcAppName)) && (a.Slot == true)
-              )[0].LinuxFxVersion
+                'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest',
+                (cur, next) => (toUpper(next.Name) == toUpper(funcAppName) && next.Slot == true) ? next.LinuxFxVersion : cur
+              )
             })
             vnetImagePullEnabled: true
             vnetRouteAllEnabled: true
@@ -217,10 +218,11 @@ module functionapp 'br/avm:web/site:0.9.0' = {
     }
     httpsOnly: true
     siteConfig: union(siteConfig, {
-      linuxFxVersion: filter(
+      linuxFxVersion: reduce(
         appVersionsArray,
-        a => (toUpper(a.Name) == toUpper(funcAppName)) && (a.Slot != true)
-      )[0].LinuxFxVersion
+        'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest',
+        (cur, next) => (toUpper(next.Name) == toUpper(funcAppName) && next.Slot != true) ? next.LinuxFxVersion : cur
+      )
     })
     vnetImagePullEnabled: true
     vnetRouteAllEnabled: true
