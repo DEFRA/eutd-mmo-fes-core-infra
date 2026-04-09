@@ -30,6 +30,7 @@ extends:
   parameters:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: false
+    skipPRE1: ${{ parameters.skipPRE1 }}
     additionalRepositories:
       - MMOPipelineCommon
     groupedDeployments:
