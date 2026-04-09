@@ -16,7 +16,7 @@ param resourceUri = 'https://management.core.windows.net/'
 param azureMgmtUri = 'https://management.azure.com:443/'
 param common = {
   servicePrincipalAppId: '#{{ ServicePrincipalAppId }}'
-  keyVaultName: '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-keyvault }}#{{ nc-static-res-region-id }}01'
+  keyVaultName: '#{{ keyVaultName }}'
 }
 
 param servicePrincipalSecret = az.getSecret(
