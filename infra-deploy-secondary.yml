@@ -73,7 +73,7 @@ extends:
                     scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
                     ScriptArguments: >
                       -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-static-res-region-id)02'
-                      -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-static-res-region-id)01'
+                      -ResourceName '$(keyVaultName)'
                       -IsSecondaryRegion $true
                   - displayName: Set DNS record for KeyVault
                     scriptRepo: MMOPipelineCommon

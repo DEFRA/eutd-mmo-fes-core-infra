@@ -60,7 +60,7 @@
       "value": "#{{ secondaryRegion }}"
     },
     "keyVaultName": {
-      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-keyvault }}#{{ nc-region-id }}01"
+      "value": "#{{ keyVaultName }}"
     },
     "cosmosDbWriteConnStringSecretName": {
       "value": "COSMOS-DB-RW-CONNECTION-URI"
@@ -98,7 +98,7 @@
     "cosmosAdminPassword": {
       "reference": {
         "keyVault": {
-          "id": "/subscriptions/#{{ subscriptionId }}/resourceGroups/#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-static-res-region-id }}02/providers/Microsoft.KeyVault/vaults/#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-keyvault }}#{{ nc-region-id }}01"
+          "id": "/subscriptions/#{{ subscriptionId }}/resourceGroups/#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-static-res-region-id }}02/providers/Microsoft.KeyVault/vaults/#{{ keyVaultName }}"
         },
         "secretName": "COSMOS-VCORE-ADMIN-PASSWORD"
       }

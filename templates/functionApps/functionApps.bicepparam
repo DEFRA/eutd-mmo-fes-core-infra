@@ -21,7 +21,7 @@ param logAnalyticsWorkspace = '#{{ logAnalyticsWorkspace }}'
 param webjobsStorageAccount = '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-storageaccount }}#{{ nc-static-res-region-id }}03'
 
 param comparams = {
-  keyVaultName: '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-keyvault }}#{{ nc-static-res-region-id }}01'
+  keyVaultName: '#{{ keyVaultName }}'
   appInsightsName: '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-appinsights }}#{{ nc-region-id }}01'
 }
 param aadTenantId = '#{{ aadTenantId }}'

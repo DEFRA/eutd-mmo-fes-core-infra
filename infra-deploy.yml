@@ -134,13 +134,13 @@ extends:
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
                 postDeployScriptsList:
-                  - displayName: Resolve Private Endpoint IP for $(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01
+                  - displayName: Resolve Private Endpoint IP for $(keyVaultName)
                     scriptRepo: MMOPipelineCommon
                     scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
                     ScriptArguments: >
                       -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
-                      -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01'
-                  - displayName: Set DNS record for $(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01
+                      -ResourceName '$(keyVaultName)'
+                  - displayName: Set DNS record for $(keyVaultName)
                     scriptRepo: MMOPipelineCommon
                     scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
                     ScriptArguments: >
@@ -177,7 +177,7 @@ extends:
                       -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
                       -ExpiryInMonths $(storageSasTokenExpiryInMonths)
                       -Permissions $(storageSasTokenPermissions)
-                      -KeyVaultName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01'
+                      -KeyVaultName '$(keyVaultName)'
                       -KeyVaultResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'
           - ${{ if eq(variables.IsCosmos, true) }}:
               - name: cosmosDB
@@ -231,13 +231,14 @@ extends:
                     scriptRepo: MMOPipelineCommon
                     scriptPath: "scripts/New-CosmosMongoDatabase.ps1"
                     ScriptArguments: >
-                      -KeyVaultName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01'
+                      -KeyVaultName '$(keyVaultName)'
                       -DbCollectionsJson '$(cosmosDbCollections)'
                       -UserName '$(cosmosReadOnlyUsername)'
                       -cosmosVcore '$(cosmosVcore)'
                   - displayName: Ensure failback to original primary cluster
                     scriptRepo: MMOPipelineCommon
                     scriptPath: "scripts/Switch-CosmosToSecondary.ps1"
+                    condition: and(succeeded(), eq(variables['cosmosVcore'], true), eq(variables['cosmosGeoRedundant'], true))
                     ScriptArguments: >
                       -SubscriptionId '$(subscriptionId)'
                       -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02'

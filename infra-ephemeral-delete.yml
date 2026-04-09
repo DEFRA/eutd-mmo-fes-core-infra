@@ -75,7 +75,7 @@ extends:
             scriptType: AzurePowerShell
             path: "scripts/Remove-RoleAssignments.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-keyvault)$(nc-region-id)01' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -ResourceType 'Microsoft.KeyVault/vaults' -RoleDefinitionName 'Key Vault Secrets User' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+            scriptArguments: -ResourceName '$(keyVaultName)' -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02' -ResourceType 'Microsoft.KeyVault/vaults' -RoleDefinitionName 'Key Vault Secrets User' -AppsResourceGroup '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
           - name: "Remove_Storage_RoleAssignments"
             scriptRepo: MMOPipelineCommon
             type: script
