@@ -52,7 +52,6 @@ var siteConfig = {
   acrUseManagedIdentityCreds: true
   http20Enabled: true
   ftpsState: 'Disabled'
-  minTlsVersion: '1.3'
 }
 
 resource vnet 'Microsoft.Network/virtualNetworks@2021-02-01' existing = {
@@ -87,8 +86,12 @@ module webApp 'br/avm:web/site:0.19.3' = [
         linuxFxVersion: reduce(
           appVersionsArray,
           'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest',
-          (cur, next) => (toUpper(next.Name) == toUpper(app.Name) && next.Slot != true) ? next.LinuxFxVersion : cur
+          (cur, next) =>
+            (toUpper(next.Name) == toUpper(app.Name) && next.Slot != true)
+              ? next.LinuxFxVersion
+              : cur
         )
+        minTlsVersion: app.?TlsMinVersion ?? '1.3'
       })
       configs: [
         {
@@ -107,9 +110,9 @@ module webApp 'br/avm:web/site:0.19.3' = [
                 {
                   name: 'appsettings'
                   properties: {
-                      INSTRUMENTATION_KEY: appInsights.properties.InstrumentationKey
-                      APPLICATIONINSIGHTS_CONNECTION_STRING: appInsights.properties.ConnectionString
-                  }                  
+                    INSTRUMENTATION_KEY: appInsights.properties.InstrumentationKey
+                    APPLICATIONINSIGHTS_CONNECTION_STRING: appInsights.properties.ConnectionString
+                  }
                 }
               ]
               outboundVnetRouting: {
@@ -120,8 +123,12 @@ module webApp 'br/avm:web/site:0.19.3' = [
                 linuxFxVersion: reduce(
                   appVersionsArray,
                   'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest',
-                  (cur, next) => (toUpper(next.Name) == toUpper(app.Name) && next.Slot == true) ? next.LinuxFxVersion : cur
+                  (cur, next) =>
+                    (toUpper(next.Name) == toUpper(app.Name) && next.Slot == true)
+                      ? next.LinuxFxVersion
+                      : cur
                 )
+                minTlsVersion: app.?TlsMinVersion ?? '1.3'
               })
               publicNetworkAccess: bool(app.IsFrontEnd) ? 'Enabled' : 'Disabled'
               privateEndpoints: bool(app.IsFrontEnd)
