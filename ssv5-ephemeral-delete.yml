@@ -44,14 +44,14 @@ extends:
         azureRegions:
           primary: UKSouth
         serviceConnection: AZR-MMO-SSV5
-        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+        privateAgentName: DEFRA-COMMON-UBUNTU-SSV5
         deploymentBranches:
           - "*"
       - name: "ssv_dev"
         azureRegions:
           primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
         serviceConnection: AZR-MMO-SSV5
-        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+        privateAgentName: DEFRA-COMMON-UBUNTU-SSV5
         developmentEnvironment: ${{ parameters.deployToSecondaryRegion }}
         dependsOn: "Validate"
         deploymentBranches:
@@ -61,7 +61,7 @@ extends:
         azureRegions:
           primary: UKSouth
         serviceConnection: AZR-MMO-SSV5
-        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+        privateAgentName: DEFRA-COMMON-UBUNTU-SSV5
         dependsOn: "ssv_snd"
         deploymentBranches:
           - "refs/heads/main"

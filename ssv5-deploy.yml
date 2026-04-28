@@ -77,7 +77,7 @@ extends:
             developmentEnvironment: true
             enableTemplateValidationBeforeDeployment: true
             serviceConnection: AZR-MMO-SSV5
-            privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+            privateAgentName: DEFRA-COMMON-UBUNTU-SSV5
             deploymentBranches:
               - "*"
         - name: ssv_prd
@@ -89,7 +89,7 @@ extends:
           azureRegions:
             primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
           serviceConnection: AZR-MMO-SSV5
-          privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+          privateAgentName: DEFRA-COMMON-UBUNTU-SSV5
           deploymentBranches:
             - "*"
         - ${{ if eq(parameters.deployToSecondaryRegion, false) }}:
@@ -101,7 +101,7 @@ extends:
               azureRegions:
                 primary: UKSouth
               serviceConnection: AZR-MMO-SSV5
-              privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+              privateAgentName: DEFRA-COMMON-UBUNTU-SSV5
               deploymentBranches:
                 - "*"
     ${{ else }}:
@@ -112,7 +112,7 @@ extends:
               azureRegions:
                 primary: UKSouth
               serviceConnection: AZR-MMO-SSV5
-              privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+              privateAgentName: DEFRA-COMMON-UBUNTU-SSV5
               deploymentBranches:
                 - "*"
         - name: ssv_dev
@@ -120,7 +120,7 @@ extends:
             primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
           developmentEnvironment: ${{ parameters.deployToSecondaryRegion }}
           serviceConnection: AZR-MMO-SSV5
-          privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+          privateAgentName: DEFRA-COMMON-UBUNTU-SSV5
           deploymentBranches:
             - "*"
         - ${{ if eq(parameters.deployToSecondaryRegion, false) }}:
@@ -129,7 +129,7 @@ extends:
                 primary: UKSouth
               dependsOn: ssv_snd
               serviceConnection: AZR-MMO-SSV5
-              privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+              privateAgentName: DEFRA-COMMON-UBUNTU-SSV5
               deploymentBranches:
                 - "refs/heads/main"
     groupedDeployments:
