@@ -12,6 +12,7 @@ Use this skill whenever creating, updating, reviewing, or troubleshooting Agent 
 When creating or updating skills, align with:
 - Agent Skills specification: https://agentskills.io/specification
 - VS Code Copilot Agent Skills docs: https://code.visualstudio.com/docs/copilot/customization/agent-skills
+- Anthropic reference skills: https://github.com/anthropics/skills
 
 ## Mandatory Internet Research First
 
@@ -39,7 +40,9 @@ Optional:
 - `name` (required) — 1-64 chars, lowercase alphanumeric + hyphen, must match directory name
 - `description` (required) — 1-1024 chars, clearly states what skill does and when to use it
 
-Optional: `license`, `compatibility`, `metadata`, `allowed-tools`, `argument-hint`, `user-invokable`, `disable-model-invocation`
+Optional: `license`, `compatibility`, `metadata`, `allowed-tools`, `argument-hint`, `user-invocable`, `disable-model-invocation`, `context`
+
+**`context` field (experimental, VS Code):** Set `context: fork` to run the skill in a dedicated subagent — only its final result returns to the parent agent. Use for skills that read many files or run lengthy investigations. Do **not** use on skills with explicit inline-execution requirements (e.g., skills with "no subagents" guardrails).
 
 ## `name` Rules
 
@@ -89,3 +92,5 @@ Use relative paths from the skill root. Avoid deep reference chains.
 - All referenced files exist with relative paths
 - No secrets present
 - Long workflows moved to `references/` when appropriate
+- `user-invocable` is spelled correctly (not `user-invokable`) when present
+- Run `skills-ref validate ./<skill-name>` to verify frontmatter and naming conventions
