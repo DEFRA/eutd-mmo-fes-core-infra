@@ -17,10 +17,6 @@ parameters:
     displayName: "Deploy from Feature Branch"
     type: boolean
     default: true
-  - name: additionalRepositories
-    displayName: Additional repositories that needs reference in the process
-    type: object
-    default: []
   - name: deployToSecondaryRegion
     type: boolean
     default: false
