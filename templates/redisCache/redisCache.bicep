@@ -101,7 +101,7 @@ module secondaryRegionRG 'br/avm:resources/resource-group:0.4.1' = if (disasterR
 }
 
 // Primary Azure Managed Redis instance
-module primaryRedisCache 'br/public:avm/res/cache/redis-enterprise:0.5.1' = {
+module primaryRedisCache 'br/avm:cache/redis-enterprise:0.5.1' = {
   name: '${redisCacheName}-${deploymentDate}'
   params: {
     name: redisCacheName
@@ -161,7 +161,7 @@ module primaryRedisCache 'br/public:avm/res/cache/redis-enterprise:0.5.1' = {
 }
 
 // Secondary Azure Managed Redis instance for active geo-replication
-module secondaryRedisCache 'br/public:avm/res/cache/redis-enterprise:0.5.1' = if (disasterRecoveryEnabled) {
+module secondaryRedisCache 'br/avm:cache/redis-enterprise:0.5.1' = if (disasterRecoveryEnabled) {
   name: '${secondaryRegionCacheName}-${deploymentDate}'
   scope: resourceGroup(secondaryRegionResourceGroup)
   dependsOn: [
