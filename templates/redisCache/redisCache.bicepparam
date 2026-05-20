@@ -3,7 +3,6 @@ using 'redisCache.bicep'
 param environment = '#{{ environment }}'
 param redisCacheName = '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-rediscachename }}#{{ nc-region-id }}01'
 param redisCacheSkuName = '#{{ cacheSkuName }}'
-param redisCacheCapacity = '#{{ cacheCapacity }}'
 
 param comparams = {
   logAnalyticsName: '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-analytics }}#{{ nc-region-id }}01'

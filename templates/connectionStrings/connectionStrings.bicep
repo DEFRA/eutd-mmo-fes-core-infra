@@ -10,17 +10,22 @@ param eventHubResourceGroupName string
 param eventHubPolicyName string
 
 var authRuleResourceId = '${serviceBus.id}/authorizationRules/RootManageSharedAccessKey'
-var redisPrimaryKey = redisCache.listKeys().primaryKey
-var redisHostName = redisCache.properties.hostName
+var redisPrimaryKey = managedRedisDatabase.listKeys().primaryKey
+var redisHostName = managedRedis.properties.hostName
 
 resource serviceBus 'Microsoft.ServiceBus/namespaces@2024-01-01' existing = {
   name: serviceBusName
   scope: resourceGroup(resourceGroupName)
 }
 
-resource redisCache 'Microsoft.Cache/redis@2024-03-01' existing = {
+resource managedRedis 'Microsoft.Cache/redisEnterprise@2025-07-01' existing = {
   name: redisCacheName
   scope: resourceGroup(resourceGroupName)
+}
+
+resource managedRedisDatabase 'Microsoft.Cache/redisEnterprise/databases@2025-07-01' existing = {
+  name: 'default'
+  parent: managedRedis
 }
 
 resource exportCertStorageAcc 'Microsoft.Storage/storageAccounts@2022-05-01' existing = {
@@ -72,7 +77,7 @@ resource redisSecret2 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
     attributes: {
       enabled: true
     }
-    value: 'redis://:${redisPrimaryKey}@${redisHostName}:6380'
+    value: 'rediss://:${redisPrimaryKey}@${redisHostName}:10000'
   }
 }
 

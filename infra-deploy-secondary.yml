@@ -125,13 +125,6 @@ extends:
                     scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
                     ScriptArguments: >
                       -UpdateAllDnsZones $true
-                  - displayName: Redis - Failover to Secondary
-                    scriptRepo: MMOPipelineCommon
-                    scriptPath: "scripts/Set-RedisCacheLink.ps1"
-                    ScriptArguments: >
-                      -PrimaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
-                      -SecondaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-static-res-region-id)01'
-                      -Mode 'Failover'
               - name: event
                 path: templates/event
                 type: bicep
