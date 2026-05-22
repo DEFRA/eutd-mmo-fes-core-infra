@@ -66,28 +66,26 @@ var baseRedisDatabaseConfig = {
   port: 10000
 }
 
+var geoReplicationLinkedDatabases = [
+  {
+    id: primaryRedisDatabaseResourceId
+  }
+  {
+    id: secondaryRedisDatabaseResourceId
+  }
+]
+
 var primaryRedisDatabaseConfig = union(baseRedisDatabaseConfig, disasterRecoveryEnabled ? {
   geoReplication: {
     groupNickname: redisGeoReplicationGroupName
-    linkedDatabases: [
-      {
-        id: primaryRedisDatabaseResourceId
-      }
-    ]
+    linkedDatabases: geoReplicationLinkedDatabases
   }
 } : {})
 
 var secondaryRedisDatabaseConfig = union(baseRedisDatabaseConfig, {
   geoReplication: {
     groupNickname: redisGeoReplicationGroupName
-    linkedDatabases: [
-      {
-        id: primaryRedisDatabaseResourceId
-      }
-      {
-        id: secondaryRedisDatabaseResourceId
-      }
-    ]
+    linkedDatabases: geoReplicationLinkedDatabases
   }
 })
 
