@@ -255,6 +255,20 @@ extends:
                 type: bicep
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+                preDeployScriptsList:
+                  - displayName: Check if secondary Redis cache exists
+                    condition: and(succeeded(), eq(variables['disasterRecoverySupported'], true))
+                    inlineScript: |
+                      $ErrorActionPreference = "Stop"
+                      $secondaryRedisCacheName = "$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)1601"
+                      $resourceGroupName = "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)1601"
+                      $secondaryRedisCache = Get-AzResource -ResourceType "Microsoft.Cache/redisEnterprise" -ResourceGroupName $resourceGroupName -Name $secondaryRedisCacheName -ErrorAction SilentlyContinue
+
+                      if ($null -eq $secondaryRedisCache) {
+                        Write-Host "##vso[task.setvariable variable=secondaryRedisCacheExists]false"
+                      } else {
+                        Write-Host "##vso[task.setvariable variable=secondaryRedisCacheExists]true"
+                      }
                 postDeployScriptsList:
                   - displayName: Resolve Private Endpoint IP for '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
                     scriptRepo: MMOPipelineCommon

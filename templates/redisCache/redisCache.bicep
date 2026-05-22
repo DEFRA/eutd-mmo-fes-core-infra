@@ -21,8 +21,10 @@ param secondaryRegionVnetResourceGroupName string
 param secondaryRegionResourceGroup string
 param secondaryRegionPrivateEndpointSubnet string
 param disasterRecoverySupported string
+param secondaryRedisCacheExists string = 'false'
 
 var disasterRecoveryEnabled = bool(disasterRecoverySupported)
+var secondaryRedisCacheExistsBool = empty(secondaryRedisCacheExists) ? false : bool(secondaryRedisCacheExists)
 var redisGeoReplicationGroupName = redisCacheName
 var primaryRedisDatabaseResourceId = resourceId('Microsoft.Cache/redisEnterprise/databases', redisCacheName, 'default')
 var secondaryRedisDatabaseResourceId = resourceId(secondaryRegionResourceGroup, 'Microsoft.Cache/redisEnterprise/databases', secondaryRegionCacheName, 'default')
@@ -66,7 +68,13 @@ var baseRedisDatabaseConfig = {
   port: 10000
 }
 
-var geoReplicationLinkedDatabases = [
+var primaryOnlyLinkedDatabases = [
+  {
+    id: primaryRedisDatabaseResourceId
+  }
+]
+
+var primaryAndSecondaryLinkedDatabases = [
   {
     id: primaryRedisDatabaseResourceId
   }
@@ -75,17 +83,21 @@ var geoReplicationLinkedDatabases = [
   }
 ]
 
+var primaryLinkedDatabases = secondaryRedisCacheExistsBool
+  ? primaryAndSecondaryLinkedDatabases
+  : primaryOnlyLinkedDatabases
+
 var primaryRedisDatabaseConfig = union(baseRedisDatabaseConfig, disasterRecoveryEnabled ? {
   geoReplication: {
     groupNickname: redisGeoReplicationGroupName
-    linkedDatabases: geoReplicationLinkedDatabases
+    linkedDatabases: primaryLinkedDatabases
   }
 } : {})
 
 var secondaryRedisDatabaseConfig = union(baseRedisDatabaseConfig, {
   geoReplication: {
     groupNickname: redisGeoReplicationGroupName
-    linkedDatabases: geoReplicationLinkedDatabases
+    linkedDatabases: primaryAndSecondaryLinkedDatabases
   }
 })
 

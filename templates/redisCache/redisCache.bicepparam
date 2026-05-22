@@ -26,3 +26,4 @@ param secondaryRegionVnetName = '#{{ environmentName }}#{{ nc-deptService }}#{{ 
 param secondaryRegionVnetResourceGroupName = '#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-resourcegroup }}1601'
 param secondaryRegionPrivateEndpointSubnet = '#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}1606'
 param disasterRecoverySupported = '#{{ disasterRecoverySupported }}'
+param secondaryRedisCacheExists = '#{{ secondaryRedisCacheExists }}'
