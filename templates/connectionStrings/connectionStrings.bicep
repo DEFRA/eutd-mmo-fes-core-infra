@@ -81,6 +81,18 @@ resource redisSecret2 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   }
 }
 
+resource redisHostNameSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: 'REDIS-HOST-NAME'
+  parent: keyVault
+  properties: {
+    contentType: 'text/plain'
+    attributes: {
+      enabled: true
+    }
+    value: redisHostName
+  }
+}
+
 resource exportCertStorageSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   name: 'EXPORTCERT-STORAGE-CONNECTION-STRING'
   parent: keyVault
