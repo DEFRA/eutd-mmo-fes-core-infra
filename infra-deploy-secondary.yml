@@ -168,7 +168,6 @@ extends:
                 scriptRepo: MMOPipelineCommon
                 type: script
                 scriptType: AzurePowerShell
-                condition: eq(variables['disasterRecoverySupported'], true)
                 path: "scripts/Invoke-ManagedRedisForceUnlink.ps1"
                 scriptArguments: >
                   -SubscriptionId '$(subscriptionId)'

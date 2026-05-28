@@ -264,7 +264,7 @@ extends:
                       $resourceGroupName = "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)1601"
 
                       Set-AzContext -SubscriptionId '$(subscriptionId)' | Out-Null
-                      $secondaryCache = Get-AzResource -ResourceType "Microsoft.Cache/redisEnterprise" -ResourceGroupName $resourceGroupName -Name $secondaryRedisCacheName -ErrorAction SilentlyContinue
+                      $secondaryCache = Get-AzRedisEnterpriseCache -ResourceGroupName $resourceGroupName -Name $secondaryRedisCacheName -ErrorAction SilentlyContinue
 
                       if ($null -eq $secondaryCache) {
                         Write-Output "##vso[task.setvariable variable=secondaryRedisCacheExists]false"
