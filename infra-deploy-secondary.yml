@@ -179,7 +179,7 @@ extends:
                   -UnavailableCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-static-res-region-id)01'
                   -Confirm:$false
               
-              - name: resolveRedisCachePeIp
+              - name: resolveRedisPrimaryPrivateEndpoint
                 scriptRepo: MMOPipelineCommon
                 type: script
                 scriptType: AzurePowerShell
