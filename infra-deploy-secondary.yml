@@ -82,6 +82,8 @@ extends:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: true
     skipPRE1: ${{ parameters.skipPRE1 }}
+    additionalRepositories:
+      - MMOPipelineCommon
     groupedDeployments:
       - name: infraResource
         timeoutInMinutes: 60
