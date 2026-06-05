@@ -233,8 +233,9 @@ module storageAccount 'br/avm:storage/storage-account:0.27.1' = [
   }
 ]
 
-var exportCertStorageAccountResourceId = resourceId('Microsoft.Storage/storageAccounts', toLower(exportCertStorageName))
-var refDataStorageAccountResourceId    = resourceId('Microsoft.Storage/storageAccounts', toLower(refDataStorageName))
+var storageAccountNames = map(strAccArray, strAcc => toLower(strAcc.Name))
+var exportCertStorageIndex = indexOf(storageAccountNames, toLower(exportCertStorageName))
+var refDataStorageIndex = indexOf(storageAccountNames, toLower(refDataStorageName))
 
 module storageAccountSecrets '.bicep/storageAccountSecrets.bicep' = {
   name: 'storageAccount-secrets-${deploymentDate}'
@@ -243,10 +244,7 @@ module storageAccountSecrets '.bicep/storageAccountSecrets.bicep' = {
     keyVaultName: keyVaultName
     exportCertSecretName: 'EXPORTCERT-STORAGE-CONNECTION-STRING'
     refDataSecretName: 'REFDATA-STORAGE-CONNECTION-STRING'
-    exportCertConnectionString: 'DefaultEndpointsProtocol=https;AccountName=${toLower(exportCertStorageName)};AccountKey=${listKeys(exportCertStorageAccountResourceId, '2022-05-01').keys[0].value};EndpointSuffix=${storageSuffix}'
-    refDataConnectionString: 'DefaultEndpointsProtocol=https;AccountName=${toLower(refDataStorageName)};AccountKey=${listKeys(refDataStorageAccountResourceId, '2022-05-01').keys[0].value};EndpointSuffix=${storageSuffix}'
+    exportCertConnectionString: storageAccount[exportCertStorageIndex].outputs.primaryConnectionString
+    refDataConnectionString: storageAccount[refDataStorageIndex].outputs.primaryConnectionString
   }
-  dependsOn: [
-    storageAccount
-  ]
 }

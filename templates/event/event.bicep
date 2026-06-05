@@ -102,17 +102,12 @@ module primaryNamespace 'br/avm:event-hub/namespace:0.10.2' = {
   }
 }
 
-var eventHubAuthRuleResourceId = resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', toUpper(eventHubNamespaceName), eventHubName, eventHubPolicyName)
-
 module eventHubSecrets '.bicep/eventHubSecrets.bicep' = {
   name: 'eventHub-secrets-${deploymentDate}'
   scope: resourceGroup(keyVaultResourceGroupName)
   params: {
     keyVaultName: keyVaultName
     secretName: 'EVENTHUB-CONNECTION-STRING'
-    eventHubConnectionString: listKeys(eventHubAuthRuleResourceId, '2024-01-01').primaryConnectionString
+    authorizationRuleResourceId: '${primaryNamespace.outputs.resourceId}/eventhubs/${eventHubName}/authorizationRules/${eventHubPolicyName}'
   }
-  dependsOn: [
-    primaryNamespace
-  ]
 }

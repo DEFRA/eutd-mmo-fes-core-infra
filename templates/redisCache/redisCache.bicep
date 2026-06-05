@@ -237,9 +237,6 @@ module secondaryRedisCache 'br/avm:cache/redis-enterprise:0.5.1' = if (disasterR
   }
 }
 
-var redisClusterResourceId  = resourceId('Microsoft.Cache/redisEnterprise', redisCacheName)
-var redisDatabaseResourceId = resourceId('Microsoft.Cache/redisEnterprise/databases', redisCacheName, 'default')
-
 module redisSecrets '.bicep/redisSecrets.bicep' = {
   name: 'redis-secrets-${deploymentDate}'
   scope: resourceGroup(keyVaultResourceGroupName)
@@ -248,11 +245,8 @@ module redisSecrets '.bicep/redisSecrets.bicep' = {
     redisPasswordSecretName: 'REDIS-PASSWORD'
     redisConnectionStringSecretName: 'REDIS-CONNECTION-STRING'
     redisHostNameSecretName: 'REDIS-HOST-NAME'
-    redisPassword: listKeys(redisDatabaseResourceId, '2025-07-01').primaryKey
-    redisConnectionString: 'rediss://:${listKeys(redisDatabaseResourceId, '2025-07-01').primaryKey}@${reference(redisClusterResourceId, '2025-07-01').hostName}:10000'
-    redisHostName: reference(redisClusterResourceId, '2025-07-01').hostName
+    redisPassword: primaryRedisCache.outputs.primaryAccessKey!
+    redisConnectionString: primaryRedisCache.outputs.primaryConnectionString!
+    redisHostName: primaryRedisCache.outputs.hostName
   }
-  dependsOn: [
-    primaryRedisCache
-  ]
 }

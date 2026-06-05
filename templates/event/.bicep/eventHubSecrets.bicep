@@ -1,8 +1,6 @@
 param keyVaultName string
 param secretName string
-
-@secure()
-param eventHubConnectionString string
+param authorizationRuleResourceId string
 
 resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
   name: keyVaultName
@@ -16,6 +14,6 @@ resource eventHubSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
     attributes: {
       enabled: true
     }
-    value: eventHubConnectionString
+    value: listKeys(authorizationRuleResourceId, '2024-01-01').primaryConnectionString
   }
 }

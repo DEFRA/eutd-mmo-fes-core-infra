@@ -1,8 +1,6 @@
 param keyVaultName string
 param secretName string
-
-@secure()
-param serviceBusConnectionString string
+param authorizationRuleResourceId string
 
 resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
   name: keyVaultName
@@ -16,6 +14,6 @@ resource serviceBusSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
     attributes: {
       enabled: true
     }
-    value: serviceBusConnectionString
+    value: listKeys(authorizationRuleResourceId, '2024-01-01').primaryConnectionString
   }
 }
