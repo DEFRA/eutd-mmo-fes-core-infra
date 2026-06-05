@@ -56,6 +56,7 @@ var siteConfig = {
   http20Enabled: true
   ftpsState: 'Disabled'
   minTlsVersion: '1.3'
+  scmMinTlsVersion: '1.3'
   minTlsCipherSuite: 'TLS_AES_256_GCM_SHA384'
 }
 

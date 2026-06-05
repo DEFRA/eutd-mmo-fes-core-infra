@@ -53,6 +53,7 @@ var siteConfig = {
   http20Enabled: true
   ftpsState: 'Disabled'
   minTlsCipherSuite: 'TLS_AES_256_GCM_SHA384'
+  scmMinTlsVersion: '1.3'
 }
 
 resource vnet 'Microsoft.Network/virtualNetworks@2021-02-01' existing = {
