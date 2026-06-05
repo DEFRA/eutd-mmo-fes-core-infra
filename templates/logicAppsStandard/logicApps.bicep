@@ -124,6 +124,10 @@ module logicApp 'br/avm:web/site:0.15.1' = [
           }
         }
       ]
+      siteConfig: {
+        minTlsVersion: '1.3'
+        minTlsCipherSuite: 'TLS_AES_256_GCM_SHA384'
+      }
       storageAccountRequired: false
       virtualNetworkSubnetId: vnet::subnet.id
       vnetContentShareEnabled: false

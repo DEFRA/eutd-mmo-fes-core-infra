@@ -52,6 +52,7 @@ var siteConfig = {
   acrUseManagedIdentityCreds: true
   http20Enabled: true
   ftpsState: 'Disabled'
+  minTlsCipherSuite: 'TLS_AES_256_GCM_SHA384'
 }
 
 resource vnet 'Microsoft.Network/virtualNetworks@2021-02-01' existing = {
@@ -74,7 +75,7 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' exis
 
 // Create Web Apps in batches
 @batchSize(2)
-module webApp 'br/avm:web/site:0.19.3' = [
+module webApp 'br/avm:web/site:0.23.1' = [
   for (app, i) in webAppNamesArray: {
     name: '${app.Name}-${deploymentDate}'
     params: {
