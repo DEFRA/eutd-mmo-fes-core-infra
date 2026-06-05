@@ -27,3 +27,5 @@ param secondaryRegionVnetResourceGroupName = '#{{ environmentName }}#{{ nc-deptS
 param secondaryRegionPrivateEndpointSubnet = '#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}1606'
 param disasterRecoverySupported = '#{{ disasterRecoverySupported }}'
 param secondaryRedisCacheExists = '#{{ secondaryRedisCacheExists }}'
+param keyVaultName = '#{{ keyVaultName }}'
+param keyVaultResourceGroupName = '#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-static-res-region-id }}02'

@@ -52,7 +52,6 @@ parameters:
       - Logic Apps - Role Assignments
       - Logic Apps - API Connections
       - Logic Apps - API Connections Policies
-      - Export Connection Strings to KeyVault
       - Dashboard
 
   - name: skipPRE1
@@ -102,8 +101,6 @@ variables:
     value: ${{ and( or(eq(parameters.deployResources,'All'), eq(parameters.deployResources, 'Logic Apps - All'), eq(parameters.deployResources, 'Logic Apps - API Connections')), ne(variables['Build.Reason'], 'schedule')) }}
   - name: IsLogicAppsApiConnectionsPolicies
     value: ${{ or(eq(parameters.deployResources,'All'), eq(parameters.deployResources, 'Logic Apps - All'), eq(parameters.deployResources, 'Logic Apps - API Connections Policies')) }}
-  - name: IsExportConnString
-    value: ${{ and( or(eq(parameters.deployResources,'All'), eq(parameters.deployResources,'Export Connection Strings to KeyVault')), ne(variables['Build.Reason'], 'schedule')) }}
   - name: IsDashboard
     value: ${{ and( or(eq(parameters.deployResources,'All'), eq(parameters.deployResources,'Dashboard')), ne(variables['Build.Reason'], 'schedule')) }}
 
@@ -462,12 +459,6 @@ extends:
                 type: bicep
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
-          - ${{ if eq(variables.IsExportConnString, true) }}:
-              - name: connectionStrings
-                path: templates/connectionStrings
-                type: bicep
-                scope: "Resource Group"
-                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
           - ${{ if eq(variables.IsLogicAppsApiConnections, true) }}:
               - name: apiConnections
                 path: templates/apiConnections

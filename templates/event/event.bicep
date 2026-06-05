@@ -6,6 +6,9 @@ param createdDate string = utcNow('yyyy-MM-dd')
 param eventHubName string
 param logAnalyticsName string
 param ehbZoneRedundant string
+param keyVaultName string
+param keyVaultResourceGroupName string
+param eventHubPolicyName string = 'QRADAR_APP'
 
 param authorizationRules array = [
   {
@@ -97,4 +100,19 @@ module primaryNamespace 'br/avm:event-hub/namespace:0.10.2' = {
       systemAssigned: true
     }
   }
+}
+
+var eventHubAuthRuleResourceId = resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', toUpper(eventHubNamespaceName), eventHubName, eventHubPolicyName)
+
+module eventHubSecrets '.bicep/eventHubSecrets.bicep' = {
+  name: 'eventHub-secrets-${deploymentDate}'
+  scope: resourceGroup(keyVaultResourceGroupName)
+  params: {
+    keyVaultName: keyVaultName
+    secretName: 'EVENTHUB-CONNECTION-STRING'
+    eventHubConnectionString: listKeys(eventHubAuthRuleResourceId, '2024-01-01').primaryConnectionString
+  }
+  dependsOn: [
+    primaryNamespace
+  ]
 }

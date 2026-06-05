@@ -28,7 +28,6 @@ parameters:
       - FunctionApps
       - KeyVaultRoleAssignments
       - LogicApps
-      - ConnectionStrings
       - ApiConnections
   - name: skipPRE1
     type: boolean
@@ -71,8 +70,6 @@ variables:
     value: ${{ eq(parameters.deployResources,'KeyVaultRoleAssignments') }}
   - name: IsLogicApps
     value: ${{ eq(parameters.deployResources,'LogicApps') }}
-  - name: IsConnectionStrings
-    value: ${{ eq(parameters.deployResources,'ConnectionStrings') }}
   - name: IsApiConnections
     value: ${{ eq(parameters.deployResources,'ApiConnections') }}
 
@@ -196,6 +193,19 @@ extends:
                 path: "scripts/Set-PrivateDnsRecordSet.ps1"
                 scriptArguments: >
                   -UpdateAllDnsZones $true
+
+              - name: updateRedisKeyVaultSecrets
+                scriptRepo: MMOPipelineCommon
+                type: script
+                scriptType: AzurePowerShell
+                path: "scripts/Set-RedisCacheKeyVaultSecret.ps1"
+                scriptArguments: >
+                  -SubscriptionId '$(subscriptionId)'
+                  -RedisCacheResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+                  -RedisCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
+                  -KeyVaultName '$(keyVaultName)'
+                  -KeyVaultResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-static-res-region-id)02'
+                  -Confirm:$false
 
           - ${{ if or(eq(variables.IsAll, true), eq(variables.IsEvent, true)) }}:
               - name: event
@@ -326,13 +336,6 @@ extends:
                 type: bicep
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
-
-          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsConnectionStrings, true)) }}:
-              - name: connectionStrings
-                path: templates/connectionStrings
-                type: bicep
-                scope: "Resource Group"
-                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-static-res-region-id)02"
 
           - ${{ if or(eq(variables.IsAll, true), eq(variables.IsApiConnections, true)) }}:
               - name: apiConnections

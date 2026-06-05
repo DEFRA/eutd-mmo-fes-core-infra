@@ -6,3 +6,5 @@ param logAnalyticsName = '#{{ environment }}#{{ nc-deptService }}#{{ nc-function
 param resourceGroupName = '#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}02'
 param messageLockDuration = 'PT4M'
 param serviceBusZoneRedundant = '#{{ serviceBusZoneRedundant }}'
+param keyVaultName = '#{{ keyVaultName }}'
+param keyVaultResourceGroupName = '#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-static-res-region-id }}02'

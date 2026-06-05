@@ -25,6 +25,10 @@ param ukWestDnsStorageQueueZoneId string
 param subnets array
 param cefasSubnets string
 param firewallIps string
+param keyVaultName string
+param keyVaultResourceGroupName string
+param exportCertStorageName string
+param refDataStorageName string
 
 var storageSuffix = az.environment().suffixes.storage
 var strAccArray = json(storageAccounts)
@@ -228,3 +232,26 @@ module storageAccount 'br/avm:storage/storage-account:0.27.1' = [
     }
   }
 ]
+
+resource exportCertStorageAcc 'Microsoft.Storage/storageAccounts@2022-05-01' existing = {
+  name: toLower(exportCertStorageName)
+}
+
+resource refDataStorageAcc 'Microsoft.Storage/storageAccounts@2022-05-01' existing = {
+  name: toLower(refDataStorageName)
+}
+
+module storageAccountSecrets '.bicep/storageAccountSecrets.bicep' = {
+  name: 'storageAccount-secrets-${deploymentDate}'
+  scope: resourceGroup(keyVaultResourceGroupName)
+  params: {
+    keyVaultName: keyVaultName
+    exportCertSecretName: 'EXPORTCERT-STORAGE-CONNECTION-STRING'
+    refDataSecretName: 'REFDATA-STORAGE-CONNECTION-STRING'
+    exportCertConnectionString: 'DefaultEndpointsProtocol=https;AccountName=${toLower(exportCertStorageAcc.name)};AccountKey=${exportCertStorageAcc.listKeys().keys[0].value};EndpointSuffix=${storageSuffix}'
+    refDataConnectionString: 'DefaultEndpointsProtocol=https;AccountName=${toLower(refDataStorageAcc.name)};AccountKey=${refDataStorageAcc.listKeys().keys[0].value};EndpointSuffix=${storageSuffix}'
+  }
+  dependsOn: [
+    storageAccount
+  ]
+}

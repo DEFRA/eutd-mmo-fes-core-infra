@@ -11,6 +11,8 @@ param logAnalyticsName string
 param resourceGroupName string
 param messageLockDuration string = 'PT2M'
 param serviceBusZoneRedundant string
+param keyVaultName string
+param keyVaultResourceGroupName string
 
 var serviceBusdefaultTags = {
   ServiceCode: 'FES'
@@ -87,4 +89,19 @@ module serviceBusNamespace 'br/avm:service-bus/namespace:0.14.1' = {
       }
     ]
   }
+}
+
+var authRuleResourceId = resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', serviceBusName, 'RootManageSharedAccessKey')
+
+module serviceBusSecrets '.bicep/serviceBusSecrets.bicep' = {
+  name: 'serviceBus-secrets-${deploymentDate}'
+  scope: resourceGroup(keyVaultResourceGroupName)
+  params: {
+    keyVaultName: keyVaultName
+    secretName: 'SERVICEBUS-CONNECTION-STRING'
+    serviceBusConnectionString: listKeys(authRuleResourceId, '2024-01-01').primaryConnectionString
+  }
+  dependsOn: [
+    serviceBusNamespace
+  ]
 }

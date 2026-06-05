@@ -35,7 +35,6 @@ This repo delivers the repeatable, idempotent deployment of foundational cloud r
 │  ├─ apiConnections/              # Managed API connection resources + access policies
 │  ├─ appInsights/                 # App Insights + dashboards
 │  ├─ appServicePlan/              # App Service Plan definitions
-│  ├─ connectionStrings/           # Centralised connection string outputs/refs
 │  ├─ containerRegistries/         # Azure Container Registry
 │  ├─ cosmosDB/                    # Cosmos DB accounts
 │  ├─ event/                       # Event Hubs

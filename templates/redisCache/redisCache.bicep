@@ -22,6 +22,8 @@ param secondaryRegionResourceGroup string
 param secondaryRegionPrivateEndpointSubnet string
 param disasterRecoverySupported string
 param secondaryRedisCacheExists string = 'false'
+param keyVaultName string
+param keyVaultResourceGroupName string
 
 var disasterRecoveryEnabled = bool(disasterRecoverySupported)
 var secondaryRedisCacheExistsBool = empty(secondaryRedisCacheExists) ? false : bool(secondaryRedisCacheExists)
@@ -233,4 +235,29 @@ module secondaryRedisCache 'br/avm:cache/redis-enterprise:0.5.1' = if (disasterR
       }
     ]
   }
+}
+
+resource managedRedis 'Microsoft.Cache/redisEnterprise@2025-07-01' existing = {
+  name: redisCacheName
+
+  resource managedRedisDatabase 'databases@2025-07-01' existing = {
+    name: 'default'
+  }
+}
+
+module redisSecrets '.bicep/redisSecrets.bicep' = {
+  name: 'redis-secrets-${deploymentDate}'
+  scope: resourceGroup(keyVaultResourceGroupName)
+  params: {
+    keyVaultName: keyVaultName
+    redisPasswordSecretName: 'REDIS-PASSWORD'
+    redisConnectionStringSecretName: 'REDIS-CONNECTION-STRING'
+    redisHostNameSecretName: 'REDIS-HOST-NAME'
+    redisPassword: managedRedis::managedRedisDatabase.listKeys().primaryKey
+    redisConnectionString: 'rediss://:${managedRedis::managedRedisDatabase.listKeys().primaryKey}@${managedRedis.properties.hostName}:10000'
+    redisHostName: managedRedis.properties.hostName
+  }
+  dependsOn: [
+    primaryRedisCache
+  ]
 }
