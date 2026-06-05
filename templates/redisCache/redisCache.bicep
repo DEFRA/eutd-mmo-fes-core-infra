@@ -237,13 +237,8 @@ module secondaryRedisCache 'br/avm:cache/redis-enterprise:0.5.1' = if (disasterR
   }
 }
 
-resource managedRedis 'Microsoft.Cache/redisEnterprise@2025-07-01' existing = {
-  name: redisCacheName
-
-  resource managedRedisDatabase 'databases@2025-07-01' existing = {
-    name: 'default'
-  }
-}
+var redisClusterResourceId  = resourceId('Microsoft.Cache/redisEnterprise', redisCacheName)
+var redisDatabaseResourceId = resourceId('Microsoft.Cache/redisEnterprise/databases', redisCacheName, 'default')
 
 module redisSecrets '.bicep/redisSecrets.bicep' = {
   name: 'redis-secrets-${deploymentDate}'
@@ -253,9 +248,9 @@ module redisSecrets '.bicep/redisSecrets.bicep' = {
     redisPasswordSecretName: 'REDIS-PASSWORD'
     redisConnectionStringSecretName: 'REDIS-CONNECTION-STRING'
     redisHostNameSecretName: 'REDIS-HOST-NAME'
-    redisPassword: managedRedis::managedRedisDatabase.listKeys().primaryKey
-    redisConnectionString: 'rediss://:${managedRedis::managedRedisDatabase.listKeys().primaryKey}@${managedRedis.properties.hostName}:10000'
-    redisHostName: managedRedis.properties.hostName
+    redisPassword: listKeys(redisDatabaseResourceId, '2025-07-01').primaryKey
+    redisConnectionString: 'rediss://:${listKeys(redisDatabaseResourceId, '2025-07-01').primaryKey}@${reference(redisClusterResourceId, '2025-07-01').hostName}:10000'
+    redisHostName: reference(redisClusterResourceId, '2025-07-01').hostName
   }
   dependsOn: [
     primaryRedisCache
