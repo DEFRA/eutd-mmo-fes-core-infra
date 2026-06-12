@@ -42,6 +42,14 @@ var customTagsForWebApp = [
   }
 ]
 
+var customTagsMI = [
+  for (app, i) in webAppNamesArray: {
+    name: toUpper(app.ManagedIdentityName)
+    Purpose: 'Identity'
+    type: 'User Assigned Managed Identity'
+  }
+]
+
 var siteConfig = {
   vnetRouteAllEnabled: true
   numberOfWorkers: 2
@@ -74,6 +82,18 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' exis
   scope: resourceGroup(resourceGroupName)
 }
 
+// Create one user-assigned managed identity per web app
+module userAssignedIdentity 'br/avm:managed-identity/user-assigned-identity:0.5.1' = [
+  for (app, i) in webAppNamesArray: {
+    name: '${app.ManagedIdentityName}-${deploymentDate}'
+    params: {
+      name: toUpper(app.ManagedIdentityName)
+      location: location
+      tags: union(WebAppdefaultTags, customTagsMI[i])
+    }
+  }
+]
+
 // Create Web Apps in batches
 @batchSize(2)
 module webApp 'br/avm:web/site:0.23.1' = [
@@ -94,6 +114,7 @@ module webApp 'br/avm:web/site:0.23.1' = [
               : cur
         )
         minTlsVersion: app.?TlsMinVersion ?? '1.3'
+        acrUserManagedIdentityID: userAssignedIdentity[i].outputs.clientId
       })
       configs: [
         {
@@ -131,7 +152,15 @@ module webApp 'br/avm:web/site:0.23.1' = [
                       : cur
                 )
                 minTlsVersion: app.?TlsMinVersion ?? '1.3'
+                acrUserManagedIdentityID: userAssignedIdentity[i].outputs.clientId
               })
+              managedIdentities: {
+                systemAssigned: false
+                userAssignedResourceIds: [
+                  userAssignedIdentity[i].outputs.resourceId
+                ]
+              }
+              keyVaultAccessIdentityResourceId: userAssignedIdentity[i].outputs.resourceId
               publicNetworkAccess: bool(app.IsFrontEnd) ? 'Enabled' : 'Disabled'
               privateEndpoints: bool(app.IsFrontEnd)
                 ? []
@@ -191,8 +220,12 @@ module webApp 'br/avm:web/site:0.23.1' = [
       clientAffinityEnabled: false
       tags: union(WebAppdefaultTags, customTagsForWebApp[i])
       managedIdentities: {
-        systemAssigned: true
+        systemAssigned: false
+        userAssignedResourceIds: [
+          userAssignedIdentity[i].outputs.resourceId
+        ]
       }
+      keyVaultAccessIdentityResourceId: userAssignedIdentity[i].outputs.resourceId
       virtualNetworkSubnetResourceId: resourceId(
         vnetResourceGroupName,
         'Microsoft.Network/virtualNetworks/subnets',

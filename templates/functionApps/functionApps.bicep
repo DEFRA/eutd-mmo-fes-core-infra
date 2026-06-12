@@ -24,6 +24,7 @@ param aadclientId string
 param aadTenantId string
 @secure()
 param aadAppIdUri string
+param managedIdentityName string
 
 var aadIssuerUrl = 'https://sts.windows.net/${aadTenantId}/v2.0'
 var funcAppdefaultTags = {
@@ -41,6 +42,12 @@ var customTags = {
   name: funcAppName
   Purpose: 'FESMMO-ASP'
   type: 'functionApp'
+}
+
+var customTagsMI = {
+  name: toUpper(managedIdentityName)
+  Purpose: 'Identity'
+  type: 'User Assigned Managed Identity'
 }
 var validatedAppVersions = empty(appVersions) ? '[]' : appVersions
 var appVersionsArray = json(validatedAppVersions)
@@ -89,7 +96,17 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' existing 
   name: toLower(webjobsStorageAccount)
   scope: resourceGroup(primaryRegionResourceGroupName)
 }
-module functionapp 'br/avm:web/site:0.9.0' = {
+// Create the user-assigned managed identity for the function app
+module userAssignedIdentity 'br/avm:managed-identity/user-assigned-identity:0.5.1' = {
+  name: '${managedIdentityName}-${deploymentDate}'
+  params: {
+    name: toUpper(managedIdentityName)
+    location: location
+    tags: union(funcAppdefaultTags, customTagsMI)
+  }
+}
+
+module functionapp 'br/avm:web/site:0.23.1' = {
   name: '${funcAppName}-${deploymentDate}'
   params: {
     name: toUpper(funcAppName)
@@ -97,77 +114,101 @@ module functionapp 'br/avm:web/site:0.9.0' = {
     location: location
     tags: union(funcAppdefaultTags, customTags)
     serverFarmResourceId: appServicePlan.id
-    appInsightResourceId: appInsights.id
-    appSettingsKeyValuePairs: {
-      AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${toLower(webjobsStorageAccount)};AccountKey=${storageAccount.listKeys().keys[0].value}'
-      APPINSIGHTS_INSTRUMENTATIONKEY: appInsights.properties.InstrumentationKey
-    }
-    authSettingV2Configuration: {
-      globalValidation: {
-        requireAuthentication: true
-        unauthenticatedClientAction: 'Return401'
+    configs: [
+      {
+        name: 'appsettings'
+        applicationInsightResourceId: appInsights.id
+        properties: {
+          AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${toLower(webjobsStorageAccount)};AccountKey=${storageAccount.listKeys().keys[0].value}'
+        }
       }
-      identityProviders: {
-        azureActiveDirectory: {
-          enabled: true
-          registration: {
-            clientId: aadclientId
-            clientSecretSettingName: 'AAD_CLIENTSECRET'
-            openIdIssuer: aadIssuerUrl
+      {
+        name: 'authsettingsV2'
+        properties: {
+          globalValidation: {
+            requireAuthentication: true
+            unauthenticatedClientAction: 'Return401'
           }
-          validation: {
-            allowedAudiences: [
-              aadAppIdUri
-            ]
+          identityProviders: {
+            azureActiveDirectory: {
+              enabled: true
+              registration: {
+                clientId: aadclientId
+                clientSecretSettingName: 'AAD_CLIENTSECRET'
+                openIdIssuer: aadIssuerUrl
+              }
+              validation: {
+                allowedAudiences: [
+                  aadAppIdUri
+                ]
+              }
+            }
+          }
+          platform: {
+            enabled: true
           }
         }
       }
-      platform: {
-        enabled: true
-      }
-    }
+    ]
     slots: bool(slotsEnabled)
       ? [
           {
             name: 'staging'
-            appSettingsKeyValuePairs: {
-                AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${toLower(webjobsStorageAccount)};AccountKey=${storageAccount.listKeys().keys[0].value}'
-                APPINSIGHTS_INSTRUMENTATIONKEY: appInsights.properties.InstrumentationKey
-            }
-            
-            authSettingV2Configuration: {
-              globalValidation: {
-                requireAuthentication: true
-                unauthenticatedClientAction: 'Return401'
+            configs: [
+              {
+                name: 'appsettings'
+                applicationInsightResourceId: appInsights.id
+                properties: {
+                  AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${toLower(webjobsStorageAccount)};AccountKey=${storageAccount.listKeys().keys[0].value}'
+                }
               }
-              identityProviders: {
-                azureActiveDirectory: {
-                  enabled: true
-                  registration: {
-                    clientId: aadclientId
-                    clientSecretSettingName: 'AAD_CLIENTSECRET'
-                    openIdIssuer: aadIssuerUrl
+              {
+                name: 'authsettingsV2'
+                properties: {
+                  globalValidation: {
+                    requireAuthentication: true
+                    unauthenticatedClientAction: 'Return401'
                   }
-                  validation: {
-                    allowedAudiences: [
-                      aadAppIdUri
-                    ]
+                  identityProviders: {
+                    azureActiveDirectory: {
+                      enabled: true
+                      registration: {
+                        clientId: aadclientId
+                        clientSecretSettingName: 'AAD_CLIENTSECRET'
+                        openIdIssuer: aadIssuerUrl
+                      }
+                      validation: {
+                        allowedAudiences: [
+                          aadAppIdUri
+                        ]
+                      }
+                    }
+                  }
+                  platform: {
+                    enabled: true
                   }
                 }
               }
-              platform: {
-                enabled: true
-              }
-            }
+            ]
             siteConfig: union(siteConfig, {
               linuxFxVersion: reduce(
                 appVersionsArray,
                 'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest',
                 (cur, next) => (toUpper(next.Name) == toUpper(funcAppName) && next.Slot == true) ? next.LinuxFxVersion : cur
               )
+              acrUserManagedIdentityID: userAssignedIdentity.outputs.clientId
             })
-            vnetImagePullEnabled: true
-            vnetRouteAllEnabled: true
+            managedIdentities: {
+              systemAssigned: false
+              userAssignedResourceIds: [
+                userAssignedIdentity.outputs.resourceId
+              ]
+            }
+            keyVaultAccessIdentityResourceId: userAssignedIdentity.outputs.resourceId
+            outboundVnetRouting: {
+              allTraffic: true
+              imagePullTraffic: true
+            }
             privateEndpoints: [
               {
                 name: toUpper('${funcAppName}-STAGING-PE')
@@ -216,8 +257,12 @@ module functionapp 'br/avm:web/site:0.9.0' = {
       : []
     publicNetworkAccess: 'Disabled'
     managedIdentities: {
-      systemAssigned: true
+      systemAssigned: false
+      userAssignedResourceIds: [
+        userAssignedIdentity.outputs.resourceId
+      ]
     }
+    keyVaultAccessIdentityResourceId: userAssignedIdentity.outputs.resourceId
     httpsOnly: true
     siteConfig: union(siteConfig, {
       linuxFxVersion: reduce(
@@ -225,10 +270,13 @@ module functionapp 'br/avm:web/site:0.9.0' = {
         'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest',
         (cur, next) => (toUpper(next.Name) == toUpper(funcAppName) && next.Slot != true) ? next.LinuxFxVersion : cur
       )
+      acrUserManagedIdentityID: userAssignedIdentity.outputs.clientId
     })
-    vnetImagePullEnabled: true
-    vnetRouteAllEnabled: true
-    virtualNetworkSubnetId: vnet::subnet.id
+    outboundVnetRouting: {
+      allTraffic: true
+      imagePullTraffic: true
+    }
+    virtualNetworkSubnetResourceId: vnet::subnet.id
     privateEndpoints: [
       {
         name: toUpper('${funcAppName}-PE')

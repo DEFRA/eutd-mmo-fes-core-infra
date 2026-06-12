@@ -28,6 +28,25 @@ var logAnalyticsModule = resourceId(
   logAnalyticsWorkspace
 )
 
+var logicAppDefaultTags = {
+  ServiceCode: 'FES'
+  ServiceName: 'MMO'
+  ServiceType: 'LOB'
+  CreatedDate: createdDate
+  Environment: environment
+  Tier: 'WORKFLOW-APP'
+  Location: location
+  Ephemeral: ephemeral
+}
+
+var customTagsMI = [
+  for logicApp in logicAppsArray: {
+    name: toUpper(logicApp.ManagedIdentityName)
+    Purpose: 'Identity'
+    type: 'User Assigned Managed Identity'
+  }
+]
+
 resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' existing = {
   name: vnetName
   scope: resourceGroup(vnetResourceGroupName)
@@ -47,16 +66,31 @@ resource appInsightsModule 'Microsoft.Insights/components@2020-02-02' existing =
   scope: resourceGroup(resourceGroupName)
 }
 
-module logicApp 'br/avm:web/site:0.15.1' = [
-  for logicApp in logicAppsArray: {
+module userAssignedIdentity 'br/avm:managed-identity/user-assigned-identity:0.5.1' = [
+  for (logicApp, i) in logicAppsArray: {
+    name: logicApp.ManagedIdentityName
+    params: {
+      name: toUpper(logicApp.ManagedIdentityName)
+      location: location
+      tags: union(logicAppDefaultTags, customTagsMI[i])
+    }
+  }
+]
+
+module logicApp 'br/avm:web/site:0.23.1' = [
+  for (logicApp, i) in logicAppsArray: {
     name: logicApp.Name
     params: {
       name: logicApp.Name
       location: location
       kind: 'functionapp,workflowapp'
       managedIdentities: {
-        systemAssigned: true
+        systemAssigned: false
+        userAssignedResourceIds: [
+          userAssignedIdentity[i].outputs.resourceId
+        ]
       }
+      keyVaultAccessIdentityResourceId: userAssignedIdentity[i].outputs.resourceId
       tags: {
         ServiceCode: 'FES'
         ServiceName: 'MMO'
@@ -71,26 +105,30 @@ module logicApp 'br/avm:web/site:0.15.1' = [
       }
       serverFarmResourceId: resourceId('Microsoft.Web/serverfarms', logicApp.ASP)
       httpsOnly: true
-      appInsightResourceId: appInsightsModule.id
-      appSettingsKeyValuePairs: {
-        APP_KIND: 'workflowApp'
-        APPINSIGHTS_INSTRUMENTATIONKEY: appInsightsModule.properties.InstrumentationKey
-        COMMON_API_CONNECTION_NAME: toUpper(commonApiContName)
-        REFDATA_STORAGE_CONNECTION_NAME: toUpper(storageApiContName)
-        SERVICE_BUS_CONNECTION_NAME: toUpper(serviceBusApiContName)
-        FUNCTIONS_WORKER_RUNTIME: 'dotnet'
-        FUNCTIONS_EXTENSION_VERSION: '~4'
-        WORKFLOWS_SUBSCRIPTION_ID: subscription().subscriptionId
-        WEBSITE_NODE_DEFAULT_VERSION: '~22'
-        ORG_NAME: dynamicsOrgName
-        STORAGEACCOUNT_URL: substring(
-          storageModule.properties.primaryEndpoints.table,
-          0,
-          length(storageModule.properties.primaryEndpoints.table) - 1
-        )
-        RESOURCEGROUP_LOCATION: resourceGroup().location
-        RESOURCEGROUP_NAME: resourceGroup().name
-      }
+      configs: [
+        {
+          name: 'appsettings'
+          applicationInsightResourceId: appInsightsModule.id
+          properties: {
+            APP_KIND: 'workflowApp'
+            COMMON_API_CONNECTION_NAME: toUpper(commonApiContName)
+            REFDATA_STORAGE_CONNECTION_NAME: toUpper(storageApiContName)
+            SERVICE_BUS_CONNECTION_NAME: toUpper(serviceBusApiContName)
+            FUNCTIONS_WORKER_RUNTIME: 'dotnet'
+            FUNCTIONS_EXTENSION_VERSION: '~4'
+            WORKFLOWS_SUBSCRIPTION_ID: subscription().subscriptionId
+            WEBSITE_NODE_DEFAULT_VERSION: '~22'
+            ORG_NAME: dynamicsOrgName
+            STORAGEACCOUNT_URL: substring(
+              storageModule.properties.primaryEndpoints.table,
+              0,
+              length(storageModule.properties.primaryEndpoints.table) - 1
+            )
+            RESOURCEGROUP_LOCATION: resourceGroup().location
+            RESOURCEGROUP_NAME: resourceGroup().name
+          }
+        }
+      ]
       publicNetworkAccess: 'Disabled'
       privateEndpoints: [
         {
@@ -130,9 +168,12 @@ module logicApp 'br/avm:web/site:0.15.1' = [
         minTlsCipherSuite: 'TLS_AES_256_GCM_SHA384'
       }
       storageAccountRequired: false
-      virtualNetworkSubnetId: vnet::subnet.id
-      vnetContentShareEnabled: false
-      vnetRouteAllEnabled: false
+      virtualNetworkSubnetResourceId: vnet::subnet.id
+      outboundVnetRouting: {
+        allTraffic: false
+        contentShareTraffic: false
+        imagePullTraffic: false
+      }
       diagnosticSettings: [
         {
           name: '${logicApp.Name}-diagnosticSettings'

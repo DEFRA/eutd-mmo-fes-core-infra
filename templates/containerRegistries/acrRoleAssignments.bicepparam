@@ -11,5 +11,4 @@ param webAppNames = [
 ]
 param webAppResourceGroupName = '#{{ appEnvWebAppRgName }}'
 param acrName = '#{{ acrName }}'
-param slotsEnabled = '#{{ slotsEnabled }}'
 param appEnvSubscriptionId = '#{{ appEnvSubscriptionId}}'

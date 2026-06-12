@@ -29,7 +29,7 @@ module refDataServiceBusRoleAssignments '.bicep/serviceBusRoleAssignment.bicep' 
   name: guid(subscriptionId, 'refDataServiceBusRoleAssignments')
   params: {
     roleAssignments: serviceBusRoleAssignments
-    principalId: refDataLogicApp.identity.principalId
+    principalId: items(refDataLogicApp.identity.userAssignedIdentities)[0].value.principalId
     serviceBusName: serviceBusName
   }
 }
@@ -38,7 +38,7 @@ module processorServiceBusRoleAssignments '.bicep/serviceBusRoleAssignment.bicep
   name: guid(subscriptionId, 'processorServiceBusRoleAssignments')
   params: {
     roleAssignments: serviceBusRoleAssignments
-    principalId: processorLogicApp.identity.principalId
+    principalId: items(processorLogicApp.identity.userAssignedIdentities)[0].value.principalId
     serviceBusName: serviceBusName
   }
 }
