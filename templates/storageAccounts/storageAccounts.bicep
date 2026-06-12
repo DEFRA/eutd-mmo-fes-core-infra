@@ -105,7 +105,10 @@ module storageAccount 'br/avm:storage/storage-account:0.27.1' = [
         })
         deleteRetentionPolicyDays: 30
         deleteRetentionPolicyEnabled: true
+        containerDeleteRetentionPolicyEnabled: true
+        containerDeleteRetentionPolicyDays: 30
         lastAccessTimeTrackingPolicyEnabled: true
+        isVersioningEnabled: true
       }
       tableServices: {
         tables: map(strAcc.Tables, table => {
