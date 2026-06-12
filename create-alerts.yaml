@@ -25,7 +25,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: feature/update-agent-pools
+      ref: refs/heads/main
 
 extends:
   template: /includes/infra-deploy.yaml@MMOPipelineCommon
