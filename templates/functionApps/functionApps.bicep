@@ -35,13 +35,13 @@ var funcAppdefaultTags = {
   Environment: environment
   Tier: 'functionApp'
   Location: location
-  Ephemeral: ephemeral
 }
 
 var customTags = {
   name: funcAppName
   Purpose: 'FESMMO-ASP'
   type: 'functionApp'
+  Ephemeral: ephemeral
 }
 
 var customTagsMI = {
@@ -120,6 +120,7 @@ module functionapp 'br/avm:web/site:0.23.1' = {
         applicationInsightResourceId: appInsights.id
         properties: {
           AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${toLower(webjobsStorageAccount)};AccountKey=${storageAccount.listKeys().keys[0].value}'
+          APPINSIGHTS_INSTRUMENTATIONKEY: appInsights.properties.InstrumentationKey
         }
       }
       {
@@ -160,6 +161,7 @@ module functionapp 'br/avm:web/site:0.23.1' = {
                 applicationInsightResourceId: appInsights.id
                 properties: {
                   AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${toLower(webjobsStorageAccount)};AccountKey=${storageAccount.listKeys().keys[0].value}'
+                  APPINSIGHTS_INSTRUMENTATIONKEY: appInsights.properties.InstrumentationKey
                 }
               }
               {

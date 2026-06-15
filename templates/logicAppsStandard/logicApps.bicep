@@ -36,7 +36,6 @@ var logicAppDefaultTags = {
   Environment: environment
   Tier: 'WORKFLOW-APP'
   Location: location
-  Ephemeral: ephemeral
 }
 
 var customTagsMI = [
@@ -91,18 +90,11 @@ module logicApp 'br/avm:web/site:0.23.1' = [
         ]
       }
       keyVaultAccessIdentityResourceId: userAssignedIdentity[i].outputs.resourceId
-      tags: {
-        ServiceCode: 'FES'
-        ServiceName: 'MMO'
-        ServiceType: 'LOB'
-        CreatedDate: createdDate
-        Environment: environment
-        Tier: 'WORKFLOW-APP'
-        Location: location
+      tags: union(logicAppDefaultTags, {
         Purpose: 'FESMMO-APP'
         type: 'LogicApp'
         Ephemeral: ephemeral
-      }
+      })
       serverFarmResourceId: resourceId('Microsoft.Web/serverfarms', logicApp.ASP)
       httpsOnly: true
       configs: [
@@ -111,6 +103,7 @@ module logicApp 'br/avm:web/site:0.23.1' = [
           applicationInsightResourceId: appInsightsModule.id
           properties: {
             APP_KIND: 'workflowApp'
+            APPINSIGHTS_INSTRUMENTATIONKEY: appInsightsModule.properties.InstrumentationKey
             COMMON_API_CONNECTION_NAME: toUpper(commonApiContName)
             REFDATA_STORAGE_CONNECTION_NAME: toUpper(storageApiContName)
             SERVICE_BUS_CONNECTION_NAME: toUpper(serviceBusApiContName)

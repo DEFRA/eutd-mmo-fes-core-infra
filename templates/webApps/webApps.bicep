@@ -31,7 +31,6 @@ var WebAppdefaultTags = {
   Environment: environment
   Tier: 'Web'
   Location: location
-  Ephemeral: ephemeral
 }
 
 var customTagsForWebApp = [
@@ -39,6 +38,7 @@ var customTagsForWebApp = [
     name: toUpper(webAppName.Name)
     Purpose: 'FESMMO-ASP'
     type: 'WebApp'
+    Ephemeral: ephemeral
   }
 ]
 
