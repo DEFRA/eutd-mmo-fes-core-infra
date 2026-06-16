@@ -95,10 +95,12 @@ extends:
             path: "scripts/Set-EphemeralTag.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             scriptArguments: -acrName '$(acrName)'
-          - name: "Remove_RoleAssignments"
-            scriptRepo: MMOPipelineCommon
-            type: script
-            scriptType: AzurePowerShell
-            path: "scripts/Remove-RoleAssignments.ps1"
-            condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -ResourceName '$(acrName)' -ResourceGroupName '$(acrResourceGroup)' -ResourceType 'Microsoft.ContainerRegistry/registries' -RoleDefinitionName 'AcrPull' -AppsResourceGroup '$(appEnvWebAppRgName)'
+            
+            # NO NEED TO REMOVE ROLE ASSIGNMENTS AS ROLE ASSIGNMENTS ARE ASSOCIATED TO USER ASSIGNED MANAGED IDENTITY
+          # - name: "Remove_RoleAssignments"
+          #   scriptRepo: MMOPipelineCommon
+          #   type: script
+          #   scriptType: AzurePowerShell
+          #   path: "scripts/Remove-RoleAssignments.ps1"
+          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
+          #   scriptArguments: -ResourceName '$(acrName)' -ResourceGroupName '$(acrResourceGroup)' -ResourceType 'Microsoft.ContainerRegistry/registries' -RoleDefinitionName 'AcrPull' -AppsResourceGroup '$(appEnvWebAppRgName)'
