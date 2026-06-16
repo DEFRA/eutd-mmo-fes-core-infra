@@ -20,7 +20,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
 
 resource keyVaultRoleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
   for (app, i) in allAppNames: {
-    name: guid(subscription().subscriptionId, 'KeyVaultRoleAssignment', webApps[i].name)
+    name: guid(subscription().subscriptionId, 'KeyVaultSecretsUser', webApps[i].name)
     scope: keyVault
     properties: {
       roleDefinitionId: subscriptionResourceId(

@@ -16,7 +16,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-06-01-preview' existin
 
 resource acrRoleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
   for (app, i) in webAppNames: {
-    name: guid(subscription().subscriptionId, 'AcrRoleAssignment', webApps[i].name)
+    name: guid(subscription().subscriptionId, 'AcrPull', webApps[i].name)
     scope: acr
     properties: {
       roleDefinitionId: subscriptionResourceId(

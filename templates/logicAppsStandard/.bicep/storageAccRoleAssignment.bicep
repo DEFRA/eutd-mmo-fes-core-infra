@@ -8,7 +8,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' existing 
 
 resource roleAssignmentResources 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
   for (roleAssignment, i) in roleAssignments: {
-    name: guid(subscription().subscriptionId, roleAssignment.description, principalId)
+    name: guid(subscription().subscriptionId, 'StorageAccountRoleAssignment', roleAssignment.description, principalId)
     scope: storageAccount
     properties: {
       roleDefinitionId: subscriptionResourceId(
