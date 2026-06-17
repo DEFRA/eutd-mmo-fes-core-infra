@@ -221,6 +221,10 @@ resource cosmosThroughputDiagnostics 'Microsoft.Insights/diagnosticSettings@2021
         enabled: true
         categoryGroup: 'allLogs'
       }
+      {
+        enabled: true
+        categoryGroup: 'audit'
+      }
     ]
     metrics: [
       {
