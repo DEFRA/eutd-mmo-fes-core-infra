@@ -13,14 +13,14 @@ pr:
       - "**/monitoring/**"
       - ".github/**"
 
-schedules:
-  - cron: "27 14 * * 1-5"
-    displayName: Daily Deploy at 6:00 AM UTC
-    branches:
-      include:
-        - main
-        - feature/user-mi
-    always: true
+# schedules:
+#   - cron: "27 14 * * 1-5"
+#     displayName: Daily Deploy at 6:00 AM UTC
+#     branches:
+#       include:
+#         - main
+#         - feature/user-mi
+#     always: true
 
 parameters:
   - name: deployToDevelopmentEnvironment
