@@ -23,11 +23,11 @@ parameters:
     type: string
 
   - name: resourceName
-    displayName: "Resource Name (the specific Azure resource to clean up)"
+    displayName: "Resource Name"
     type: string
 
   - name: roleDefinitionName
-    displayName: "Role Definition Name (e.g. Key Vault Secrets User, AcrPull, Storage Blob Data Contributor)"
+    displayName: "Role Definition Name (e.g. Key Vault Secrets User, AcrPull)"
     type: string
 
 variables:
@@ -50,130 +50,49 @@ stages:
       - job: RemoveUnknownRoleAssignments
         displayName: "Remove Unknown Role Assignments"
         steps:
-          # ── Azure CLI step ────────────────────────────────────────────────────────────
-          # az role assignment list returns raw RBAC data from Azure without resolving
-          # principals via Graph.  Orphaned (deleted) principals have an empty principalName;
-          # valid ones (users, SPs, managed identities, groups) always have a non-empty
-          # principalName — regardless of the service principal's Graph permissions.
           - task: AzureCLI@2
-            displayName: "Find and Remove Unknown (Orphaned) Role Assignments via Azure CLI"
+            displayName: "Find and Remove Unknown (Orphaned) Role Assignments"
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: pscore
               scriptLocation: inlineScript
               failOnStandardError: true
-              addSpnToEnvironment: false
               inlineScript: |
-                $dryRun             = [System.Convert]::ToBoolean("${{ parameters.dryRun }}")
-                $rgName             = "${{ parameters.resourceGroupName }}"
-                $resourceName       = "${{ parameters.resourceName }}"
-                $roleDefinitionName = "${{ parameters.roleDefinitionName }}"
+                $dryRun = [System.Convert]::ToBoolean("${{ parameters.dryRun }}")
 
-                # ── Select subscription ───────────────────────────────────────────────────
-                Write-Host "Setting active subscription: $(serviceConnection)"
                 az account set --subscription "$(serviceConnection)"
-                Write-Host ""
 
-                # ── Resolve exact resource scope ──────────────────────────────────────────
-                Write-Host "Looking up resource '$resourceName' in resource group '$rgName'..."
-                $resourceId = az resource list `
-                    --name           $resourceName `
-                    --resource-group $rgName `
-                    --query          "[0].id" `
-                    --output         tsv
-
+                $resourceId = (az resource list --name "${{ parameters.resourceName }}" --resource-group "${{ parameters.resourceGroupName }}" --query "[0].id" --output tsv).Trim()
                 if ([string]::IsNullOrWhiteSpace($resourceId)) {
-                    Write-Error "Resource '$resourceName' not found in resource group '$rgName'."
+                    Write-Error "Resource '${{ parameters.resourceName }}' not found in resource group '${{ parameters.resourceGroupName }}'."
                     exit 1
                 }
+                Write-Host "Resource ID: $resourceId"
 
-                $resourceId = $resourceId.Trim()
-                Write-Host "Resource scope : $resourceId"
-
-                # ── Retrieve all role assignments visible at this scope ────────────────────
-                # --include-inherited ensures we capture everything (including inherited
-                # assignments from parent scopes), so the scope filter below can strip them
-                # out precisely rather than relying on CLI default behaviour.
-                Write-Host ""
-                Write-Host "Retrieving role assignments..."
-                $allAssignments = az role assignment list `
-                    --scope            $resourceId `
-                    --include-inherited `
-                    --output           json | ConvertFrom-Json
+                $allAssignments = az role assignment list --scope $resourceId --include-inherited --output json | ConvertFrom-Json
 
                 $filtered = $allAssignments | Where-Object {
-                    $_.scope              -eq $resourceId         -and
-                    $_.roleDefinitionName -eq $roleDefinitionName
+                    $_.scope -eq $resourceId -and $_.roleDefinitionName -eq "${{ parameters.roleDefinitionName }}"
                 }
 
-                Write-Host ""
-                Write-Host "Total role assignments found for '$roleDefinitionName' on '$resourceName': $($filtered.Count)"
-                Write-Host ""
+                Write-Host "Found $($filtered.Count) '${{ parameters.roleDefinitionName }}' assignment(s) directly on resource — full details:"
+                $filtered | ForEach-Object { Write-Host ($_ | ConvertTo-Json) }
 
-                $orphaned = $filtered | Where-Object {
-                    [string]::IsNullOrEmpty($_.principalName)
-                }
+                $orphaned = $filtered | Where-Object { [string]::IsNullOrEmpty($_.principalName) }
+                Write-Host "Orphaned (principalName empty): $($orphaned.Count)"
 
-                Write-Host ""
-                Write-Host "Orphaned '$roleDefinitionName' assignments directly on resource: $($orphaned.Count)"
-                Write-Host ""
+                if ($orphaned.Count -eq 0) { Write-Host "Nothing to remove."; exit 0 }
 
-                if ($orphaned.Count -eq 0) {
-                    Write-Host "Nothing to remove — exiting cleanly."
+                if ($dryRun) {
+                    Write-Host "[DRY RUN] $($orphaned.Count) assignment(s) would be deleted. Set Dry Run to false to proceed."
                     exit 0
                 }
 
-                # ── List every matching assignment ────────────────────────────────────────
-                Write-Host "--- Orphaned Role Assignments ---"
                 $orphaned | ForEach-Object {
-                    Write-Host "  Id                : $($_.id)"
-                    Write-Host "  RoleDefinitionName: $($_.roleDefinitionName)"
-                    Write-Host "  PrincipalId       : $($_.principalId)"
-                    Write-Host "  PrincipalName     : '$($_.principalName)'"
-                    Write-Host "  Scope             : $($_.scope)"
-                    Write-Host "  ---------------------------------"
+                    Write-Host "Removing: $($_.roleDefinitionName) | PrincipalId: $($_.principalId)"
+                    az role assignment delete --ids $_.id --output none
+                    if ($LASTEXITCODE -ne 0) { throw "Failed to delete assignment: $($_.id)" }
+                    Write-Host "  [OK] Removed."
                 }
+                Write-Host "Done. Removed $($orphaned.Count) assignment(s)."
 
-                # ── Act ──────────────────────────────────────────────────────────────────
-                if ($dryRun) {
-                    Write-Host ""
-                    Write-Host "[DRY RUN] $($orphaned.Count) assignment(s) listed above would be deleted."
-                    Write-Host "[DRY RUN] Set 'Dry Run' to false and re-run to perform actual deletion."
-                } else {
-                    Write-Host ""
-                    Write-Host "Deleting $($orphaned.Count) orphaned role assignment(s)..."
-                    $removed = 0
-                    $failed  = 0
-
-                    foreach ($assignment in $orphaned) {
-                        try {
-                            Write-Host "Removing: $($assignment.roleDefinitionName) | PrincipalId: $($assignment.principalId) | Scope: $($assignment.scope)"
-
-                            # --ids accepts the full ARM resource ID of the role assignment.
-                            # This is the most precise delete method — no ambiguity, no
-                            # accidental matches against other assignments.
-                            az role assignment delete --ids $assignment.id --output none
-
-                            if ($LASTEXITCODE -ne 0) {
-                                throw "az role assignment delete exited with code $LASTEXITCODE"
-                            }
-
-                            $removed++
-                            Write-Host "  [OK] Removed."
-                        } catch {
-                            $failed++
-                            Write-Warning "  [FAILED] $($_.Exception.Message)"
-                        }
-                    }
-
-                    Write-Host ""
-                    Write-Host "=== Summary ==="
-                    Write-Host "  Removed : $removed"
-                    Write-Host "  Failed  : $failed"
-                    Write-Host "  Total   : $($orphaned.Count)"
-
-                    if ($failed -gt 0) {
-                        Write-Error "$failed role assignment(s) could not be removed. Review warnings above."
-                        exit 1
-                    }
-                }
