@@ -26,8 +26,8 @@ parameters:
     displayName: "Resource Name"
     type: string
 
-  - name: roleDefinitionName
-    displayName: "Role Definition Name (e.g. Key Vault Secrets User, AcrPull)"
+  - name: roleDefinitionNames
+    displayName: "Role Definition Names — comma-separated (e.g. Key Vault Secrets User, AcrPull)"
     type: string
 
 variables:
@@ -82,12 +82,7 @@ stages:
                 if ($LASTEXITCODE -ne 0) { Write-Error "Failed to list role assignments."; exit 1 }
                 $allAssignments = $assignmentsJson | ConvertFrom-Json
 
-                $filtered = $allAssignments | Where-Object {
-                    $_.scope -eq $resourceId -and
-                    $_.roleDefinitionName -eq "${{ parameters.roleDefinitionName }}"
-                }
-                Write-Host "Found $($filtered.Count) '${{ parameters.roleDefinitionName }}' assignment(s) directly on '${{ parameters.resourceName }}'."
-                if ($filtered.Count -eq 0) { Write-Host "Nothing to process."; exit 0 }
+                $roleNames = "${{ parameters.roleDefinitionNames }}" -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
 
                 Write-Host ""
                 Write-Host "Fetching live managed identity principal IDs from ARM..."
@@ -101,21 +96,29 @@ stages:
                 )
                 Write-Host "Live principal IDs found: $($knownIds.Count) (UAMI=$($uamiIds.Count), SAMI=$($samiIds.Count))"
 
-                Write-Host ""
-                Write-Host "Checking $($filtered.Count) assignment(s)..."
                 $orphaned = [System.Collections.Generic.List[object]]::new()
+                $totalChecked = 0
 
-                foreach ($a in $filtered) {
-                    if ($knownIds.Contains($a.principalId)) {
-                        Write-Host "  [LIVE]     principalId=$($a.principalId)"
-                    } else {
-                        Write-Host "  [ORPHANED] principalId=$($a.principalId)"
-                        $orphaned.Add($a)
+                foreach ($roleName in $roleNames) {
+                    Write-Host ""
+                    Write-Host "=== $roleName ==="
+                    $filtered = $allAssignments | Where-Object {
+                        $_.scope -eq $resourceId -and $_.roleDefinitionName -eq $roleName
+                    }
+                    Write-Host "Found $($filtered.Count) assignment(s) directly on '${{ parameters.resourceName }}'."
+                    foreach ($a in $filtered) {
+                        $totalChecked++
+                        if ($knownIds.Contains($a.principalId)) {
+                            Write-Host "  [LIVE]     principalId=$($a.principalId)"
+                        } else {
+                            Write-Host "  [ORPHANED] principalId=$($a.principalId)"
+                            $orphaned.Add($a)
+                        }
                     }
                 }
 
                 Write-Host ""
-                Write-Host "Summary: Checked=$($filtered.Count)  Orphaned=$($orphaned.Count)"
+                Write-Host "Summary: Checked=$totalChecked  Orphaned=$($orphaned.Count)"
                 Write-Host ""
 
                 if ($orphaned.Count -eq 0) { Write-Host "No orphaned assignments found. Nothing to remove."; exit 0 }
