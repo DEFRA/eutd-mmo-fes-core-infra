@@ -1,0 +1,148 @@
+name: $(BuildID)_Remove_Unknown_Role_Assignments
+
+trigger: none
+pr: none
+
+parameters:
+  - name: environment
+    displayName: "Target Environment"
+    type: string
+    default: snd1
+    values:
+      - snd1
+      - dev1
+      - tst1
+
+  - name: dryRun
+    displayName: "Dry Run (list only, no deletions)"
+    type: boolean
+    default: true
+
+  - name: resourceGroupName
+    displayName: "Resource Group Name"
+    type: string
+
+  - name: resourceName
+    displayName: "Resource Name (the specific Azure resource to clean up)"
+    type: string
+
+variables:
+  - ${{ if eq(parameters.environment, 'snd1') }}:
+    - name: serviceConnection
+      value: AZR-MMO-SND1
+  - ${{ if eq(parameters.environment, 'dev1') }}:
+    - name: serviceConnection
+      value: AZR-MMO-DEV1
+  - ${{ if eq(parameters.environment, 'tst1') }}:
+    - name: serviceConnection
+      value: AZR-MMO-TST1
+
+stages:
+  - stage: Remove_Unknown_Role_Assignments
+    displayName: "Remove Unknown Role Assignments [${{ parameters.environment }}]"
+    pool:
+      name: DEFRA-COMMON-ubuntu2204-SSV3
+    jobs:
+      - job: RemoveUnknownRoleAssignments
+        displayName: "Remove Unknown Role Assignments"
+        steps:
+          - task: AzurePowerShell@5
+            displayName: "Find and Remove Unknown (Orphaned) Role Assignments"
+            inputs:
+              azureSubscription: $(serviceConnection)
+              ScriptType: InlineScript
+              azurePowerShellVersion: LatestVersion
+              FailOnStandardError: true
+              Inline: |
+                $dryRun       = [System.Convert]::ToBoolean("${{ parameters.dryRun }}")
+                $rgName       = "${{ parameters.resourceGroupName }}"
+                $resourceName = "${{ parameters.resourceName }}"
+
+                # ── Resolve the resource and derive its exact scope ───────────────────────
+                Write-Host "Looking up resource '$resourceName' in resource group '$rgName'..."
+                $resource = Get-AzResource -Name $resourceName -ResourceGroupName $rgName -ErrorAction Stop
+
+                if ($null -eq $resource) {
+                    Write-Error "Resource '$resourceName' not found in resource group '$rgName'."
+                    exit 1
+                }
+
+                # Use the resource's own ResourceId as the scope so only assignments
+                # scoped directly to this resource are returned.
+                $scope = $resource.ResourceId
+                Write-Host "Resource type : $($resource.ResourceType)"
+                Write-Host "Resource scope: $scope"
+
+                # ── Retrieve role assignments scoped to this resource ─────────────────────
+                Write-Host ""
+                Write-Host "Retrieving role assignments..."
+                $allAssignments = Get-AzRoleAssignment -Scope $scope -IncludeClassicAdministrators:$false
+                Write-Host "Total role assignments found: $($allAssignments.Count)"
+
+                # ── CRITICAL FILTER: ObjectType -eq 'Unknown' ────────────────────────────
+                # This is the ONLY filter needed to target orphaned assignments.
+                # 'Unknown' means the original security principal (user / service principal /
+                # managed identity / group) has been DELETED from Azure AD, but its role
+                # assignment was never removed.  Active principals always have ObjectType
+                # set to User, ServicePrincipal, Group, or ManagedIdentity — never Unknown.
+                $unknownAssignments = $allAssignments | Where-Object { $_.ObjectType -eq 'Unknown' }
+
+                Write-Host ""
+                Write-Host "Unknown (orphaned) role assignments: $($unknownAssignments.Count)"
+                Write-Host ""
+
+                if ($unknownAssignments.Count -eq 0) {
+                    Write-Host "Nothing to remove — exiting cleanly."
+                    exit 0
+                }
+
+                # ── List every unknown assignment ────────────────────────────────────────
+                Write-Host "--- Orphaned Role Assignments ---"
+                $unknownAssignments | ForEach-Object {
+                    Write-Host "  RoleAssignmentId  : $($_.RoleAssignmentId)"
+                    Write-Host "  RoleDefinitionName: $($_.RoleDefinitionName)"
+                    Write-Host "  ObjectId          : $($_.ObjectId)"
+                    Write-Host "  ObjectType        : $($_.ObjectType)"
+                    Write-Host "  Scope             : $($_.Scope)"
+                    Write-Host "  ---------------------------------"
+                }
+
+                # ── Act ──────────────────────────────────────────────────────────────────
+                if ($dryRun) {
+                    Write-Host ""
+                    Write-Host "[DRY RUN] $($unknownAssignments.Count) assignment(s) listed above would be deleted."
+                    Write-Host "[DRY RUN] Set 'Dry Run' to false and re-run to perform actual deletion."
+                } else {
+                    Write-Host ""
+                    Write-Host "Deleting $($unknownAssignments.Count) unknown role assignment(s)..."
+                    $removed = 0
+                    $failed  = 0
+
+                    foreach ($assignment in $unknownAssignments) {
+                        try {
+                            Write-Host "Removing: $($assignment.RoleDefinitionName) | ObjectId: $($assignment.ObjectId) | Scope: $($assignment.Scope)"
+
+                            # Pass -InputObject so the cmdlet uses the exact role assignment
+                            # record — avoids the 'does not map to a role assignment' error
+                            # that occurs when using Name + Scope parameters for orphaned principals.
+                            Remove-AzRoleAssignment -InputObject $assignment -ErrorAction Stop
+
+                            $removed++
+                            Write-Host "  [OK] Removed."
+                        } catch {
+                            $failed++
+                            Write-Warning "  [FAILED] $($_.Exception.Message)"
+                        }
+                    }
+
+                    Write-Host ""
+                    Write-Host "=== Summary ==="
+                    Write-Host "  Removed : $removed"
+                    Write-Host "  Failed  : $failed"
+                    Write-Host "  Total   : $($unknownAssignments.Count)"
+
+                    if ($failed -gt 0) {
+                        Write-Error "$failed role assignment(s) could not be removed. Review warnings above."
+                        exit 1
+                    }
+                }
