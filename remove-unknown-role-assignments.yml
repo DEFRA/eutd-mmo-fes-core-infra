@@ -51,50 +51,107 @@ stages:
         displayName: "Remove Unknown Role Assignments"
         steps:
           - task: AzureCLI@2
-            displayName: "Find and Remove Unknown (Orphaned) Role Assignments"
+            displayName: "Find and Remove Orphaned Role Assignments"
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: pscore
               scriptLocation: inlineScript
-              failOnStandardError: true
+              failOnStandardError: false
               inlineScript: |
                 $dryRun = [System.Convert]::ToBoolean("${{ parameters.dryRun }}")
 
                 az account set --subscription "$(serviceConnection)"
 
-                $resourceId = (az resource list --name "${{ parameters.resourceName }}" --resource-group "${{ parameters.resourceGroupName }}" --query "[0].id" --output tsv).Trim()
-                if ([string]::IsNullOrWhiteSpace($resourceId)) {
-                    Write-Error "Resource '${{ parameters.resourceName }}' not found in resource group '${{ parameters.resourceGroupName }}'."
+                Write-Host "Looking up resource '${{ parameters.resourceName }}' in '${{ parameters.resourceGroupName }}'..."
+                $resourceId = (az resource list `
+                    --name "${{ parameters.resourceName }}" `
+                    --resource-group "${{ parameters.resourceGroupName }}" `
+                    --query "[0].id" --output tsv).Trim()
+                if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($resourceId)) {
+                    Write-Error "Resource '${{ parameters.resourceName }}' not found in '${{ parameters.resourceGroupName }}'."
                     exit 1
                 }
-                Write-Host "Resource ID: $resourceId"
+                Write-Host "Resource ID : $resourceId"
 
-                $allAssignments = az role assignment list --scope $resourceId --include-inherited --output json | ConvertFrom-Json
+                Write-Host "Listing role assignments..."
+                $assignmentsJson = az role assignment list `
+                    --scope $resourceId `
+                    --include-inherited `
+                    --fill-principal-name false `
+                    --output json
+                if ($LASTEXITCODE -ne 0) { Write-Error "Failed to list role assignments."; exit 1 }
+                $allAssignments = $assignmentsJson | ConvertFrom-Json
 
                 $filtered = $allAssignments | Where-Object {
-                    $_.scope -eq $resourceId -and $_.roleDefinitionName -eq "${{ parameters.roleDefinitionName }}"
+                    $_.scope -eq $resourceId -and
+                    $_.roleDefinitionName -eq "${{ parameters.roleDefinitionName }}"
                 }
-                Write-Host "Found $($filtered.Count) '${{ parameters.roleDefinitionName }}' assignment(s) directly on resource."
+                Write-Host "Found $($filtered.Count) '${{ parameters.roleDefinitionName }}' assignment(s) directly on '${{ parameters.resourceName }}'."
+                if ($filtered.Count -eq 0) { Write-Host "Nothing to process."; exit 0 }
 
-                $orphaned = $filtered | Where-Object {
-                    az ad sp show --id $_.principalId --output none 2>$null
-                    $LASTEXITCODE -ne 0
+                function Resolve-PrincipalStatus {
+                    param([string]$Id)
+                    $tmpErr = [System.IO.Path]::GetTempFileName()
+                    try {
+                        az ad sp show --id $Id --output none 2>$tmpErr
+                        $code = $LASTEXITCODE
+                        $msg  = (Get-Content $tmpErr -Raw -ErrorAction SilentlyContinue) -as [string]
+                        if ($code -eq 0)                                                                 { return 'exists' }
+                        if ($msg -match 'does not exist|ResourceNotFound|Request_ResourceNotFound')      { return 'deleted' }
+                        if ($msg -match 'Insufficient privileges|Authorization_RequestDenied|Forbidden') { return 'no-permission' }
+                        Write-Host "    [WARN] Unexpected response (exit=$code): $msg"
+                        return 'error'
+                    }
+                    finally { Remove-Item $tmpErr -Force -ErrorAction SilentlyContinue }
                 }
-                Write-Host "Orphaned (principal deleted from Azure AD): $($orphaned.Count)"
-                $orphaned | ForEach-Object { Write-Host "  - $($_.principalId) | $($_.roleDefinitionName) | $($_.id)" }
 
-                if ($orphaned.Count -eq 0) { Write-Host "Nothing to remove."; exit 0 }
+                Write-Host ""
+                Write-Host "Checking $($filtered.Count) assignment(s) against Azure AD..."
+                $orphaned  = [System.Collections.Generic.List[object]]::new()
+                $cantCheck = 0
+
+                foreach ($a in $filtered) {
+                    $status = Resolve-PrincipalStatus -Id $a.principalId
+                    $label  = switch ($status) {
+                        'exists'        { '[LIVE]        ' }
+                        'deleted'       { '[ORPHANED]    ' }
+                        'no-permission' { '[UNVERIFIABLE]' }
+                        default         { '[ERROR]       ' }
+                    }
+                    Write-Host "  $label principalId=$($a.principalId)"
+                    if ($status -eq 'deleted')                   { $orphaned.Add($a) }
+                    if ($status -in @('no-permission', 'error')) { $cantCheck++ }
+                }
+
+                Write-Host ""
+                Write-Host "Summary: Checked=$($filtered.Count)  Orphaned=$($orphaned.Count)  Unverifiable=$cantCheck"
+                if ($cantCheck -gt 0) {
+                    Write-Host "NOTE: $cantCheck assignment(s) could not be verified — service principal needs 'Directory.Read.All' on Microsoft Graph."
+                }
+                Write-Host ""
+
+                if ($orphaned.Count -eq 0) { Write-Host "No confirmed orphaned assignments. Nothing to remove."; exit 0 }
+
+                Write-Host "Orphaned assignments:"
+                foreach ($a in $orphaned) {
+                    Write-Host "  Role=$($a.roleDefinitionName)  PrincipalId=$($a.principalId)  Id=$($a.id)"
+                }
+                Write-Host ""
 
                 if ($dryRun) {
-                    Write-Host "[DRY RUN] $($orphaned.Count) assignment(s) would be deleted. Set Dry Run to false to proceed."
+                    Write-Host "[DRY RUN] $($orphaned.Count) assignment(s) would be deleted. Set 'Dry Run' to false to execute."
                     exit 0
                 }
 
-                $orphaned | ForEach-Object {
-                    Write-Host "Removing: $($_.roleDefinitionName) | PrincipalId: $($_.principalId)"
-                    az role assignment delete --ids $_.id --output none
-                    if ($LASTEXITCODE -ne 0) { throw "Failed to delete assignment: $($_.id)" }
-                    Write-Host "  [OK] Removed."
+                Write-Host "Deleting $($orphaned.Count) orphaned assignment(s)..."
+                $removed = 0; $failed = 0
+                foreach ($a in $orphaned) {
+                    Write-Host "  Removing $($a.roleDefinitionName) for principalId=$($a.principalId)..."
+                    az role assignment delete --ids $a.id --output none
+                    if ($LASTEXITCODE -ne 0) { Write-Warning "  [FAILED] $($a.id)"; $failed++ }
+                    else                     { Write-Host "  [OK] Removed."; $removed++ }
                 }
-                Write-Host "Done. Removed $($orphaned.Count) assignment(s)."
+                Write-Host ""
+                Write-Host "Done. Removed=$removed  Failed=$failed"
+                if ($failed -gt 0) { exit 1 }
 
