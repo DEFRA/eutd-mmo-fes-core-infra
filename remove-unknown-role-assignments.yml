@@ -74,12 +74,14 @@ stages:
                 $filtered = $allAssignments | Where-Object {
                     $_.scope -eq $resourceId -and $_.roleDefinitionName -eq "${{ parameters.roleDefinitionName }}"
                 }
+                Write-Host "Found $($filtered.Count) '${{ parameters.roleDefinitionName }}' assignment(s) directly on resource."
 
-                Write-Host "Found $($filtered.Count) '${{ parameters.roleDefinitionName }}' assignment(s) directly on resource — full details:"
-                $filtered | ForEach-Object { Write-Host ($_ | ConvertTo-Json) }
-
-                $orphaned = $filtered | Where-Object { [string]::IsNullOrEmpty($_.principalName) }
-                Write-Host "Orphaned (principalName empty): $($orphaned.Count)"
+                $orphaned = $filtered | Where-Object {
+                    az ad sp show --id $_.principalId --output none 2>$null
+                    $LASTEXITCODE -ne 0
+                }
+                Write-Host "Orphaned (principal deleted from Azure AD): $($orphaned.Count)"
+                $orphaned | ForEach-Object { Write-Host "  - $($_.principalId) | $($_.roleDefinitionName) | $($_.id)" }
 
                 if ($orphaned.Count -eq 0) { Write-Host "Nothing to remove."; exit 0 }
 
