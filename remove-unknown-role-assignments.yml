@@ -89,48 +89,36 @@ stages:
                 Write-Host "Found $($filtered.Count) '${{ parameters.roleDefinitionName }}' assignment(s) directly on '${{ parameters.resourceName }}'."
                 if ($filtered.Count -eq 0) { Write-Host "Nothing to process."; exit 0 }
 
-                function Resolve-PrincipalStatus {
-                    param([string]$Id)
-                    $tmpErr = [System.IO.Path]::GetTempFileName()
-                    try {
-                        az ad sp show --id $Id --output none 2>$tmpErr
-                        $code = $LASTEXITCODE
-                        $msg  = (Get-Content $tmpErr -Raw -ErrorAction SilentlyContinue) -as [string]
-                        if ($code -eq 0)                                                                 { return 'exists' }
-                        if ($msg -match 'does not exist|ResourceNotFound|Request_ResourceNotFound')      { return 'deleted' }
-                        if ($msg -match 'Insufficient privileges|Authorization_RequestDenied|Forbidden') { return 'no-permission' }
-                        Write-Host "    [WARN] Unexpected response (exit=$code): $msg"
-                        return 'error'
-                    }
-                    finally { Remove-Item $tmpErr -Force -ErrorAction SilentlyContinue }
-                }
+                Write-Host ""
+                Write-Host "Fetching live managed identity principal IDs from ARM..."
+                $uamiIds = @(az identity list `
+                    --query "[].principalId" --output tsv 2>$null | Where-Object { $_ })
+                $samiIds = @(az resource list `
+                    --query "[?identity.principalId!=null].identity.principalId" --output tsv 2>$null | Where-Object { $_ })
+                $knownIds = [System.Collections.Generic.HashSet[string]]::new(
+                    [string[]]($uamiIds + $samiIds),
+                    [System.StringComparer]::OrdinalIgnoreCase
+                )
+                Write-Host "Live principal IDs found: $($knownIds.Count) (UAMI=$($uamiIds.Count), SAMI=$($samiIds.Count))"
 
                 Write-Host ""
-                Write-Host "Checking $($filtered.Count) assignment(s) against Azure AD..."
-                $orphaned  = [System.Collections.Generic.List[object]]::new()
-                $cantCheck = 0
+                Write-Host "Checking $($filtered.Count) assignment(s)..."
+                $orphaned = [System.Collections.Generic.List[object]]::new()
 
                 foreach ($a in $filtered) {
-                    $status = Resolve-PrincipalStatus -Id $a.principalId
-                    $label  = switch ($status) {
-                        'exists'        { '[LIVE]        ' }
-                        'deleted'       { '[ORPHANED]    ' }
-                        'no-permission' { '[UNVERIFIABLE]' }
-                        default         { '[ERROR]       ' }
+                    if ($knownIds.Contains($a.principalId)) {
+                        Write-Host "  [LIVE]     principalId=$($a.principalId)"
+                    } else {
+                        Write-Host "  [ORPHANED] principalId=$($a.principalId)"
+                        $orphaned.Add($a)
                     }
-                    Write-Host "  $label principalId=$($a.principalId)"
-                    if ($status -eq 'deleted')                   { $orphaned.Add($a) }
-                    if ($status -in @('no-permission', 'error')) { $cantCheck++ }
                 }
 
                 Write-Host ""
-                Write-Host "Summary: Checked=$($filtered.Count)  Orphaned=$($orphaned.Count)  Unverifiable=$cantCheck"
-                if ($cantCheck -gt 0) {
-                    Write-Host "NOTE: $cantCheck assignment(s) could not be verified — service principal needs 'Directory.Read.All' on Microsoft Graph."
-                }
+                Write-Host "Summary: Checked=$($filtered.Count)  Orphaned=$($orphaned.Count)"
                 Write-Host ""
 
-                if ($orphaned.Count -eq 0) { Write-Host "No confirmed orphaned assignments. Nothing to remove."; exit 0 }
+                if ($orphaned.Count -eq 0) { Write-Host "No orphaned assignments found. Nothing to remove."; exit 0 }
 
                 Write-Host "Orphaned assignments:"
                 foreach ($a in $orphaned) {
