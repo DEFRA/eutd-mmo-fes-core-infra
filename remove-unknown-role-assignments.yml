@@ -69,6 +69,11 @@ stages:
                 $resourceName       = "${{ parameters.resourceName }}"
                 $roleDefinitionName = "${{ parameters.roleDefinitionName }}"
 
+                # ── Select subscription ───────────────────────────────────────────────────
+                Write-Host "Setting active subscription: $(serviceConnection)"
+                az account set --subscription "$(serviceConnection)"
+                Write-Host ""
+
                 # ── Resolve exact resource scope ──────────────────────────────────────────
                 Write-Host "Looking up resource '$resourceName' in resource group '$rgName'..."
                 $resourceId = (az resource show `
