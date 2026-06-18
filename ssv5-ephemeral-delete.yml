@@ -5,7 +5,7 @@ trigger: none
 pr: none
 
 schedules:
-  - cron: "0 19 * * 1-5"
+  - cron: "56 10 * * 1-5"
     displayName: Daily Delete at 7:00 PM UTC
     branches:
       include:
@@ -27,7 +27,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: refs/heads/main
+      ref: feature/user-mi
 
 extends:
   template: /includes/infra-deploy.yaml@MMOPipelineCommon
@@ -35,32 +35,33 @@ extends:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: false
     environments:
-      - name: "ssv_snd"
-        developmentEnvironment: true
-        azureRegions:
-          primary: UKSouth
-        serviceConnection: AZR-MMO-SSV5
-        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
-        deploymentBranches:
-          - "*"
+      # - name: "ssv_snd"
+      #   developmentEnvironment: true
+      #   azureRegions:
+      #     primary: UKSouth
+      #   serviceConnection: AZR-MMO-SSV5
+      #   privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+      #   deploymentBranches:
+      #     - "*"
       - name: "ssv_dev"
         azureRegions:
           primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
         serviceConnection: AZR-MMO-SSV5
         privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
-        developmentEnvironment: ${{ parameters.deployToSecondaryRegion }}
+        # developmentEnvironment: ${{ parameters.deployToSecondaryRegion }}
+        developmentEnvironment: true
         dependsOn: "Validate"
         deploymentBranches:
           - "*"
-      - name: "ssv_tst"
-        enableTemplateValidationBeforeDeployment: true
-        azureRegions:
-          primary: UKSouth
-        serviceConnection: AZR-MMO-SSV5
-        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
-        dependsOn: "ssv_snd"
-        deploymentBranches:
-          - "refs/heads/main"
+      # - name: "ssv_tst"
+      #   enableTemplateValidationBeforeDeployment: true
+      #   azureRegions:
+      #     primary: UKSouth
+      #   serviceConnection: AZR-MMO-SSV5
+      #   privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+      #   dependsOn: "ssv_snd"
+      #   deploymentBranches:
+      #     - "refs/heads/main"
     additionalRepositories: 
       - MMOPipelineCommon
     groupedDeployments:
