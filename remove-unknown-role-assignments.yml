@@ -101,26 +101,16 @@ stages:
                     --include-inherited `
                     --output           json | ConvertFrom-Json
 
-                Write-Host "Total role assignments found (including inherited): $($allAssignments.Count)"
-
-                # ── FILTER 1: scope -eq $resourceId ──────────────────────────────────────
-                # Each role assignment carries the scope at which it was CREATED.
-                # Assignments propagated from subscription or resource-group level have a
-                # parent path as their scope — not this resource's ResourceId.
-                # Matching exactly removes all inherited assignments from consideration.
-                #
-                # ── FILTER 2: roleDefinitionName -eq $roleDefinitionName ─────────────────
-                # Target only the specified role, leaving other roles (including other
-                # Unknown ones) completely untouched.
-                #
-                # ── FILTER 3: empty principalName ─────────────────────────────────────────
-                # Unlike Az PowerShell, the CLI returns raw RBAC data without Graph lookups.
-                # When a security principal (user / SP / managed identity / group) is deleted
-                # from Azure AD, Azure RBAC has no name to return — principalName is empty.
-                # Valid, live principals always have a non-empty principalName.
-                $orphaned = $allAssignments | Where-Object {
+                $filtered = $allAssignments | Where-Object {
                     $_.scope              -eq $resourceId         -and
-                    $_.roleDefinitionName -eq $roleDefinitionName -and
+                    $_.roleDefinitionName -eq $roleDefinitionName
+                }
+
+                Write-Host ""
+                Write-Host "Total role assignments found for '$roleDefinitionName' on '$resourceName': $($filtered.Count)"
+                Write-Host ""
+
+                $orphaned = $filtered | Where-Object {
                     [string]::IsNullOrEmpty($_.principalName)
                 }
 
