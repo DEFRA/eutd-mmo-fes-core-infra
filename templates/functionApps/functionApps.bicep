@@ -196,7 +196,10 @@ module functionapp 'br/avm:web/site:0.23.1' = {
               linuxFxVersion: reduce(
                 appVersionsArray,
                 'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest',
-                (cur, next) => (toUpper(next.Name) == toUpper(funcAppName) && next.Slot == true) ? next.LinuxFxVersion : cur
+                (cur, next) =>
+                  (toUpper(next.Name) == toUpper(funcAppName) && next.Slot == true)
+                    ? next.LinuxFxVersion
+                    : cur
               )
               acrUserManagedIdentityID: userAssignedIdentity.outputs.clientId
             })
@@ -264,13 +267,19 @@ module functionapp 'br/avm:web/site:0.23.1' = {
         userAssignedIdentity.outputs.resourceId
       ]
     }
+    basicPublishingCredentialsPolicies: [
+      { name: 'scm', allow: true }
+    ]
     keyVaultAccessIdentityResourceId: userAssignedIdentity.outputs.resourceId
     httpsOnly: true
     siteConfig: union(siteConfig, {
       linuxFxVersion: reduce(
         appVersionsArray,
         'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest',
-        (cur, next) => (toUpper(next.Name) == toUpper(funcAppName) && next.Slot != true) ? next.LinuxFxVersion : cur
+        (cur, next) =>
+          (toUpper(next.Name) == toUpper(funcAppName) && next.Slot != true)
+            ? next.LinuxFxVersion
+            : cur
       )
       acrUserManagedIdentityID: userAssignedIdentity.outputs.clientId
     })

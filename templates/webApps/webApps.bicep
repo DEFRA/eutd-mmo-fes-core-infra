@@ -226,6 +226,9 @@ module webApp 'br/avm:web/site:0.23.1' = [
         ]
       }
       keyVaultAccessIdentityResourceId: userAssignedIdentity[i].outputs.resourceId
+      basicPublishingCredentialsPolicies: [
+        { name: 'scm', allow: true }
+      ]
       virtualNetworkSubnetResourceId: resourceId(
         vnetResourceGroupName,
         'Microsoft.Network/virtualNetworks/subnets',

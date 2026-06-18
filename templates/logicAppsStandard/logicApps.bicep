@@ -159,7 +159,14 @@ module logicApp 'br/avm:web/site:0.23.1' = [
         minTlsVersion: '1.3'
         scmMinTlsVersion: '1.3'
         minTlsCipherSuite: 'TLS_AES_256_GCM_SHA384'
+        alwaysOn: true
+        httpLoggingEnabled: true
+        logsDirectorySizeLimit: 35
+        http20Enabled: true
       }
+      basicPublishingCredentialsPolicies: [
+        { name: 'scm', allow: true }
+      ]
       storageAccountRequired: false
       virtualNetworkSubnetResourceId: vnet::subnet.id
       outboundVnetRouting: {
