@@ -26,6 +26,10 @@ parameters:
     displayName: "Resource Name (the specific Azure resource to clean up)"
     type: string
 
+  - name: roleDefinitionName
+    displayName: "Role Definition Name (e.g. Key Vault Secrets User, AcrPull, Storage Blob Data Contributor)"
+    type: string
+
 variables:
   - ${{ if eq(parameters.environment, 'snd1') }}:
     - name: serviceConnection
@@ -46,86 +50,118 @@ stages:
       - job: RemoveUnknownRoleAssignments
         displayName: "Remove Unknown Role Assignments"
         steps:
-          - task: AzurePowerShell@5
-            displayName: "Find and Remove Unknown (Orphaned) Role Assignments"
+          # ── Azure CLI step ────────────────────────────────────────────────────────────
+          # az role assignment list returns raw RBAC data from Azure without resolving
+          # principals via Graph.  Orphaned (deleted) principals have an empty principalName;
+          # valid ones (users, SPs, managed identities, groups) always have a non-empty
+          # principalName — regardless of the service principal's Graph permissions.
+          - task: AzureCLI@2
+            displayName: "Find and Remove Unknown (Orphaned) Role Assignments via Azure CLI"
             inputs:
               azureSubscription: $(serviceConnection)
-              ScriptType: InlineScript
-              azurePowerShellVersion: LatestVersion
-              FailOnStandardError: true
-              Inline: |
-                $dryRun       = [System.Convert]::ToBoolean("${{ parameters.dryRun }}")
-                $rgName       = "${{ parameters.resourceGroupName }}"
-                $resourceName = "${{ parameters.resourceName }}"
+              scriptType: pscore
+              scriptLocation: inlineScript
+              failOnStandardError: true
+              addSpnToEnvironment: false
+              inlineScript: |
+                $dryRun             = [System.Convert]::ToBoolean("${{ parameters.dryRun }}")
+                $rgName             = "${{ parameters.resourceGroupName }}"
+                $resourceName       = "${{ parameters.resourceName }}"
+                $roleDefinitionName = "${{ parameters.roleDefinitionName }}"
 
-                # ── Resolve the resource and derive its exact scope ───────────────────────
+                # ── Resolve exact resource scope ──────────────────────────────────────────
                 Write-Host "Looking up resource '$resourceName' in resource group '$rgName'..."
-                $resource = Get-AzResource -Name $resourceName -ResourceGroupName $rgName -ErrorAction Stop
+                $resourceId = (az resource show `
+                    --name           $resourceName `
+                    --resource-group $rgName `
+                    --query          id `
+                    --output         tsv 2>&1)
 
-                if ($null -eq $resource) {
+                if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($resourceId)) {
                     Write-Error "Resource '$resourceName' not found in resource group '$rgName'."
                     exit 1
                 }
 
-                # Use the resource's own ResourceId as the scope so only assignments
-                # scoped directly to this resource are returned.
-                $scope = $resource.ResourceId
-                Write-Host "Resource type : $($resource.ResourceType)"
-                Write-Host "Resource scope: $scope"
+                $resourceId = $resourceId.Trim()
+                Write-Host "Resource scope : $resourceId"
 
-                # ── Retrieve role assignments scoped to this resource ─────────────────────
+                # ── Retrieve all role assignments visible at this scope ────────────────────
+                # --include-inherited ensures we capture everything (including inherited
+                # assignments from parent scopes), so the scope filter below can strip them
+                # out precisely rather than relying on CLI default behaviour.
                 Write-Host ""
                 Write-Host "Retrieving role assignments..."
-                $allAssignments = Get-AzRoleAssignment -Scope $scope -IncludeClassicAdministrators:$false
-                Write-Host "Total role assignments found: $($allAssignments.Count)"
+                $allAssignments = az role assignment list `
+                    --scope            $resourceId `
+                    --include-inherited `
+                    --output           json | ConvertFrom-Json
 
-                # ── CRITICAL FILTER: ObjectType -eq 'Unknown' ────────────────────────────
-                # This is the ONLY filter needed to target orphaned assignments.
-                # 'Unknown' means the original security principal (user / service principal /
-                # managed identity / group) has been DELETED from Azure AD, but its role
-                # assignment was never removed.  Active principals always have ObjectType
-                # set to User, ServicePrincipal, Group, or ManagedIdentity — never Unknown.
-                $unknownAssignments = $allAssignments | Where-Object { $_.ObjectType -eq 'Unknown' }
+                Write-Host "Total role assignments found (including inherited): $($allAssignments.Count)"
+
+                # ── FILTER 1: scope -eq $resourceId ──────────────────────────────────────
+                # Each role assignment carries the scope at which it was CREATED.
+                # Assignments propagated from subscription or resource-group level have a
+                # parent path as their scope — not this resource's ResourceId.
+                # Matching exactly removes all inherited assignments from consideration.
+                #
+                # ── FILTER 2: roleDefinitionName -eq $roleDefinitionName ─────────────────
+                # Target only the specified role, leaving other roles (including other
+                # Unknown ones) completely untouched.
+                #
+                # ── FILTER 3: empty principalName ─────────────────────────────────────────
+                # Unlike Az PowerShell, the CLI returns raw RBAC data without Graph lookups.
+                # When a security principal (user / SP / managed identity / group) is deleted
+                # from Azure AD, Azure RBAC has no name to return — principalName is empty.
+                # Valid, live principals always have a non-empty principalName.
+                $orphaned = $allAssignments | Where-Object {
+                    $_.scope              -eq $resourceId         -and
+                    $_.roleDefinitionName -eq $roleDefinitionName -and
+                    [string]::IsNullOrEmpty($_.principalName)
+                }
 
                 Write-Host ""
-                Write-Host "Unknown (orphaned) role assignments: $($unknownAssignments.Count)"
+                Write-Host "Orphaned '$roleDefinitionName' assignments directly on resource: $($orphaned.Count)"
                 Write-Host ""
 
-                if ($unknownAssignments.Count -eq 0) {
+                if ($orphaned.Count -eq 0) {
                     Write-Host "Nothing to remove — exiting cleanly."
                     exit 0
                 }
 
-                # ── List every unknown assignment ────────────────────────────────────────
+                # ── List every matching assignment ────────────────────────────────────────
                 Write-Host "--- Orphaned Role Assignments ---"
-                $unknownAssignments | ForEach-Object {
-                    Write-Host "  RoleAssignmentId  : $($_.RoleAssignmentId)"
-                    Write-Host "  RoleDefinitionName: $($_.RoleDefinitionName)"
-                    Write-Host "  ObjectId          : $($_.ObjectId)"
-                    Write-Host "  ObjectType        : $($_.ObjectType)"
-                    Write-Host "  Scope             : $($_.Scope)"
+                $orphaned | ForEach-Object {
+                    Write-Host "  Id                : $($_.id)"
+                    Write-Host "  RoleDefinitionName: $($_.roleDefinitionName)"
+                    Write-Host "  PrincipalId       : $($_.principalId)"
+                    Write-Host "  PrincipalName     : '$($_.principalName)'"
+                    Write-Host "  Scope             : $($_.scope)"
                     Write-Host "  ---------------------------------"
                 }
 
                 # ── Act ──────────────────────────────────────────────────────────────────
                 if ($dryRun) {
                     Write-Host ""
-                    Write-Host "[DRY RUN] $($unknownAssignments.Count) assignment(s) listed above would be deleted."
+                    Write-Host "[DRY RUN] $($orphaned.Count) assignment(s) listed above would be deleted."
                     Write-Host "[DRY RUN] Set 'Dry Run' to false and re-run to perform actual deletion."
                 } else {
                     Write-Host ""
-                    Write-Host "Deleting $($unknownAssignments.Count) unknown role assignment(s)..."
+                    Write-Host "Deleting $($orphaned.Count) orphaned role assignment(s)..."
                     $removed = 0
                     $failed  = 0
 
-                    foreach ($assignment in $unknownAssignments) {
+                    foreach ($assignment in $orphaned) {
                         try {
-                            Write-Host "Removing: $($assignment.RoleDefinitionName) | ObjectId: $($assignment.ObjectId) | Scope: $($assignment.Scope)"
+                            Write-Host "Removing: $($assignment.roleDefinitionName) | PrincipalId: $($assignment.principalId) | Scope: $($assignment.scope)"
 
-                            # Pass -InputObject so the cmdlet uses the exact role assignment
-                            # record — avoids the 'does not map to a role assignment' error
-                            # that occurs when using Name + Scope parameters for orphaned principals.
-                            Remove-AzRoleAssignment -InputObject $assignment -ErrorAction Stop
+                            # --ids accepts the full ARM resource ID of the role assignment.
+                            # This is the most precise delete method — no ambiguity, no
+                            # accidental matches against other assignments.
+                            az role assignment delete --ids $assignment.id --output none
+
+                            if ($LASTEXITCODE -ne 0) {
+                                throw "az role assignment delete exited with code $LASTEXITCODE"
+                            }
 
                             $removed++
                             Write-Host "  [OK] Removed."
@@ -139,7 +175,7 @@ stages:
                     Write-Host "=== Summary ==="
                     Write-Host "  Removed : $removed"
                     Write-Host "  Failed  : $failed"
-                    Write-Host "  Total   : $($unknownAssignments.Count)"
+                    Write-Host "  Total   : $($orphaned.Count)"
 
                     if ($failed -gt 0) {
                         Write-Error "$failed role assignment(s) could not be removed. Review warnings above."
