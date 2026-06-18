@@ -6,6 +6,7 @@ pr:
   branches:
     include:
       - "main"
+      - "feature/user-mi"
   paths:
     exclude:
       - "**/network/ssv5/**"
@@ -14,7 +15,7 @@ pr:
       - ".github/**"
 
 schedules:
-  - cron: "18 14 * * 1-5"
+  - cron: "23 14 * * 1-5"
     displayName: Daily Deploy at 6:00 AM UTC
     branches:
       include:
