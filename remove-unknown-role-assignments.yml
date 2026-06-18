@@ -62,13 +62,16 @@ stages:
 
                 az account set --subscription "$(serviceConnection)"
 
-                Write-Host "Looking up resource '${{ parameters.resourceName }}' in '${{ parameters.resourceGroupName }}'..."
-                $resourceId = (az resource list `
-                    --name "${{ parameters.resourceName }}" `
-                    --resource-group "${{ parameters.resourceGroupName }}" `
-                    --query "[0].id" --output tsv).Trim()
+                $resourceName      = "${{ parameters.resourceName }}".Trim()
+                $resourceGroupName = "${{ parameters.resourceGroupName }}".Trim()
+
+                Write-Host "Looking up resource '$resourceName' in '$resourceGroupName'..."
+                $resourceId = ([string](az resource list `
+                    --name $resourceName `
+                    --resource-group $resourceGroupName `
+                    --query "[0].id" --output tsv)).Trim()
                 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($resourceId)) {
-                    Write-Error "Resource '${{ parameters.resourceName }}' not found in '${{ parameters.resourceGroupName }}'."
+                    Write-Error "Resource '$resourceName' not found in '$resourceGroupName'."
                     exit 1
                 }
                 Write-Host "Resource ID : $resourceId"
@@ -105,7 +108,7 @@ stages:
                     $filtered = $allAssignments | Where-Object {
                         $_.scope -eq $resourceId -and $_.roleDefinitionName -eq $roleName
                     }
-                    Write-Host "Found $($filtered.Count) assignment(s) directly on '${{ parameters.resourceName }}'."
+                    Write-Host "Found $($filtered.Count) assignment(s) directly on '$resourceName'."
                     foreach ($a in $filtered) {
                         $totalChecked++
                         if ($knownIds.Contains($a.principalId)) {
