@@ -76,13 +76,13 @@ stages:
 
                 # ── Resolve exact resource scope ──────────────────────────────────────────
                 Write-Host "Looking up resource '$resourceName' in resource group '$rgName'..."
-                $resourceId = (az resource show `
+                $resourceId = az resource list `
                     --name           $resourceName `
                     --resource-group $rgName `
-                    --query          id `
-                    --output         tsv 2>&1)
+                    --query          "[0].id" `
+                    --output         tsv
 
-                if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($resourceId)) {
+                if ([string]::IsNullOrWhiteSpace($resourceId)) {
                     Write-Error "Resource '$resourceName' not found in resource group '$rgName'."
                     exit 1
                 }
