@@ -5,11 +5,12 @@ trigger: none
 pr: none
 
 schedules:
-  - cron: "30 6 * * 1-5"
+  - cron: "10 15 * * 1-5"
     displayName: Daily Deploy at 6:30 AM UTC
     branches:
       include:
         - main
+        - feature/user-mi
     always: true
 
 parameters:
@@ -24,7 +25,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: refs/heads/main
+      ref: feature/user-mi
 
 extends:
   template: /includes/infra-deploy.yaml@MMOPipelineCommon
