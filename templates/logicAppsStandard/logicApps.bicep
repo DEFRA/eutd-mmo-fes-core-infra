@@ -119,6 +119,7 @@ module logicApp 'br/avm:web/site:0.23.1' = [
             )
             RESOURCEGROUP_LOCATION: resourceGroup().location
             RESOURCEGROUP_NAME: resourceGroup().name
+            MANAGED_IDENTITY_RESOURCE_ID: userAssignedIdentity[i].outputs.resourceId
           }
         }
       ]
