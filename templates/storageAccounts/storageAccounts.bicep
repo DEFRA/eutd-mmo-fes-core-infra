@@ -25,6 +25,10 @@ param ukWestDnsStorageQueueZoneId string
 param subnets array
 param cefasSubnets string
 param firewallIps string
+param keyVaultName string
+param keyVaultResourceGroupName string
+param exportCertStorageName string
+param refDataStorageName string
 
 var storageSuffix = az.environment().suffixes.storage
 var strAccArray = json(storageAccounts)
@@ -231,3 +235,19 @@ module storageAccount 'br/avm:storage/storage-account:0.27.1' = [
     }
   }
 ]
+
+var storageAccountNames = map(strAccArray, strAcc => toLower(strAcc.Name))
+var exportCertStorageIndex = indexOf(storageAccountNames, toLower(exportCertStorageName))
+var refDataStorageIndex = indexOf(storageAccountNames, toLower(refDataStorageName))
+
+module storageAccountSecrets '.bicep/storageAccountSecrets.bicep' = {
+  name: 'storageAccount-secrets-${deploymentDate}'
+  scope: resourceGroup(keyVaultResourceGroupName)
+  params: {
+    keyVaultName: keyVaultName
+    exportCertSecretName: 'EXPORTCERT-STORAGE-CONNECTION-STRING'
+    refDataSecretName: 'REFDATA-STORAGE-CONNECTION-STRING'
+    exportCertConnectionString: storageAccount[exportCertStorageIndex].outputs.primaryConnectionString
+    refDataConnectionString: storageAccount[refDataStorageIndex].outputs.primaryConnectionString
+  }
+}
