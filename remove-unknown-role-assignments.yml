@@ -12,9 +12,7 @@ parameters:
       - snd1
       - dev1
       - tst1
-      - ssv_snd
-      - ssv_dev
-      - ssv_tst
+      - ssv
 
   - name: dryRun
     displayName: "Dry Run (list only, no deletions)"
@@ -33,6 +31,10 @@ parameters:
     displayName: "Role Definition Names — comma-separated (e.g. Key Vault Secrets User, AcrPull)"
     type: string
 
+  - name: orphanedPrincipalIds
+    displayName: "Orphaned Principal IDs — comma-separated list of principal IDs to remove"
+    type: string
+
 variables:
   - ${{ if eq(parameters.environment, 'snd1') }}:
     - name: serviceConnection
@@ -43,21 +45,10 @@ variables:
   - ${{ if eq(parameters.environment, 'tst1') }}:
     - name: serviceConnection
       value: AZR-MMO-TST1
-  - ${{ if eq(parameters.environment, 'ssv_snd') }}:
+  - ${{ if eq(parameters.environment, 'ssv') }}:
     - name: serviceConnection
       value: AZR-MMO-SSV5
-    - name: appServiceConnection
-      value: AZR-MMO-SND1
-  - ${{ if eq(parameters.environment, 'ssv_dev') }}:
-    - name: serviceConnection
-      value: AZR-MMO-SSV5
-    - name: appServiceConnection
-      value: AZR-MMO-DEV1
-  - ${{ if eq(parameters.environment, 'ssv_tst') }}:
-    - name: serviceConnection
-      value: AZR-MMO-SSV5
-    - name: appServiceConnection
-      value: AZR-MMO-TST1
+
 stages:
   - stage: Remove_Unknown_Role_Assignments
     displayName: "Remove Unknown Role Assignments [${{ parameters.environment }}]"
@@ -83,6 +74,11 @@ stages:
                 $resourceName      = "${{ parameters.resourceName }}".Trim()
                 $resourceGroupName = "${{ parameters.resourceGroupName }}".Trim()
 
+                if ($isSSV -and $resourceName -notlike '*CR5401') {
+                    Write-Error "SSV environments only support resources ending with 'CR5401'. Got: '$resourceName'"
+                    exit 1
+                }
+
                 Write-Host "Looking up resource '$resourceName' in '$resourceGroupName'..."
                 $resourceId = ([string](az resource list `
                     --name $resourceName `
@@ -103,69 +99,37 @@ stages:
                 if ($LASTEXITCODE -ne 0) { Write-Error "Failed to list role assignments."; exit 1 }
                 $allAssignments = $assignmentsJson | ConvertFrom-Json
 
-                $roleNames = "${{ parameters.roleDefinitionNames }}" -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
-
-                Write-Host ""
-                if ($isSSV) {
-                    Write-Host "Switching to app subscription for managed identity lookup..."
-                    az account set --subscription "$(appServiceConnection)"
-                }
-                Write-Host "Fetching live managed identity principal IDs from ARM..."
-                $uamiIds = @(az identity list `
-                    --query "[].principalId" --output tsv 2>$null | Where-Object { $_ })
-                $samiIds = @(az resource list `
-                    --query "[?identity.principalId!=null].identity.principalId" --output tsv 2>$null | Where-Object { $_ })
-                $knownIds = [System.Collections.Generic.HashSet[string]]::new(
-                    [string[]]($uamiIds + $samiIds),
+                $roleNames   = "${{ parameters.roleDefinitionNames }}" -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+                $orphanedIds = [System.Collections.Generic.HashSet[string]]::new(
+                    [string[]]("${{ parameters.orphanedPrincipalIds }}" -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }),
                     [System.StringComparer]::OrdinalIgnoreCase
                 )
-                Write-Host "Live principal IDs found: $($knownIds.Count) (UAMI=$($uamiIds.Count), SAMI=$($samiIds.Count))"
 
-                $orphaned = [System.Collections.Generic.List[object]]::new()
-                $totalChecked = 0
-
-                foreach ($roleName in $roleNames) {
-                    Write-Host ""
-                    Write-Host "=== $roleName ==="
-                    $filtered = $allAssignments | Where-Object {
-                        $_.scope -eq $resourceId -and $_.roleDefinitionName -eq $roleName
-                    }
-                    Write-Host "Found $($filtered.Count) assignment(s) directly on '$resourceName'."
-                    foreach ($a in $filtered) {
-                        $totalChecked++
-                        if ($knownIds.Contains($a.principalId)) {
-                            Write-Host "  [LIVE]     principalId=$($a.principalId)"
-                        } else {
-                            Write-Host "  [ORPHANED] principalId=$($a.principalId)"
-                            $orphaned.Add($a)
-                        }
-                    }
+                $toRemove = $allAssignments | Where-Object {
+                    $_.scope -eq $resourceId -and
+                    $roleNames -contains $_.roleDefinitionName -and
+                    $orphanedIds.Contains($_.principalId)
                 }
 
-                Write-Host ""
-                Write-Host "Summary: Checked=$totalChecked  Orphaned=$($orphaned.Count)"
+                Write-Host "Found $($toRemove.Count) matching assignment(s) to remove."
                 Write-Host ""
 
-                if ($orphaned.Count -eq 0) { Write-Host "No orphaned assignments found. Nothing to remove."; exit 0 }
+                if ($toRemove.Count -eq 0) { Write-Host "No matching assignments found. Nothing to remove."; exit 0 }
 
-                Write-Host "Orphaned assignments:"
-                foreach ($a in $orphaned) {
+                Write-Host "Assignments to remove:"
+                foreach ($a in $toRemove) {
                     Write-Host "  Role=$($a.roleDefinitionName)  PrincipalId=$($a.principalId)  Id=$($a.id)"
                 }
                 Write-Host ""
 
                 if ($dryRun) {
-                    Write-Host "[DRY RUN] $($orphaned.Count) assignment(s) would be deleted. Set 'Dry Run' to false to execute."
+                    Write-Host "[DRY RUN] $($toRemove.Count) assignment(s) would be deleted. Set 'Dry Run' to false to execute."
                     exit 0
                 }
 
-                if ($isSSV) {
-                    Write-Host "Switching back to SSV subscription for deletion..."
-                    az account set --subscription "$(serviceConnection)"
-                }
-                Write-Host "Deleting $($orphaned.Count) orphaned assignment(s)..."
+                Write-Host "Deleting $($toRemove.Count) assignment(s)..."
                 $removed = 0; $failed = 0
-                foreach ($a in $orphaned) {
+                foreach ($a in $toRemove) {
                     Write-Host "  Removing $($a.roleDefinitionName) for principalId=$($a.principalId)..."
                     az role assignment delete --ids $a.id --output none
                     if ($LASTEXITCODE -ne 0) { Write-Warning "  [FAILED] $($a.id)"; $failed++ }
