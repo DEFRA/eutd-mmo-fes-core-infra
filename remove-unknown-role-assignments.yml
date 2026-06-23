@@ -12,6 +12,9 @@ parameters:
       - snd1
       - dev1
       - tst1
+      - ssv_snd
+      - ssv_dev
+      - ssv_tst
 
   - name: dryRun
     displayName: "Dry Run (list only, no deletions)"
@@ -40,7 +43,21 @@ variables:
   - ${{ if eq(parameters.environment, 'tst1') }}:
     - name: serviceConnection
       value: AZR-MMO-TST1
-
+  - ${{ if eq(parameters.environment, 'ssv_snd') }}:
+    - name: serviceConnection
+      value: AZR-MMO-SSV5
+    - name: appServiceConnection
+      value: AZR-MMO-SND1
+  - ${{ if eq(parameters.environment, 'ssv_dev') }}:
+    - name: serviceConnection
+      value: AZR-MMO-SSV5
+    - name: appServiceConnection
+      value: AZR-MMO-DEV1
+  - ${{ if eq(parameters.environment, 'ssv_tst') }}:
+    - name: serviceConnection
+      value: AZR-MMO-SSV5
+    - name: appServiceConnection
+      value: AZR-MMO-TST1
 stages:
   - stage: Remove_Unknown_Role_Assignments
     displayName: "Remove Unknown Role Assignments [${{ parameters.environment }}]"
@@ -59,6 +76,7 @@ stages:
               failOnStandardError: false
               inlineScript: |
                 $dryRun = [System.Convert]::ToBoolean("${{ parameters.dryRun }}")
+                $isSSV  = "${{ parameters.environment }}" -like 'ssv*'
 
                 az account set --subscription "$(serviceConnection)"
 
@@ -88,6 +106,10 @@ stages:
                 $roleNames = "${{ parameters.roleDefinitionNames }}" -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
 
                 Write-Host ""
+                if ($isSSV) {
+                    Write-Host "Switching to app subscription for managed identity lookup..."
+                    az account set --subscription "$(appServiceConnection)"
+                }
                 Write-Host "Fetching live managed identity principal IDs from ARM..."
                 $uamiIds = @(az identity list `
                     --query "[].principalId" --output tsv 2>$null | Where-Object { $_ })
@@ -137,6 +159,10 @@ stages:
                     exit 0
                 }
 
+                if ($isSSV) {
+                    Write-Host "Switching back to SSV subscription for deletion..."
+                    az account set --subscription "$(serviceConnection)"
+                }
                 Write-Host "Deleting $($orphaned.Count) orphaned assignment(s)..."
                 $removed = 0; $failed = 0
                 foreach ($a in $orphaned) {
