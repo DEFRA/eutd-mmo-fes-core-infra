@@ -1,18 +1,15 @@
-param refdatalogicAppName string
-param processorlogicAppName string
+param logicApps string
 param logicAppResourceGroupName string
 param serviceBusName string
 
 param subscriptionId string = subscription().subscriptionId
 
-resource refDataLogicApp 'Microsoft.Web/sites@2024-04-01' existing = {
-  name: refdatalogicAppName
+var logicAppsArray = json(logicApps)
+
+resource logicAppResources 'Microsoft.Web/sites@2024-04-01' existing = [for logicApp in logicAppsArray: {
+  name: logicApp.Name
   scope: resourceGroup(logicAppResourceGroupName)
-}
-resource processorLogicApp 'Microsoft.Web/sites@2024-04-01' existing = {
-  name: processorlogicAppName
-  scope: resourceGroup(logicAppResourceGroupName)
-}
+}]
 
 var serviceBusRoleAssignments = [
   {
@@ -25,20 +22,11 @@ var serviceBusRoleAssignments = [
   }
 ]
 
-module refDataServiceBusRoleAssignments '.bicep/serviceBusRoleAssignment.bicep' = {
-  name: guid(subscriptionId, 'refDataServiceBusRoleAssignments')
+module serviceBusRoleAssignmentsModule '.bicep/serviceBusRoleAssignment.bicep' = [for (logicApp, i) in logicAppsArray: {
+  name: guid(subscriptionId, 'serviceBusRoleAssignments-${logicApp.Name}')
   params: {
     roleAssignments: serviceBusRoleAssignments
-    principalId: refDataLogicApp.identity.principalId
+    principalId: logicAppResources[i].identity.principalId
     serviceBusName: serviceBusName
   }
-}
-
-module processorServiceBusRoleAssignments '.bicep/serviceBusRoleAssignment.bicep' = {
-  name: guid(subscriptionId, 'processorServiceBusRoleAssignments')
-  params: {
-    roleAssignments: serviceBusRoleAssignments
-    principalId: processorLogicApp.identity.principalId
-    serviceBusName: serviceBusName
-  }
-}
+}]

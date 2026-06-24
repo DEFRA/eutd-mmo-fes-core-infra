@@ -4,104 +4,57 @@ param serviceBusConnection string
 param location string = resourceGroup().location
 
 param tenantId string
-param refdatalogicAppName string
-param processorlogicAppName string
+param logicApps string
 
 var CommonApiPoliciesName = toUpper(CommonApiContName)
 var storageConnectionName = toUpper(storageConnection)
 var serviceBusConnectionName = toUpper(serviceBusConnection)
 var scopeGroup = resourceGroup().name
+var logicAppsArray = json(logicApps)
 
-resource refdataLogicApp 'Microsoft.Web/sites@2024-04-01' existing = {
-  name: refdatalogicAppName
+resource logicAppResources 'Microsoft.Web/sites@2024-04-01' existing = [for logicApp in logicAppsArray: {
+  name: logicApp.Name
   scope: resourceGroup(scopeGroup)
-}
+}]
 
-resource processorLogicApp 'Microsoft.Web/sites@2024-04-01' existing = {
-  name: processorlogicAppName
-  scope: resourceGroup(scopeGroup)
-}
-
-resource refdataAccessPolicies 'Microsoft.Web/connections/accessPolicies@2016-06-01' = {
-  name: '${storageConnectionName}/${refdatalogicAppName}'
+resource storageAccessPolicies 'Microsoft.Web/connections/accessPolicies@2016-06-01' = [for (logicApp, i) in logicAppsArray: {
+  name: '${storageConnectionName}/${logicApp.Name}'
   location: location
   properties: {
     principal: {
       type: 'ActiveDirectory'
       identity: {
-        objectId: refdataLogicApp.identity.principalId
+        objectId: logicAppResources[i].identity.principalId
         tenantId: tenantId
       }
     }
   }
-}
+}]
 
-resource processAccessPolicies 'Microsoft.Web/connections/accessPolicies@2016-06-01' = {
-  name: '${storageConnectionName}/${processorlogicAppName}'
+resource serviceBusAccessPolicies 'Microsoft.Web/connections/accessPolicies@2016-06-01' = [for (logicApp, i) in logicAppsArray: {
+  name: '${serviceBusConnectionName}/${logicApp.Name}'
   location: location
   properties: {
     principal: {
       type: 'ActiveDirectory'
       identity: {
-        objectId: processorLogicApp.identity.principalId
+        objectId: logicAppResources[i].identity.principalId
         tenantId: tenantId
       }
     }
   }
-}
+}]
 
-resource refdataAccessPolicies02 'Microsoft.Web/connections/accessPolicies@2016-06-01' = {
-  name: '${serviceBusConnectionName}/${refdatalogicAppName}'
+resource commonApiAccessPolicies 'Microsoft.Web/connections/accessPolicies@2016-06-01' = [for (logicApp, i) in logicAppsArray: {
+  name: '${CommonApiPoliciesName}/${logicApp.Name}'
   location: location
   properties: {
     principal: {
       type: 'ActiveDirectory'
       identity: {
-        objectId: refdataLogicApp.identity.principalId
+        objectId: logicAppResources[i].identity.principalId
         tenantId: tenantId
       }
     }
   }
-}
-
-resource processorAccessPolicies02 'Microsoft.Web/connections/accessPolicies@2016-06-01' = {
-  name: '${serviceBusConnectionName}/${processorlogicAppName}'
-  location: location
-  properties: {
-    principal: {
-      type: 'ActiveDirectory'
-      identity: {
-        objectId: processorLogicApp.identity.principalId
-        tenantId: tenantId
-      }
-    }
-  }
-}
-
-resource refdataAccessPolicies03 'Microsoft.Web/connections/accessPolicies@2016-06-01' = {
-  name: '${CommonApiPoliciesName}/${refdatalogicAppName}'
-  location: location
-  properties: {
-    principal: {
-      type: 'ActiveDirectory'
-      identity: {
-        objectId: refdataLogicApp.identity.principalId
-        tenantId: tenantId
-      }
-    }
-  }
-}
-
-resource processorAccessPolicies03 'Microsoft.Web/connections/accessPolicies@2016-06-01' = {
-  name: '${CommonApiPoliciesName}/${processorlogicAppName}'
-  location: location
-  properties: {
-    principal: {
-      type: 'ActiveDirectory'
-      identity: {
-        objectId: processorLogicApp.identity.principalId
-        tenantId: tenantId
-      }
-    }
-  }
-}
+}]
