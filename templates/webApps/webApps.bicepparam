@@ -1,0 +1,22 @@
+using 'webApps.bicep'
+
+param environment = '#{{ environment }}'
+param webAppNames = '''#{{ webAppNames }}'''
+param ephemeral = '#{{ ephemeral }}'
+param comparams = {
+  keyVaultName: '#{{ keyVaultName }}'
+  appInsightsName: '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-appinsights }}#{{ nc-region-id }}01'
+  rediscachename: '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-rediscachename }}#{{ nc-region-id }}01'
+}
+param vnetName = '#{{ vnetName }}'
+param vnetResourceGroupName = '#{{ vnetResourceGroupName }}'
+param privateEndpointSubnet = '#{{ privateEndpointSubnet }}'
+param frontDoorId = '#{{ frontDoorId }}'
+param ukSouthDnsZoneId = '#{{ ukSouthDnsZoneIdPrefix }}/#{{ privateLinkSites }}'
+param northEuDnsZoneId = '#{{ northEuDnsZoneIdPrefix }}/#{{ privateLinkSites }}'
+param westEuDnsZoneId = '#{{ westEuDnsZoneIdPrefix }}/#{{ privateLinkSites }}'
+param ukWestDnsZoneId = '#{{ ukWestDnsZoneIdPrefix }}/#{{ privateLinkSites }}'
+param logAnalyticsWorkspace = '#{{ logAnalyticsWorkspace }}'
+param resourceGroupName = '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}02'
+param slotsEnabled = '#{{ slotsEnabled }}'
+param appVersions = '#{{ appVersions }}'
