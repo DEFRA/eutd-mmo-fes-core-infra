@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "logicApps": {
+      "value": "#{{ logicApps }}"
+    },
+    "tenantId": {
+      "value": "#{{ defraTenantId }}"
+    },
+    "storageConnection": {
+      "value": "#{{ environment }}#{{ nc-deptService }}referencedata-api-connection-01"
+    },
+    "serviceBusConnection": {
+      "value": "#{{ environment }}mmoservicebus-api-connection-01"
+    },
+    "CommonApiContName": {
+      "value": "#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-region-id }}02-api-connection-01"
+    }
+  }
+}
