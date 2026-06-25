@@ -42,7 +42,7 @@ param subnets = [
     delegation: 'Microsoft.Web/serverFarms'
   }
 ]
-param dnsServers = '#{{ dnsServers }}'
+param dnsServers = '''#{{ dnsServers }}'''
 param customTags = {
   Name: '#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-virtualnetwork }}#{{ nc-region-id }}01'
   Purpose: '#{{ #{{ nc-deptService }} }}-VNet'
