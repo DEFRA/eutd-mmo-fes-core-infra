@@ -15,7 +15,21 @@ parameters:
     default: "All"
     values:
       - All
-      - Network
+      - NetworkAndLogAnalytics
+      - AppInsights
+      - KeyVault
+      - CosmosDb
+      - StorageAccounts
+      - ServiceBus
+      - Redis
+      - Event
+      - AppServicePlan
+      - WebApps
+      - FunctionApps
+      - KeyVaultRoleAssignments
+      - LogicApps
+      - ConnectionStrings
+      - ApiConnections
   - name: skipPRE1
     type: boolean
     default: false
@@ -26,13 +40,42 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: refs/heads/main
+      ref: feature/dr-test-pre1
 
 variables:
   - name: IsAll
     value: ${{ eq(parameters.deployResources,'All') }}
-  - name: IsNetwork
-    value: ${{ eq(parameters.deployResources,'Network') }}
+  - name: IsNetworkAndLogAnalytics
+    value: ${{ eq(parameters.deployResources,'NetworkAndLogAnalytics') }}
+  - name: IsAppInsights
+    value: ${{ eq(parameters.deployResources,'AppInsights') }}
+  - name: IsKeyVault
+    value: ${{ eq(parameters.deployResources,'KeyVault') }}
+  - name: IsCosmosDb
+    value: ${{ eq(parameters.deployResources,'CosmosDb') }}
+  - name: IsStorageAccounts
+    value: ${{ eq(parameters.deployResources,'StorageAccounts') }}
+  - name: IsServiceBus
+    value: ${{ eq(parameters.deployResources,'ServiceBus') }}
+  - name: IsRedis
+    value: ${{ eq(parameters.deployResources,'Redis') }}
+  - name: IsEvent
+    value: ${{ eq(parameters.deployResources,'Event') }}
+  - name: IsAppServicePlan
+    value: ${{ eq(parameters.deployResources,'AppServicePlan') }}
+  - name: IsWebApps
+    value: ${{ eq(parameters.deployResources,'WebApps') }}
+  - name: IsFunctionApps
+    value: ${{ eq(parameters.deployResources,'FunctionApps') }}
+  - name: IsKeyVaultRoleAssignments
+    value: ${{ eq(parameters.deployResources,'KeyVaultRoleAssignments') }}
+  - name: IsLogicApps
+    value: ${{ eq(parameters.deployResources,'LogicApps') }}
+  - name: IsConnectionStrings
+    value: ${{ eq(parameters.deployResources,'ConnectionStrings') }}
+  - name: IsApiConnections
+    value: ${{ eq(parameters.deployResources,'ApiConnections') }}
+
 
 extends:
   template: /includes/infra-deploy.yaml@MMOPipelineCommon
@@ -40,11 +83,13 @@ extends:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: true
     skipPRE1: ${{ parameters.skipPRE1 }}
+    additionalRepositories:
+      - MMOPipelineCommon
     groupedDeployments:
       - name: infraResource
-        deploymentTimeoutInMinutes: 60
-        templates:
-          - ${{ if eq(variables.IsNetwork, true) }}:
+        timeoutInMinutes: 60
+        deployments:
+          - ${{ if eq(variables.IsNetworkAndLogAnalytics, true) }}:
               - name: network
                 path: templates/network
                 type: bicep
@@ -55,13 +100,15 @@ extends:
                 type: bicep
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
-          - ${{ if eq(variables.IsAll, true) }}:
+
+          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsAppInsights, true)) }}:
               - name: appInsights
                 path: templates/appInsights
                 type: bicep
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
 
+          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsKeyVault, true)) }}:
               - name: keyVaultSecondaryPE
                 path: templates/keyVaults
                 type: bicep
@@ -80,14 +127,19 @@ extends:
                     scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
                     ScriptArguments: >
                       -UpdateAllDnsZones $true
-                  - displayName: Promote CosmosDB to Secondary Cluster
-                    scriptRepo: MMOPipelineCommon
-                    scriptPath: "scripts/Switch-CosmosToSecondary.ps1"
-                    ScriptArguments: >
-                      -SubscriptionId '$(subscriptionId)'
-                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-static-res-region-id)02'
-                      -ReplicaClusterName '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
 
+          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsCosmosDb, true)) }}:
+              - name: cosmosDbFailover
+                scriptRepo: MMOPipelineCommon
+                type: script
+                scriptType: AzurePowerShell
+                path: "scripts/Switch-CosmosToSecondary.ps1"
+                scriptArguments: >
+                  -SubscriptionId '$(subscriptionId)'
+                  -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-static-res-region-id)02'
+                  -ReplicaClusterName '$(environment)$(nc-deptService)$(nc-function-database)$(nc-resource-cosmosdb)$(nc-region-id)01'
+
+          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsStorageAccounts, true)) }}:
               - name: strAccSecondaryPE
                 path: templates/storageAccounts
                 type: bicep
@@ -107,41 +159,55 @@ extends:
                     ScriptArguments: >
                       -UpdateAllDnsZones $true
 
+          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsServiceBus, true)) }}:
               - name: serviceBus
                 path: templates/serviceBus
                 type: bicep
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
-                postDeployScriptsList:
-                  - displayName: Resolve Private Endpoint IP for Redis Cache
-                    scriptRepo: MMOPipelineCommon
-                    scriptPath: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
-                    ScriptArguments: >
-                      -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
-                      -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
-                      -IsSecondaryRegion $true
-                  - displayName: Set DNS record for Redis Cache
-                    scriptRepo: MMOPipelineCommon
-                    scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
-                    ScriptArguments: >
-                      -UpdateAllDnsZones $true
-                  - displayName: Redis - Failover to Secondary
-                    scriptRepo: MMOPipelineCommon
-                    scriptPath: "scripts/Set-RedisCacheLink.ps1"
-                    ScriptArguments: >
-                      -PrimaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
-                      -SecondaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-static-res-region-id)01'
-                      -Mode 'Failover'
+
+          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsRedis, true)) }}:              
+              - name: resolveRedisCachePrivateEndpointIP
+                scriptRepo: MMOPipelineCommon
+                type: script
+                scriptType: AzurePowerShell
+                path: "scripts/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1"
+                scriptArguments: >
+                  -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01'
+                  -ResourceName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
+                  -IsSecondaryRegion $true
+              
+              - name: setDnsRecordForRedisCache
+                scriptRepo: MMOPipelineCommon
+                type: script
+                scriptType: AzurePowerShell
+                path: "scripts/Set-PrivateDnsRecordSet.ps1"
+                scriptArguments: >
+                  -UpdateAllDnsZones $true
+
+              - displayName: Redis - Failover to Secondary
+                scriptRepo: MMOPipelineCommon
+                scriptPath: "scripts/Set-RedisCacheLink.ps1"
+                ScriptArguments: >
+                  -PrimaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
+                  -SecondaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-static-res-region-id)01'
+                  -Mode 'Failover'
+
+          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsEvent, true)) }}:
               - name: event
                 path: templates/event
                 type: bicep
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)02"
+
+          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsAppServicePlan, true)) }}:
               - name: appServicePlan
                 path: templates/appServicePlan
                 type: bicep
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+
+          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsWebApps, true)) }}:
               - name: webApps
                 path: templates/webApps
                 type: bicep
@@ -172,6 +238,8 @@ extends:
                     scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
                     ScriptArguments: >
                       -UpdateAllDnsZones $true
+
+          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsFunctionApps, true)) }}:
               - name: functionApps
                 path: templates/functionApps
                 type: bicep
@@ -202,17 +270,22 @@ extends:
                     scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
                     ScriptArguments: >
                       -UpdateAllDnsZones $true
+
+          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsKeyVaultRoleAssignments, true)) }}:
               - name: keyVaultRoleAssignments
                 path: templates/keyVaults
                 type: bicep
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-static-res-region-id)02"
+
+          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsLogicApps, true)) }}:
               - name: logicAppsAsp
                 isDeployToSecondaryRegions: false
                 path: templates/logicAppsStandard
                 type: bicep
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+              
               - name: logicApps
                 isDeployToSecondaryRegions: false
                 path: templates/logicAppsStandard
@@ -237,21 +310,27 @@ extends:
                     scriptPath: "scripts/Set-PrivateDnsRecordSet.ps1"
                     ScriptArguments: >
                       -UpdateAllDnsZones $true
+              
               - name: logicAppsStorageRoleAssignments
                 path: templates/logicAppsStandard
                 type: bicep
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-static-res-region-id)02"
+              
               - name: logicAppsServiceBusRoleAssignments
                 path: templates/logicAppsStandard
                 type: bicep
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+
+          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsConnectionStrings, true)) }}:
               - name: connectionStrings
                 path: templates/connectionStrings
                 type: bicep
                 scope: "Resource Group"
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-static-res-region-id)02"
+              
+          - ${{ if or(eq(variables.IsAll, true), eq(variables.IsApiConnections, true)) }}:
               - name: apiConnections
                 path: templates/apiConnections
                 type: bicep
