@@ -185,10 +185,12 @@ extends:
                 scriptArguments: >
                   -UpdateAllDnsZones $true
 
-              - displayName: Redis - Failover to Secondary
+              - name: redisCacheFailoverToSecondary
                 scriptRepo: MMOPipelineCommon
-                scriptPath: "scripts/Set-RedisCacheLink.ps1"
-                ScriptArguments: >
+                type: script
+                scriptType: AzurePowerShell
+                path: "scripts/Set-RedisCacheLink.ps1"
+                scriptArguments: >
                   -PrimaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-region-id)01'
                   -SecondaryCacheName '$(environment)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-rediscachename)$(nc-static-res-region-id)01'
                   -Mode 'Failover'
