@@ -2,7 +2,6 @@ using './strAccSecondaryPE.bicep'
 
 param environment = '#{{ environment }}'
 param storageAccounts = '''#{{ storageAccounts }}'''
-param skuName = '#{{ storageAccountSkuName }}'
 param kind = 'StorageV2'
 param accessTier = 'Hot'
 param vnetName = '#{{ vnetName }}'
