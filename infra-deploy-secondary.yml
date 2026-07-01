@@ -217,6 +217,7 @@ extends:
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
                 preDeployScriptsList:
                   - displayName: Get WebApp image tag if it exists
+                    scriptRepo: MMOPipelineCommon
                     scriptPath: "scripts/Get-ExistingWebAppVersion.ps1"
                     ScriptArguments: >
                       -WebAppNames '$(webAppNames)'
@@ -224,6 +225,7 @@ extends:
                       -IsSlotsEnabled $$(slotsEnabled)
                 postDeployScriptsList:
                   - displayName: Set AppServices list if deployment slots are enabled
+                    scriptRepo: MMOPipelineCommon
                     scriptPath: "scripts/Set-AppServiceSlotNames.ps1"
                     ScriptArguments: >
                       -IsSlotsEnabled $$(slotsEnabled)
@@ -249,6 +251,7 @@ extends:
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
                 preDeployScriptsList:
                   - displayName: Get FunctionApp image tag if it exists
+                    scriptRepo: MMOPipelineCommon
                     scriptPath: "scripts/Get-ExistingWebAppVersion.ps1"
                     ScriptArguments: >
                       -WebAppNames '$(functionAppName)'
@@ -256,6 +259,7 @@ extends:
                       -IsSlotsEnabled $$(slotsEnabled)
                 postDeployScriptsList:
                   - displayName: Set AppServices list if deployment slots are enabled
+                    scriptRepo: MMOPipelineCommon
                     scriptPath: "scripts/Set-AppServiceSlotNames.ps1"
                     ScriptArguments: >
                       -IsSlotsEnabled $$(slotsEnabled)
@@ -296,6 +300,7 @@ extends:
                 resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
                 postDeployScriptsList:
                   - displayName: Set logicApps list
+                    scriptRepo: MMOPipelineCommon
                     scriptPath: "scripts/Set-AppServiceSlotNames.ps1"
                     ScriptArguments: >
                       -IsSlotsEnabled $false
