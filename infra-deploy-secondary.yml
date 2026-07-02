@@ -30,6 +30,7 @@ parameters:
       - LogicApps
       - ConnectionStrings
       - ApiConnections
+      - LogicAppsApiConnectionsPolicies
   - name: skipPRE1
     type: boolean
     default: false
@@ -75,7 +76,8 @@ variables:
     value: ${{ eq(parameters.deployResources,'ConnectionStrings') }}
   - name: IsApiConnections
     value: ${{ eq(parameters.deployResources,'ApiConnections') }}
-
+  - name: IsLogicAppsApiConnectionsPolicies
+    value: ${{ eq(parameters.deployResources,'LogicAppsApiConnectionsPolicies') }}
 
 extends:
   template: /includes/infra-deploy.yaml@MMOPipelineCommon
@@ -339,6 +341,13 @@ extends:
               
           - ${{ if or(eq(variables.IsAll, true), eq(variables.IsApiConnections, true)) }}:
               - name: apiConnections
+                path: templates/apiConnections
+                type: bicep
+                scope: "Resource Group"
+                resourceGroupName: "$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-region-id)01"
+
+          - ${{ if eq(variables.IsLogicAppsApiConnectionsPolicies, true) }}:
+              - name: apiConnectionsAccesspolicies
                 path: templates/apiConnections
                 type: bicep
                 scope: "Resource Group"
