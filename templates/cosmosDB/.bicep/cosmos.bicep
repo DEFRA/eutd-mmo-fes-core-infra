@@ -264,15 +264,22 @@ resource cosmosDb 'Microsoft.DocumentDB/mongoClusters@2025-07-01-preview' = if (
   location: location
   name: toLower(cosmosDBName)
   properties: {
-    administrator: {
-      password: cosmosAdminPassword
-      userName: toLower(cosmosDBName)
-    }
-    authConfig: {
-      allowedModes: [
-        'NativeAuth'
-      ]
-    }
+    // Once a cross-region replica is configured, Azure blocks updating administrator/authConfig
+    // on the primary ("Cannot update administrator properties on a replica cluster"). These
+    // properties are set on initial creation and must be omitted on subsequent runs.
+    ...(geoReplicaExists
+      ? {}
+      : {
+          administrator: {
+            password: cosmosAdminPassword
+            userName: toLower(cosmosDBName)
+          }
+          authConfig: {
+            allowedModes: [
+              'NativeAuth'
+            ]
+          }
+        })
     backup: {}
     compute: {
       tier: vCoreTier
