@@ -27,7 +27,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: feature/user-mi
+      ref: refs/heads/main
 
 extends:
   template: /includes/infra-deploy.yaml@MMOPipelineCommon
@@ -35,14 +35,14 @@ extends:
     deployToDevelopmentEnvironment: ${{ parameters.deployToDevelopmentEnvironment }}
     deployToSecondaryRegion: false
     environments:
-      # - name: "ssv_snd"
-      #   developmentEnvironment: true
-      #   azureRegions:
-      #     primary: UKSouth
-      #   serviceConnection: AZR-MMO-SSV5
-      #   privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
-      #   deploymentBranches:
-      #     - "*"
+      - name: "ssv_snd"
+        developmentEnvironment: true
+        azureRegions:
+          primary: UKSouth
+        serviceConnection: AZR-MMO-SSV5
+        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+        deploymentBranches:
+          - "*"
       - name: "ssv_dev"
         azureRegions:
           primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
@@ -53,15 +53,15 @@ extends:
         dependsOn: "Validate"
         deploymentBranches:
           - "*"
-      # - name: "ssv_tst"
-      #   enableTemplateValidationBeforeDeployment: true
-      #   azureRegions:
-      #     primary: UKSouth
-      #   serviceConnection: AZR-MMO-SSV5
-      #   privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
-      #   dependsOn: "ssv_snd"
-      #   deploymentBranches:
-      #     - "refs/heads/main"
+      - name: "ssv_tst"
+        enableTemplateValidationBeforeDeployment: true
+        azureRegions:
+          primary: UKSouth
+        serviceConnection: AZR-MMO-SSV5
+        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+        dependsOn: "ssv_snd"
+        deploymentBranches:
+          - "refs/heads/main"
     additionalRepositories: 
       - MMOPipelineCommon
     groupedDeployments:
@@ -97,11 +97,3 @@ extends:
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             scriptArguments: -acrName '$(acrName)'
             
-            # NO NEED TO REMOVE ROLE ASSIGNMENTS AS ROLE ASSIGNMENTS ARE ASSOCIATED TO USER ASSIGNED MANAGED IDENTITY
-          # - name: "Remove_RoleAssignments"
-          #   scriptRepo: MMOPipelineCommon
-          #   type: script
-          #   scriptType: AzurePowerShell
-          #   path: "scripts/Remove-RoleAssignments.ps1"
-          #   condition: and(succeeded(), eq(variables['ephemeral'], true))
-          #   scriptArguments: -ResourceName '$(acrName)' -ResourceGroupName '$(acrResourceGroup)' -ResourceType 'Microsoft.ContainerRegistry/registries' -RoleDefinitionName 'AcrPull' -AppsResourceGroup '$(appEnvWebAppRgName)'
