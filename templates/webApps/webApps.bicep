@@ -94,6 +94,27 @@ module userAssignedIdentity 'br/avm:managed-identity/user-assigned-identity:0.5.
   }
 ]
 
+// Existing reference to each user-assigned managed identity.
+// Referencing via a deterministic resource ID (rather than the module output) keeps
+// `az deployment group validate` preflight resolvable, avoiding the Azure CLI
+// "InvalidTemplateDeployment / content already consumed" crash (azure-cli#32952).
+resource userAssignedIdentityExisting 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = [
+  for (app, i) in webAppNamesArray: {
+    name: toUpper(app.ManagedIdentityName)
+    dependsOn: [
+      userAssignedIdentity[i]
+    ]
+  }
+]
+
+// Deterministic resource IDs for each user-assigned managed identity (validate-safe).
+var userAssignedIdentityResourceIds = [
+  for (app, i) in webAppNamesArray: resourceId(
+    'Microsoft.ManagedIdentity/userAssignedIdentities',
+    toUpper(app.ManagedIdentityName)
+  )
+]
+
 // Create Web Apps in batches
 @batchSize(2)
 module webApp 'br/avm:web/site:0.23.1' = [
@@ -114,7 +135,7 @@ module webApp 'br/avm:web/site:0.23.1' = [
               : cur
         )
         minTlsVersion: app.?TlsMinVersion ?? '1.3'
-        acrUserManagedIdentityID: userAssignedIdentity[i].outputs.clientId
+        acrUserManagedIdentityID: userAssignedIdentityExisting[i].properties.clientId
       })
       configs: [
         {
@@ -152,15 +173,15 @@ module webApp 'br/avm:web/site:0.23.1' = [
                       : cur
                 )
                 minTlsVersion: app.?TlsMinVersion ?? '1.3'
-                acrUserManagedIdentityID: userAssignedIdentity[i].outputs.clientId
+                acrUserManagedIdentityID: userAssignedIdentityExisting[i].properties.clientId
               })
               managedIdentities: {
                 systemAssigned: false
                 userAssignedResourceIds: [
-                  userAssignedIdentity[i].outputs.resourceId
+                  userAssignedIdentityResourceIds[i]
                 ]
               }
-              keyVaultAccessIdentityResourceId: userAssignedIdentity[i].outputs.resourceId
+              keyVaultAccessIdentityResourceId: userAssignedIdentityResourceIds[i]
               publicNetworkAccess: bool(app.IsFrontEnd) ? 'Enabled' : 'Disabled'
               privateEndpoints: bool(app.IsFrontEnd)
                 ? []
@@ -222,10 +243,10 @@ module webApp 'br/avm:web/site:0.23.1' = [
       managedIdentities: {
         systemAssigned: false
         userAssignedResourceIds: [
-          userAssignedIdentity[i].outputs.resourceId
+          userAssignedIdentityResourceIds[i]
         ]
       }
-      keyVaultAccessIdentityResourceId: userAssignedIdentity[i].outputs.resourceId
+      keyVaultAccessIdentityResourceId: userAssignedIdentityResourceIds[i]
       basicPublishingCredentialsPolicies: [
         { name: 'scm', allow: true }
       ]

@@ -76,9 +76,23 @@ module userAssignedIdentity 'br/avm:managed-identity/user-assigned-identity:0.5.
   }
 ]
 
+// Deterministic resource IDs for each user-assigned managed identity.
+// Referencing via a deterministic resource ID (rather than the module output) keeps
+// `az deployment group validate` preflight resolvable, avoiding the Azure CLI
+// "InvalidTemplateDeployment / content already consumed" crash (azure-cli#32952).
+var userAssignedIdentityResourceIds = [
+  for (logicApp, i) in logicAppsArray: resourceId(
+    'Microsoft.ManagedIdentity/userAssignedIdentities',
+    toUpper(logicApp.ManagedIdentityName)
+  )
+]
+
 module logicApp 'br/avm:web/site:0.23.1' = [
   for (logicApp, i) in logicAppsArray: {
     name: logicApp.Name
+    dependsOn: [
+      userAssignedIdentity[i]
+    ]
     params: {
       name: logicApp.Name
       location: location
@@ -86,10 +100,10 @@ module logicApp 'br/avm:web/site:0.23.1' = [
       managedIdentities: {
         systemAssigned: false
         userAssignedResourceIds: [
-          userAssignedIdentity[i].outputs.resourceId
+          userAssignedIdentityResourceIds[i]
         ]
       }
-      keyVaultAccessIdentityResourceId: userAssignedIdentity[i].outputs.resourceId
+      keyVaultAccessIdentityResourceId: userAssignedIdentityResourceIds[i]
       tags: union(logicAppDefaultTags, {
         Purpose: 'FESMMO-APP'
         type: 'LogicApp'
@@ -119,7 +133,7 @@ module logicApp 'br/avm:web/site:0.23.1' = [
             )
             RESOURCEGROUP_LOCATION: resourceGroup().location
             RESOURCEGROUP_NAME: resourceGroup().name
-            MANAGED_IDENTITY_RESOURCE_ID: userAssignedIdentity[i].outputs.resourceId
+            MANAGED_IDENTITY_RESOURCE_ID: userAssignedIdentityResourceIds[i]
           }
         }
       ]

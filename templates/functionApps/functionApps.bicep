@@ -106,6 +106,23 @@ module userAssignedIdentity 'br/avm:managed-identity/user-assigned-identity:0.5.
   }
 }
 
+// Existing reference to the user-assigned managed identity.
+// Referencing via a deterministic resource ID (rather than the module output) keeps
+// `az deployment group validate` preflight resolvable, avoiding the Azure CLI
+// "InvalidTemplateDeployment / content already consumed" crash (azure-cli#32952).
+resource userAssignedIdentityExisting 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = {
+  name: toUpper(managedIdentityName)
+  dependsOn: [
+    userAssignedIdentity
+  ]
+}
+
+// Deterministic resource ID for the user-assigned managed identity (validate-safe).
+var userAssignedIdentityResourceId = resourceId(
+  'Microsoft.ManagedIdentity/userAssignedIdentities',
+  toUpper(managedIdentityName)
+)
+
 module functionapp 'br/avm:web/site:0.23.1' = {
   name: '${funcAppName}-${deploymentDate}'
   params: {
@@ -201,15 +218,15 @@ module functionapp 'br/avm:web/site:0.23.1' = {
                     ? next.LinuxFxVersion
                     : cur
               )
-              acrUserManagedIdentityID: userAssignedIdentity.outputs.clientId
+              acrUserManagedIdentityID: userAssignedIdentityExisting.properties.clientId
             })
             managedIdentities: {
               systemAssigned: false
               userAssignedResourceIds: [
-                userAssignedIdentity.outputs.resourceId
+                userAssignedIdentityResourceId
               ]
             }
-            keyVaultAccessIdentityResourceId: userAssignedIdentity.outputs.resourceId
+            keyVaultAccessIdentityResourceId: userAssignedIdentityResourceId
             outboundVnetRouting: {
               allTraffic: true
               imagePullTraffic: true
@@ -264,13 +281,13 @@ module functionapp 'br/avm:web/site:0.23.1' = {
     managedIdentities: {
       systemAssigned: false
       userAssignedResourceIds: [
-        userAssignedIdentity.outputs.resourceId
+        userAssignedIdentityResourceId
       ]
     }
     basicPublishingCredentialsPolicies: [
       { name: 'scm', allow: true }
     ]
-    keyVaultAccessIdentityResourceId: userAssignedIdentity.outputs.resourceId
+    keyVaultAccessIdentityResourceId: userAssignedIdentityResourceId
     httpsOnly: true
     siteConfig: union(siteConfig, {
       linuxFxVersion: reduce(
@@ -281,7 +298,7 @@ module functionapp 'br/avm:web/site:0.23.1' = {
             ? next.LinuxFxVersion
             : cur
       )
-      acrUserManagedIdentityID: userAssignedIdentity.outputs.clientId
+      acrUserManagedIdentityID: userAssignedIdentityExisting.properties.clientId
     })
     outboundVnetRouting: {
       allTraffic: true
