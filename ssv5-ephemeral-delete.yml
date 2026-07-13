@@ -48,8 +48,7 @@ extends:
           primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
         serviceConnection: AZR-MMO-SSV5
         privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
-        # developmentEnvironment: ${{ parameters.deployToSecondaryRegion }}
-        developmentEnvironment: true
+        developmentEnvironment: ${{ parameters.deployToSecondaryRegion }}
         dependsOn: "Validate"
         deploymentBranches:
           - "*"
