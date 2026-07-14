@@ -13,9 +13,6 @@
     },
     "functionAppName": {
       "value": "#{{ functionAppName }}"
-    },
-    "slotsEnabled": {
-      "value": "#{{ slotsEnabled }}"
     }
   }
 }
