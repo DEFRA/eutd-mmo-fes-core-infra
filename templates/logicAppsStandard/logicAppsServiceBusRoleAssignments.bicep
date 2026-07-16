@@ -26,7 +26,7 @@ module serviceBusRoleAssignmentsModule '.bicep/serviceBusRoleAssignment.bicep' =
   name: guid(subscriptionId, 'serviceBusRoleAssignments-${logicApp.Name}')
   params: {
     roleAssignments: serviceBusRoleAssignments
-    principalId: logicAppResources[i].identity.principalId
+    principalId: items(logicAppResources[i].identity.userAssignedIdentities)[0].value.principalId
     serviceBusName: serviceBusName
   }
 }]

@@ -24,7 +24,7 @@ resource storageAccessPolicies 'Microsoft.Web/connections/accessPolicies@2016-06
     principal: {
       type: 'ActiveDirectory'
       identity: {
-        objectId: logicAppResources[i].identity.principalId
+        objectId: items(logicAppResources[i].identity.userAssignedIdentities)[0].value.principalId
         tenantId: tenantId
       }
     }
@@ -38,7 +38,7 @@ resource serviceBusAccessPolicies 'Microsoft.Web/connections/accessPolicies@2016
     principal: {
       type: 'ActiveDirectory'
       identity: {
-        objectId: logicAppResources[i].identity.principalId
+        objectId: items(logicAppResources[i].identity.userAssignedIdentities)[0].value.principalId
         tenantId: tenantId
       }
     }
@@ -52,7 +52,7 @@ resource commonApiAccessPolicies 'Microsoft.Web/connections/accessPolicies@2016-
     principal: {
       type: 'ActiveDirectory'
       identity: {
-        objectId: logicAppResources[i].identity.principalId
+        objectId: items(logicAppResources[i].identity.userAssignedIdentities)[0].value.principalId
         tenantId: tenantId
       }
     }

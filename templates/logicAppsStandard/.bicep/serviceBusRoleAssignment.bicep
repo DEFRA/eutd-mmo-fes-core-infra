@@ -8,7 +8,7 @@ resource serviceBus 'Microsoft.ServiceBus/namespaces@2022-10-01-preview' existin
 
 resource roleAssignmentResources 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
   for (roleAssignment, i) in roleAssignments: {
-    name: guid(subscription().subscriptionId, roleAssignment.description, principalId)
+    name: guid(subscription().subscriptionId, 'ServiceBusRoleAssignment', roleAssignment.description, principalId)
     scope: serviceBus
     properties: {
       roleDefinitionId: subscriptionResourceId(

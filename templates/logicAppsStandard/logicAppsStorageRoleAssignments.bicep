@@ -30,7 +30,7 @@ module strAccRoleAssignmentsModule '.bicep/storageAccRoleAssignment.bicep' = [fo
   name: guid(subscriptionId, 'strAccRoleAssignments-${logicApp.Name}')
   params: {
     roleAssignments: strAccRoleAssignments
-    principalId: logicAppResources[i].identity.principalId
+    principalId: items(logicAppResources[i].identity.userAssignedIdentities)[0].value.principalId
     storageAccountName: storageAccountName
   }
 }]
