@@ -13,7 +13,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: refs/heads/main
+      ref: spike/copilot-analytics
 
 variables:
   - group: COPILOT_ANALYTICS
