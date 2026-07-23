@@ -1,6 +1,9 @@
 name: copilot-analytics-$(Build.BuildId)
 
-trigger: none
+trigger:
+  branches:
+    include:
+      - main
 
 pr:
   branches:
