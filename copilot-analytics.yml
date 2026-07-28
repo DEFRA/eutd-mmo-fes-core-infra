@@ -1,0 +1,25 @@
+name: copilot-analytics-$(Build.BuildId)
+
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+resources:
+  repositories:
+    - repository: MMOPipelineCommon
+      name: "DEFRA/eutd-mmo-fes-pipeline-common"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+
+variables:
+  - group: COPILOT_ANALYTICS
+
+jobs:
+  - template: /templates/copilot-analytics.yaml@MMOPipelineCommon
