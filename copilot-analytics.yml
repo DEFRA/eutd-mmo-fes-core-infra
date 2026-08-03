@@ -42,7 +42,6 @@ resources:
       type: github
       ref: refs/heads/main
 
-    # One static resource per allowed targetRepository value — 'name' can't be a template expression.
     - repository: eutd_mmo_fes_core_infra
       name: "DEFRA/eutd-mmo-fes-core-infra"
       endpoint: DEFRA
