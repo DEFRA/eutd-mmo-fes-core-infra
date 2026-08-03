@@ -10,10 +10,100 @@ pr:
     include:
       - main
 
+parameters:
+  - name: targetRepository
+    default: ""
+    displayName: Target Repository (AdHoc only)
+    type: string
+    values:
+      - "eutd-mmo-fes-core-infra"
+      - "eutd-mmo-fes-pipeline-common"
+      - "eutd-mmo-fes-batch-data-process"
+      - "eutd-mmo-fes-orchestration"
+      - "eutd-mmo-fes-reference-data-reader"
+      - "eutd-mmo-fes-external-frontend"
+      - "eutd-mmo-fes-function-app"
+      - "eutd-mmo-fes-internal-admin-frontend"
+      - "eutd-mmo-fes-landings-consolidation"
+      - "eutd-mmo-fes-pdf"
+      - "eutd-mmo-fes-reference-shared-data"
+      - "eutd-mmo-fes-logic-apps"
+      - "eutd-mmo-fes-frontend-test-automation"
+  - name: targetPR
+    default: ""
+    displayName: Target PR number (AdHoc only. Eg. 117)
+    type: string
+
 resources:
   repositories:
     - repository: MMOPipelineCommon
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+
+    - repository: eutd_mmo_fes_core_infra
+      name: "DEFRA/eutd-mmo-fes-core-infra"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+    - repository: eutd_mmo_fes_pipeline_common
+      name: "DEFRA/eutd-mmo-fes-pipeline-common"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+    - repository: eutd_mmo_fes_batch_data_process
+      name: "DEFRA/eutd-mmo-fes-batch-data-process"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+    - repository: eutd_mmo_fes_orchestration
+      name: "DEFRA/eutd-mmo-fes-orchestration"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+    - repository: eutd_mmo_fes_reference_data_reader
+      name: "DEFRA/eutd-mmo-fes-reference-data-reader"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+    - repository: eutd_mmo_fes_external_frontend
+      name: "DEFRA/eutd-mmo-fes-external-frontend"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+    - repository: eutd_mmo_fes_function_app
+      name: "DEFRA/eutd-mmo-fes-function-app"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+    - repository: eutd_mmo_fes_internal_admin_frontend
+      name: "DEFRA/eutd-mmo-fes-internal-admin-frontend"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+    - repository: eutd_mmo_fes_landings_consolidation
+      name: "DEFRA/eutd-mmo-fes-landings-consolidation"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+    - repository: eutd_mmo_fes_pdf
+      name: "DEFRA/eutd-mmo-fes-pdf"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+    - repository: eutd_mmo_fes_reference_shared_data
+      name: "DEFRA/eutd-mmo-fes-reference-shared-data"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+    - repository: eutd_mmo_fes_logic_apps
+      name: "DEFRA/eutd-mmo-fes-logic-apps"
+      endpoint: DEFRA
+      type: github
+      ref: refs/heads/main
+    - repository: eutd_mmo_fes_frontend_test_automation
+      name: "DEFRA/eutd-mmo-fes-frontend-test-automation"
       endpoint: DEFRA
       type: github
       ref: refs/heads/main
@@ -23,3 +113,9 @@ variables:
 
 jobs:
   - template: /templates/copilot-analytics.yaml@MMOPipelineCommon
+    parameters:
+      targetRepository: ${{ parameters.targetRepository }}
+      targetPR: ${{ parameters.targetPR }}
+      appsRepos:
+        - ${{ if ne(parameters.targetRepository, '') }}:
+          - ${{ replace(parameters.targetRepository, '-', '_') }}
