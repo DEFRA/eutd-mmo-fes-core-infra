@@ -22,7 +22,7 @@ parameters:
       - "eutd-mmo-fes-orchestration"
       - "eutd-mmo-fes-reference-data-reader"
       - "eutd-mmo-fes-external-frontend"
-      - "eutd-mmo-fes-function-apps"
+      - "eutd-mmo-fes-function-app"
       - "eutd-mmo-fes-internal-admin-frontend"
       - "eutd-mmo-fes-landings-consolidation"
       - "eutd-mmo-fes-pdf"
@@ -72,8 +72,8 @@ resources:
       endpoint: DEFRA
       type: github
       ref: refs/heads/main
-    - repository: eutd_mmo_fes_function_apps
-      name: "DEFRA/eutd-mmo-fes-function-apps"
+    - repository: eutd_mmo_fes_function_app
+      name: "DEFRA/eutd-mmo-fes-function-app"
       endpoint: DEFRA
       type: github
       ref: refs/heads/main
