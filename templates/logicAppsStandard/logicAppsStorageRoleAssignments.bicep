@@ -33,7 +33,7 @@ module refDataStrAccRoleAssignments '.bicep/storageAccRoleAssignment.bicep' = {
   name: guid(subscriptionId, 'refDataStrAccRoleAssignments')
   params: {
     roleAssignments: strAccRoleAssignments
-    principalId: refDataLogicApp.identity.principalId
+    principalId: items(refDataLogicApp.identity.userAssignedIdentities)[0].value.principalId
     storageAccountName: storageAccountName
   }
 }
@@ -42,7 +42,7 @@ module processorStrAccRoleAssignments '.bicep/storageAccRoleAssignment.bicep' = 
   name: guid(subscriptionId, 'processorStrAccRoleAssignments')
   params: {
     roleAssignments: strAccRoleAssignments
-    principalId: processorLogicApp.identity.principalId
+    principalId: items(processorLogicApp.identity.userAssignedIdentities)[0].value.principalId
     storageAccountName: storageAccountName
   }
 }

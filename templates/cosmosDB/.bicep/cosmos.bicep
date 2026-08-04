@@ -221,6 +221,10 @@ resource cosmosThroughputDiagnostics 'Microsoft.Insights/diagnosticSettings@2021
         enabled: true
         categoryGroup: 'allLogs'
       }
+      {
+        enabled: true
+        categoryGroup: 'audit'
+      }
     ]
     metrics: [
       {
@@ -321,6 +325,10 @@ resource cosmosDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-pre
         enabled: true
         categoryGroup: 'allLogs'
       }
+      {
+        enabled: true
+        categoryGroup: 'audit'
+      }
     ]
     metrics: [
       {
@@ -340,6 +348,10 @@ resource cosmosGeoReplicaDiagnostics 'Microsoft.Insights/diagnosticSettings@2021
       {
         enabled: true
         categoryGroup: 'allLogs'
+      }
+      {
+        enabled: true
+        categoryGroup: 'audit'
       }
     ]
     metrics: [
