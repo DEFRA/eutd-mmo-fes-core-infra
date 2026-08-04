@@ -24,11 +24,13 @@ param westEuDnsStorageQueueZoneId string
 param ukWestDnsStorageQueueZoneId string
 param subnets array
 param cefasSubnets string
+param buildAgentSubnets string
 param firewallIps string
 
 var storageSuffix = az.environment().suffixes.storage
 var strAccArray = json(storageAccounts)
 var cefasSubnetsArray = json(cefasSubnets)
+var buildAgentSubnetsArray = json(buildAgentSubnets)
 var firewallIpsArray = json(firewallIps)
 
 var defaultTags = {
@@ -68,6 +70,12 @@ var cefasSubnetRules = [
   for cefasSubnet in cefasSubnetsArray: {
     action: 'Allow'
     id: cefasSubnet
+  }
+]
+var buildAgentSubnetRules = [
+  for buildAgentSubnet in buildAgentSubnetsArray: {
+    action: 'Allow'
+    id: buildAgentSubnet
   }
 ]
 var ipRules = [
@@ -111,7 +119,7 @@ module storageAccount 'br/avm:storage/storage-account:0.27.1' = [
         bypass: 'AzureServices'
         defaultAction: 'Deny'
         virtualNetworkRules: strAcc.Access == 'public'
-          ? concat(internalSubnetRules, cefasSubnetRules)
+          ? concat(internalSubnetRules, cefasSubnetRules, buildAgentSubnetRules)
           : null
         ipRules: strAcc.Access == 'public' ? ipRules : null
       }

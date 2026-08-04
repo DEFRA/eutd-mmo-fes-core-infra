@@ -79,6 +79,9 @@
     "cefasSubnets": {
       "value": "#{{ cefasSubnets }}"
     },
+    "buildAgentSubnets": {
+      "value": "#{{ buildAgentSubnets }}"
+    },
     "firewallIps": {
       "value": "#{{ firewallIps }}"
     }
