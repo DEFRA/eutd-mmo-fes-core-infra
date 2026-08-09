@@ -6,6 +6,9 @@ param createdDate string = utcNow('yyyy-MM-dd')
 param eventHubName string
 param logAnalyticsName string
 param ehbZoneRedundant string
+param keyVaultName string
+param keyVaultResourceGroupName string
+param eventHubPolicyName string = 'QRADAR_APP'
 
 param authorizationRules array = [
   {
@@ -96,5 +99,15 @@ module primaryNamespace 'br/avm:event-hub/namespace:0.10.2' = {
     managedIdentities: {
       systemAssigned: true
     }
+  }
+}
+
+module eventHubSecrets '.bicep/eventHubSecrets.bicep' = {
+  name: 'eventHub-secrets-${deploymentDate}'
+  scope: resourceGroup(keyVaultResourceGroupName)
+  params: {
+    keyVaultName: keyVaultName
+    secretName: 'EVENTHUB-CONNECTION-STRING'
+    authorizationRuleResourceId: '${primaryNamespace.outputs.resourceId}/eventhubs/${eventHubName}/authorizationRules/${eventHubPolicyName}'
   }
 }

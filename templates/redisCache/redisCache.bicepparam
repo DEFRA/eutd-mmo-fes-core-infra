@@ -3,7 +3,6 @@ using 'redisCache.bicep'
 param environment = '#{{ environment }}'
 param redisCacheName = '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-rediscachename }}#{{ nc-region-id }}01'
 param redisCacheSkuName = '#{{ cacheSkuName }}'
-param redisCacheCapacity = '#{{ cacheCapacity }}'
 
 param comparams = {
   logAnalyticsName: '#{{ environment }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-analytics }}#{{ nc-region-id }}01'
@@ -27,3 +26,6 @@ param secondaryRegionVnetName = '#{{ environmentName }}#{{ nc-deptService }}#{{ 
 param secondaryRegionVnetResourceGroupName = '#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-resourcegroup }}1601'
 param secondaryRegionPrivateEndpointSubnet = '#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-network }}#{{ nc-resource-subnet }}1606'
 param disasterRecoverySupported = '#{{ disasterRecoverySupported }}'
+param secondaryRedisCacheExists = '#{{ secondaryRedisCacheExists }}'
+param keyVaultName = '#{{ keyVaultName }}'
+param keyVaultResourceGroupName = '#{{ environmentName }}#{{ nc-deptService }}#{{ nc-function-infrastructure }}#{{ nc-resource-resourcegroup }}#{{ nc-static-res-region-id }}02'
