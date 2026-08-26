@@ -29,7 +29,7 @@ resource refdataAccessPolicies 'Microsoft.Web/connections/accessPolicies@2016-06
     principal: {
       type: 'ActiveDirectory'
       identity: {
-        objectId: refdataLogicApp.identity.principalId
+        objectId: items(refdataLogicApp.identity.userAssignedIdentities)[0].value.principalId
         tenantId: tenantId
       }
     }
@@ -43,7 +43,7 @@ resource processAccessPolicies 'Microsoft.Web/connections/accessPolicies@2016-06
     principal: {
       type: 'ActiveDirectory'
       identity: {
-        objectId: processorLogicApp.identity.principalId
+        objectId: items(processorLogicApp.identity.userAssignedIdentities)[0].value.principalId
         tenantId: tenantId
       }
     }
@@ -57,7 +57,7 @@ resource refdataAccessPolicies02 'Microsoft.Web/connections/accessPolicies@2016-
     principal: {
       type: 'ActiveDirectory'
       identity: {
-        objectId: refdataLogicApp.identity.principalId
+        objectId: items(refdataLogicApp.identity.userAssignedIdentities)[0].value.principalId
         tenantId: tenantId
       }
     }
@@ -71,7 +71,7 @@ resource processorAccessPolicies02 'Microsoft.Web/connections/accessPolicies@201
     principal: {
       type: 'ActiveDirectory'
       identity: {
-        objectId: processorLogicApp.identity.principalId
+        objectId: items(processorLogicApp.identity.userAssignedIdentities)[0].value.principalId
         tenantId: tenantId
       }
     }
@@ -85,7 +85,7 @@ resource refdataAccessPolicies03 'Microsoft.Web/connections/accessPolicies@2016-
     principal: {
       type: 'ActiveDirectory'
       identity: {
-        objectId: refdataLogicApp.identity.principalId
+        objectId: items(refdataLogicApp.identity.userAssignedIdentities)[0].value.principalId
         tenantId: tenantId
       }
     }
@@ -99,7 +99,7 @@ resource processorAccessPolicies03 'Microsoft.Web/connections/accessPolicies@201
     principal: {
       type: 'ActiveDirectory'
       identity: {
-        objectId: processorLogicApp.identity.principalId
+        objectId: items(processorLogicApp.identity.userAssignedIdentities)[0].value.principalId
         tenantId: tenantId
       }
     }

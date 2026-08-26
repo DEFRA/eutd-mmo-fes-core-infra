@@ -34,3 +34,4 @@ param aadclientId = az.getSecret(
 param aadAppIdUri = '#{{ aadAppIdUri }}'
 param slotsEnabled = '#{{ slotsEnabled }}'
 param appVersions = '#{{ appVersions }}'
+param managedIdentityName = '#{{ functionAppManagedIdentityName }}'

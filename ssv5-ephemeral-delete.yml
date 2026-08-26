@@ -40,14 +40,14 @@ extends:
         azureRegions:
           primary: UKSouth
         serviceConnection: AZR-MMO-SSV5
-        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+        privateAgentName: DEFRA-COMMON-UBUNTU-SSV5
         deploymentBranches:
           - "*"
       - name: "ssv_dev"
         azureRegions:
           primary: ${{ iif(eq(parameters.deployToSecondaryRegion, false), 'UKSouth', 'UKWest') }}
         serviceConnection: AZR-MMO-SSV5
-        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+        privateAgentName: DEFRA-COMMON-UBUNTU-SSV5
         developmentEnvironment: ${{ parameters.deployToSecondaryRegion }}
         dependsOn: "Validate"
         deploymentBranches:
@@ -57,7 +57,7 @@ extends:
         azureRegions:
           primary: UKSouth
         serviceConnection: AZR-MMO-SSV5
-        privateAgentName: DEFRA-COMMON-ubuntu2204-SSV5
+        privateAgentName: DEFRA-COMMON-UBUNTU-SSV5
         dependsOn: "ssv_snd"
         deploymentBranches:
           - "refs/heads/main"
@@ -95,10 +95,4 @@ extends:
             path: "scripts/Set-EphemeralTag.ps1"
             condition: and(succeeded(), eq(variables['ephemeral'], true))
             scriptArguments: -acrName '$(acrName)'
-          - name: "Remove_RoleAssignments"
-            scriptRepo: MMOPipelineCommon
-            type: script
-            scriptType: AzurePowerShell
-            path: "scripts/Remove-RoleAssignments.ps1"
-            condition: and(succeeded(), eq(variables['ephemeral'], true))
-            scriptArguments: -ResourceName '$(acrName)' -ResourceGroupName '$(acrResourceGroup)' -ResourceType 'Microsoft.ContainerRegistry/registries' -RoleDefinitionName 'AcrPull' -AppsResourceGroup '$(appEnvWebAppRgName)'
+            

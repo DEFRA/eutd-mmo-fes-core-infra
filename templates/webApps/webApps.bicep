@@ -31,7 +31,6 @@ var WebAppdefaultTags = {
   Environment: environment
   Tier: 'Web'
   Location: location
-  Ephemeral: ephemeral
 }
 
 var customTagsForWebApp = [
@@ -39,6 +38,15 @@ var customTagsForWebApp = [
     name: toUpper(webAppName.Name)
     Purpose: 'FESMMO-ASP'
     type: 'WebApp'
+    Ephemeral: ephemeral
+  }
+]
+
+var customTagsMI = [
+  for (app, i) in webAppNamesArray: {
+    name: toUpper(app.ManagedIdentityName)
+    Purpose: 'Identity'
+    type: 'User Assigned Managed Identity'
   }
 ]
 
@@ -74,6 +82,39 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' exis
   scope: resourceGroup(resourceGroupName)
 }
 
+// Create one user-assigned managed identity per web app
+module userAssignedIdentity 'br/avm:managed-identity/user-assigned-identity:0.5.1' = [
+  for (app, i) in webAppNamesArray: {
+    name: '${app.ManagedIdentityName}-${deploymentDate}'
+    params: {
+      name: toUpper(app.ManagedIdentityName)
+      location: location
+      tags: union(WebAppdefaultTags, customTagsMI[i])
+    }
+  }
+]
+
+// Existing reference to each user-assigned managed identity.
+// Referencing via a deterministic resource ID (rather than the module output) keeps
+// `az deployment group validate` preflight resolvable, avoiding the Azure CLI
+// "InvalidTemplateDeployment / content already consumed" crash (azure-cli#32952).
+resource userAssignedIdentityExisting 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = [
+  for (app, i) in webAppNamesArray: {
+    name: toUpper(app.ManagedIdentityName)
+    dependsOn: [
+      userAssignedIdentity[i]
+    ]
+  }
+]
+
+// Deterministic resource IDs for each user-assigned managed identity (validate-safe).
+var userAssignedIdentityResourceIds = [
+  for (app, i) in webAppNamesArray: resourceId(
+    'Microsoft.ManagedIdentity/userAssignedIdentities',
+    toUpper(app.ManagedIdentityName)
+  )
+]
+
 // Create Web Apps in batches
 @batchSize(2)
 module webApp 'br/avm:web/site:0.23.1' = [
@@ -94,6 +135,7 @@ module webApp 'br/avm:web/site:0.23.1' = [
               : cur
         )
         minTlsVersion: app.?TlsMinVersion ?? '1.3'
+        acrUserManagedIdentityID: userAssignedIdentityExisting[i].properties.clientId
       })
       configs: [
         {
@@ -131,7 +173,15 @@ module webApp 'br/avm:web/site:0.23.1' = [
                       : cur
                 )
                 minTlsVersion: app.?TlsMinVersion ?? '1.3'
+                acrUserManagedIdentityID: userAssignedIdentityExisting[i].properties.clientId
               })
+              managedIdentities: {
+                systemAssigned: false
+                userAssignedResourceIds: [
+                  userAssignedIdentityResourceIds[i]
+                ]
+              }
+              keyVaultAccessIdentityResourceId: userAssignedIdentityResourceIds[i]
               publicNetworkAccess: bool(app.IsFrontEnd) ? 'Enabled' : 'Disabled'
               privateEndpoints: bool(app.IsFrontEnd)
                 ? []
@@ -191,8 +241,15 @@ module webApp 'br/avm:web/site:0.23.1' = [
       clientAffinityEnabled: false
       tags: union(WebAppdefaultTags, customTagsForWebApp[i])
       managedIdentities: {
-        systemAssigned: true
+        systemAssigned: false
+        userAssignedResourceIds: [
+          userAssignedIdentityResourceIds[i]
+        ]
       }
+      keyVaultAccessIdentityResourceId: userAssignedIdentityResourceIds[i]
+      basicPublishingCredentialsPolicies: [
+        { name: 'scm', allow: true }
+      ]
       virtualNetworkSubnetResourceId: resourceId(
         vnetResourceGroupName,
         'Microsoft.Network/virtualNetworks/subnets',
