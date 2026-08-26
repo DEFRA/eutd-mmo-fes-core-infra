@@ -1,7 +1,6 @@
 param location string = resourceGroup().location
 param environment string
 param storageAccounts string
-param skuName string
 param accessTier string
 param kind string
 param vnetName string
@@ -58,7 +57,7 @@ module storageAccount 'br/avm:storage/storage-account:0.11.1' = [
   for (strAcc, i) in strAccArray: if (strAcc.Access == 'public') {
     params: {
       name: toLower(strAcc.Name)
-      skuName: skuName
+      skuName: any(strAccount[i].sku.name)
       kind: kind
       accessTier: accessTier
       supportsHttpsTrafficOnly: true

@@ -21,7 +21,7 @@ var customTagsForappInsights = {
   type: 'APPINSIGHTS'
 }
 
-var appInsightsId = resourceId('microsoft.insights/components', appInsightsName)
+var appInsightsId = resourceId('microsoft.insights/components', toUpper(appInsightsName))
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
   name: logAnalyticsName
@@ -46,6 +46,9 @@ resource webtests 'Microsoft.Insights/webtests@2018-05-01-preview' = [
     tags: {
       'hidden-link:${appInsightsId}': 'Resource'
     }
+    dependsOn: [
+      appInsights
+    ]
     properties: {
       Description: testsEndpoints.endpoints[i].description
       Enabled: testsEndpoints.endpoints[i].Enabled
