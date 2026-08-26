@@ -41,7 +41,7 @@ resources:
       name: "DEFRA/eutd-mmo-fes-pipeline-common"
       endpoint: DEFRA
       type: github
-      ref: feature/dr-test-pre1
+      ref: refs/heads/main
 
 variables:
   - name: IsAll
@@ -89,7 +89,7 @@ extends:
       - MMOPipelineCommon
     groupedDeployments:
       - name: infraResource
-        timeoutInMinutes: 60
+        timeoutInMinutes: 120
         deployments:
           - ${{ if eq(variables.IsNetworkAndLogAnalytics, true) }}:
               - name: network
@@ -135,7 +135,7 @@ extends:
                 scriptRepo: MMOPipelineCommon
                 type: script
                 scriptType: AzurePowerShell
-                path: "scripts/Switch-CosmosToSecondary.ps1"
+                path: "scripts/Switch-CosmosReplicaCluster.ps1"
                 scriptArguments: >
                   -SubscriptionId '$(subscriptionId)'
                   -ResourceGroupName '$(environmentName)$(nc-deptService)$(nc-function-infrastructure)$(nc-resource-resourcegroup)$(nc-static-res-region-id)02'
