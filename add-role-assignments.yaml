@@ -21,8 +21,8 @@ parameters:
     displayName: "Resource Name"
     type: string
 
-  - name: identityClientIds
-    displayName: "Identity Client IDs — comma-separated (App/Client ID of the managed identity or service principal)"
+  - name: identityObjectIds
+    displayName: "Identity Object IDs — comma-separated (Object ID of the managed identity or service principal)"
     type: string
 
   - name: roleDefinitionNames
@@ -65,11 +65,11 @@ stages:
 
                 $resourceName        = "${{ parameters.resourceName }}".Trim()
                 $resourceGroupName   = "${{ parameters.resourceGroupName }}".Trim()
-                $identityClientIds   = "${{ parameters.identityClientIds }}" -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+                $identityObjectIds   = "${{ parameters.identityObjectIds }}" -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
                 $roleDefinitionNames = "${{ parameters.roleDefinitionNames }}" -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
 
-                if (-not $identityClientIds) {
-                    Write-Error "At least one Identity Client ID must be provided."; exit 1
+                if (-not $identityObjectIds) {
+                    Write-Error "At least one Identity Object ID must be provided."; exit 1
                 }
                 if (-not $roleDefinitionNames) {
                     Write-Error "At least one Role Definition Name must be provided."; exit 1
@@ -87,19 +87,8 @@ stages:
                 Write-Host "Resource ID : $resourceId"
 
                 $failed = 0
-                foreach ($clientId in $identityClientIds) {
+                foreach ($principalId in $identityObjectIds) {
                     Write-Host ""
-                    Write-Host "Resolving principal (object) ID for client ID '$clientId'..."
-                    $principalId = ([string](az ad sp show `
-                        --id $clientId `
-                        --query "id" --output tsv)).Trim()
-                    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($principalId)) {
-                        Write-Error "Client ID '$clientId' did not resolve to a service principal. Verify the identity exists and the service connection has Microsoft Graph read permission."
-                        $failed++
-                        continue
-                    }
-                    Write-Host "Principal ID : $principalId"
-
                     foreach ($roleDefinitionName in $roleDefinitionNames) {
                         Write-Host "Creating role assignment: Role='$roleDefinitionName' Principal='$principalId' Scope='$resourceId'"
 
