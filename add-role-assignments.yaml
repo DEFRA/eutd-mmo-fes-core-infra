@@ -1,0 +1,127 @@
+name: $(BuildID)_Add_Role_Assignment
+
+trigger: none
+pr: none
+
+parameters:
+  - name: environment
+    displayName: "Target Environment"
+    type: string
+    default: dev1
+    values:
+      - snd1
+      - dev1
+      - tst1
+
+  - name: resourceGroupName
+    displayName: "Resource Group Name"
+    type: string
+
+  - name: resourceName
+    displayName: "Resource Name"
+    type: string
+
+  - name: identityClientIds
+    displayName: "Identity Client IDs — comma-separated (App/Client ID of the managed identity or service principal)"
+    type: string
+
+  - name: roleDefinitionNames
+    displayName: "Role Definition Names — comma-separated (e.g. Key Vault Secrets User, AcrPull)"
+    type: string
+
+variables:
+  - ${{ if eq(parameters.environment, 'snd1') }}:
+    - name: serviceConnection
+      value: AZR-MMO-SND1
+  - ${{ if eq(parameters.environment, 'dev1') }}:
+    - name: serviceConnection
+      value: AZR-MMO-DEV1
+  - ${{ if eq(parameters.environment, 'tst1') }}:
+    - name: serviceConnection
+      value: AZR-MMO-TST1
+
+stages:
+  - stage: Add_Role_Assignment
+    displayName: "Add Role Assignment [${{ parameters.environment }}]"
+    pool:
+      name: DEFRA-COMMON-ubuntu2204-SSV3
+    jobs:
+      - job: AddRoleAssignment
+        displayName: "Add Role Assignment"
+        timeoutInMinutes: 15
+        steps:
+          - task: AzureCLI@2
+            displayName: "Create Role Assignment on Resource"
+            retryCountOnTaskFailure: 2
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: pscore
+              scriptLocation: inlineScript
+              failOnStandardError: false
+              inlineScript: |
+                $ErrorActionPreference = 'Stop'
+
+                az account set --subscription "$(serviceConnection)"
+
+                $resourceName        = "${{ parameters.resourceName }}".Trim()
+                $resourceGroupName   = "${{ parameters.resourceGroupName }}".Trim()
+                $identityClientIds   = "${{ parameters.identityClientIds }}" -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+                $roleDefinitionNames = "${{ parameters.roleDefinitionNames }}" -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+
+                if (-not $identityClientIds) {
+                    Write-Error "At least one Identity Client ID must be provided."; exit 1
+                }
+                if (-not $roleDefinitionNames) {
+                    Write-Error "At least one Role Definition Name must be provided."; exit 1
+                }
+
+                Write-Host "Looking up resource '$resourceName' in '$resourceGroupName'..."
+                $resourceId = ([string](az resource list `
+                    --name $resourceName `
+                    --resource-group $resourceGroupName `
+                    --query "[0].id" --output tsv)).Trim()
+                if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($resourceId)) {
+                    Write-Error "Resource '$resourceName' not found in '$resourceGroupName'."
+                    exit 1
+                }
+                Write-Host "Resource ID : $resourceId"
+
+                $failed = 0
+                foreach ($clientId in $identityClientIds) {
+                    Write-Host ""
+                    Write-Host "Resolving principal (object) ID for client ID '$clientId'..."
+                    $principalId = ([string](az ad sp show `
+                        --id $clientId `
+                        --query "id" --output tsv)).Trim()
+                    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($principalId)) {
+                        Write-Error "Client ID '$clientId' did not resolve to a service principal. Verify the identity exists and the service connection has Microsoft Graph read permission."
+                        $failed++
+                        continue
+                    }
+                    Write-Host "Principal ID : $principalId"
+
+                    foreach ($roleDefinitionName in $roleDefinitionNames) {
+                        Write-Host "Creating role assignment: Role='$roleDefinitionName' Principal='$principalId' Scope='$resourceId'"
+
+                        # az role assignment create is idempotent: re-assigning an existing role is a no-op.
+                        az role assignment create `
+                            --assignee-object-id $principalId `
+                            --assignee-principal-type ServicePrincipal `
+                            --role $roleDefinitionName `
+                            --scope $resourceId `
+                            --output json
+                        if ($LASTEXITCODE -ne 0) {
+                            Write-Error "Failed to create role assignment '$roleDefinitionName' for principal '$principalId' on '$resourceId'."
+                            $failed++
+                            continue
+                        }
+
+                        Write-Host "[OK] Role assignment '$roleDefinitionName' is present for principal '$principalId'."
+                    }
+                }
+
+                if ($failed -gt 0) {
+                    Write-Error "$failed role assignment(s) failed. See log above."
+                    exit 1
+                }
+
