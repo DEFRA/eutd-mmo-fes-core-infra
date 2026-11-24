@@ -1,0 +1,20 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": ".github/agents/orchestrator.agent.md",
+  "added": 1,
+  "counts": {
+    "aiCompletion": 1,
+    "aiChat": 0,
+    "aiAgent": 0,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 0
+  },
+  "ranges": {
+    "ai-completion": "5"
+  },
+  "ai": [
+    [5, "c", "bd6e2e1d", 0]
+  ]
+}

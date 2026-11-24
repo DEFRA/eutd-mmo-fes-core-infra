@@ -1,0 +1,23 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/cosmosDB/.bicep/cosmos.bicep",
+  "added": 20,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 3,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 17
+  },
+  "ranges": {
+    "ai-agent": "109,118,262",
+    "untracked": "84,88,91,96,99,104,119,160,171,189,240,263,302,374,394,427,449"
+  },
+  "ai": [
+    [109, "a", "f4613061", 0],
+    [118, "a", "81d580ae", 0],
+    [262, "a", "c302cdf4", 0]
+  ]
+}

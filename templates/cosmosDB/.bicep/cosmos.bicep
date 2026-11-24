@@ -81,32 +81,32 @@ var privateEndpointTags = {
 var isCosmosServerless = bool(isServerless)
 var isCosmosVcore = bool(isVcore)
 
-resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2025-07-01' existing = {
   name: logAnalyticsWorkspace
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
   scope: resourceGroup(vnetResourceGroupName)
-  resource subnet 'subnets@2024-05-01' existing = {
+  resource subnet 'subnets@2025-05-01' existing = {
     name: privateEndpointSubnet
   }
 }
 
-resource secondaryVnet 'Microsoft.Network/virtualNetworks@2024-05-01' existing = if (isGeoRedundant) {
+resource secondaryVnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = if (isGeoRedundant) {
   name: secondaryRegionVnetName
   scope: resourceGroup(secondaryRegionVnetResourceGroupName)
-  resource subnet 'subnets@2024-05-01' existing = {
+  resource subnet 'subnets@2025-05-01' existing = {
     name: secondaryRegionPrivateEndpointSubnet
   }
 }
 
-resource secondaryRegionLaw 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = if (isGeoRedundant) {
+resource secondaryRegionLaw 'Microsoft.OperationalInsights/workspaces@2025-07-01' existing = if (isGeoRedundant) {
   name: secondaryRegionLogAnalyticsName
   scope: resourceGroup(secondaryRegionResourceGroup)
 }
 
-module secondaryRegionRG 'br/avm:resources/resource-group:0.4.1' = if (isGeoRedundant) {
+module secondaryRegionRG 'br/avm:resources/resource-group:0.4.4' = if (isGeoRedundant) {
   name: '${secondaryRegionResourceGroup}-${deploymentDate}'
   scope: subscription()
   params: {
@@ -115,8 +115,8 @@ module secondaryRegionRG 'br/avm:resources/resource-group:0.4.1' = if (isGeoRedu
   }
 }
 
-// UNABLE TO ADD CERTAIN CAPABILITIES VIA AVM. SO USING BICEP
-resource cosmosDbThroughputAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = if (!isCosmosVcore) {
+// Raw: AVM database-account uses preview API and unsafe defaults; see ADR 0001.
+resource cosmosDbThroughputAccount 'Microsoft.DocumentDB/databaseAccounts@2025-10-15' = if (!isCosmosVcore) {
   name: toLower(cosmosDBName)
   location: location
   tags: union(defaultTags, customTags)
@@ -157,7 +157,7 @@ resource cosmosDbThroughputAccount 'Microsoft.DocumentDB/databaseAccounts@2024-0
   }
 }
 
-resource exportCertMongoDbDatabase 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@2024-11-15' = if (!isCosmosVcore) {
+resource exportCertMongoDbDatabase 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@2025-10-15' = if (!isCosmosVcore) {
   name: cosmosMongoDbCollections.name
   parent: cosmosDbThroughputAccount
   properties: {
@@ -168,7 +168,7 @@ resource exportCertMongoDbDatabase 'Microsoft.DocumentDB/databaseAccounts/mongod
   }
 }
 
-resource privateEndpointCosmosThroughput 'Microsoft.Network/privateEndpoints@2024-03-01' = if (!isCosmosVcore) {
+resource privateEndpointCosmosThroughput 'Microsoft.Network/privateEndpoints@2025-05-01' = if (!isCosmosVcore) {
   name: '${toUpper(cosmosDBName)}-PE'
   location: location
   tags: privateEndpointTags
@@ -186,7 +186,7 @@ resource privateEndpointCosmosThroughput 'Microsoft.Network/privateEndpoints@202
       }
     ]
   }
-  resource privateDnsZoneGroupsCosmosThroughput 'privateDnsZoneGroups@2024-03-01' = {
+  resource privateDnsZoneGroupsCosmosThroughput 'privateDnsZoneGroups@2025-05-01' = {
     name: 'default'
     properties: {
       privateDnsZoneConfigs: [
@@ -237,7 +237,7 @@ resource cosmosThroughputDiagnostics 'Microsoft.Insights/diagnosticSettings@2021
 }
 
 @batchSize(4)
-resource exportCertMongoDbCollections 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases/collections@2024-11-15' = [
+resource exportCertMongoDbCollections 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases/collections@2025-10-15' = [
   for item in cosmosMongoDbCollections.collections: if (!isCosmosVcore) {
     name: item.name
     parent: exportCertMongoDbDatabase
@@ -259,8 +259,8 @@ resource exportCertMongoDbCollections 'Microsoft.DocumentDB/databaseAccounts/mon
   }
 ]
 
-// UNABLE TO DISABLE PUBLIC ACCESS VIA AVM. SO USING BICEP
-resource cosmosDb 'Microsoft.DocumentDB/mongoClusters@2025-07-01-preview' = if (isCosmosVcore) {
+// Raw: AVM mongo-cluster lacks geo-replica support; see ADR 0001.
+resource cosmosDb 'Microsoft.DocumentDB/mongoClusters@2025-09-01' = if (isCosmosVcore) {
   location: location
   name: toLower(cosmosDBName)
   properties: {
@@ -299,7 +299,7 @@ resource cosmosDb 'Microsoft.DocumentDB/mongoClusters@2025-07-01-preview' = if (
   tags: union(defaultTags, customTags)
 }
 
-resource cosmosDbGeoReplica 'Microsoft.DocumentDB/mongoClusters@2025-07-01-preview' = if (isCosmosVcore && isGeoRedundant) {
+resource cosmosDbGeoReplica 'Microsoft.DocumentDB/mongoClusters@2025-09-01' = if (isCosmosVcore && isGeoRedundant) {
   location: cosmosReadOnlyLocation
   name: toLower(secondaryCosmosDBName)
   properties: {
@@ -371,7 +371,7 @@ resource cosmosGeoReplicaDiagnostics 'Microsoft.Insights/diagnosticSettings@2021
   scope: cosmosDbGeoReplica
 }
 
-resource privateEndpointCosmos 'Microsoft.Network/privateEndpoints@2024-03-01' = if (isCosmosVcore) {
+resource privateEndpointCosmos 'Microsoft.Network/privateEndpoints@2025-05-01' = if (isCosmosVcore) {
   name: '${toUpper(cosmosDBName)}-PE'
   location: location
   tags: privateEndpointTags
@@ -391,7 +391,7 @@ resource privateEndpointCosmos 'Microsoft.Network/privateEndpoints@2024-03-01' =
       }
     ]
   }
-  resource privateDnsZoneGroupsCosmos 'privateDnsZoneGroups@2024-03-01' = {
+  resource privateDnsZoneGroupsCosmos 'privateDnsZoneGroups@2025-05-01' = {
     name: 'default'
     properties: {
       privateDnsZoneConfigs: [
@@ -424,7 +424,7 @@ resource privateEndpointCosmos 'Microsoft.Network/privateEndpoints@2024-03-01' =
   }
 }
 
-resource privateEndpointCosmosGeoReplica 'Microsoft.Network/privateEndpoints@2024-03-01' = if (isCosmosVcore && isGeoRedundant) {
+resource privateEndpointCosmosGeoReplica 'Microsoft.Network/privateEndpoints@2025-05-01' = if (isCosmosVcore && isGeoRedundant) {
   name: '${toUpper(secondaryCosmosDBName)}-PE'
   location: cosmosReadOnlyLocation
   tags: union(privateEndpointTags, {
@@ -446,7 +446,7 @@ resource privateEndpointCosmosGeoReplica 'Microsoft.Network/privateEndpoints@202
       }
     ]
   }
-  resource privateDnsZoneGroupsCosmosGeo 'privateDnsZoneGroups@2024-03-01' = {
+  resource privateDnsZoneGroupsCosmosGeo 'privateDnsZoneGroups@2025-05-01' = {
     name: 'default'
     properties: {
       privateDnsZoneConfigs: [

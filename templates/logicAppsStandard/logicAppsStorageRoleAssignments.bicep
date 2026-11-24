@@ -5,11 +5,11 @@ param storageAccountName string
 
 param subscriptionId string = subscription().subscriptionId
 
-resource refDataLogicApp 'Microsoft.Web/sites@2024-04-01' existing = {
+resource refDataLogicApp 'Microsoft.Web/sites@2025-03-01' existing = {
   name: refdatalogicAppName
   scope: resourceGroup(logicAppResourceGroupName)
 }
-resource processorLogicApp 'Microsoft.Web/sites@2024-04-01' existing = {
+resource processorLogicApp 'Microsoft.Web/sites@2025-03-01' existing = {
   name: processorlogicAppName
   scope: resourceGroup(logicAppResourceGroupName)
 }

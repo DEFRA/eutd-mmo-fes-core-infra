@@ -43,11 +43,11 @@ var defaultTags = {
   Location: location
 }
 
-resource law 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
+resource law 'Microsoft.OperationalInsights/workspaces@2025-07-01' existing = {
   name: logAnalyticsWorkspace
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2021-02-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
   scope: resourceGroup(vnetResourceGroupName)
   resource peSubnet 'subnets' existing = {
@@ -85,7 +85,7 @@ var ipRules = [
   }
 ]
 
-module storageAccount 'br/avm:storage/storage-account:0.27.1' = [
+module storageAccount 'br/avm:storage/storage-account:0.33.2' = [
   for (strAcc, i) in strAccArray: {
     name: '${strAcc.Name}-${deploymentDate}'
     params: {

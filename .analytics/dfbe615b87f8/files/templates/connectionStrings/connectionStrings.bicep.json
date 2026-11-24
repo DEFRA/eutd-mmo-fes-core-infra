@@ -1,0 +1,22 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/connectionStrings/connectionStrings.bicep",
+  "added": 10,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 2,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 8
+  },
+  "ranges": {
+    "ai-agent": "21,39",
+    "untracked": "26,30,43,55,67,79,91,103"
+  },
+  "ai": [
+    [21, "a", "0d99411c", 0],
+    [39, "a", "07ab69c6", 0]
+  ]
+}

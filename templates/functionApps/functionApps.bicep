@@ -67,7 +67,7 @@ var siteConfig = {
   minTlsCipherSuite: 'TLS_AES_256_GCM_SHA384'
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2021-02-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
   scope: resourceGroup(vnetResourceGroupName)
   resource subnet 'subnets' existing = {
@@ -78,7 +78,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-02-01' existing = {
   }
 }
 
-resource appServicePlan 'Microsoft.Web/serverfarms@2021-02-01' existing = {
+resource appServicePlan 'Microsoft.Web/serverfarms@2025-03-01' existing = {
   name: toUpper(aspName)
 }
 
@@ -87,17 +87,17 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   scope: resourceGroup(resourceGroupName)
 }
 
-resource law 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
+resource law 'Microsoft.OperationalInsights/workspaces@2025-07-01' existing = {
   name: logAnalyticsWorkspace
   scope: resourceGroup(resourceGroupName)
 }
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' existing = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
   name: toLower(webjobsStorageAccount)
   scope: resourceGroup(primaryRegionResourceGroupName)
 }
 // Create the user-assigned managed identity for the function app
-module userAssignedIdentity 'br/avm:managed-identity/user-assigned-identity:0.5.1' = {
+module userAssignedIdentity 'br/avm:managed-identity/user-assigned-identity:0.6.0' = {
   name: '${managedIdentityName}-${deploymentDate}'
   params: {
     name: toUpper(managedIdentityName)
@@ -123,7 +123,7 @@ var userAssignedIdentityResourceId = resourceId(
   toUpper(managedIdentityName)
 )
 
-module functionapp 'br/avm:web/site:0.23.1' = {
+module functionapp 'br/avm:web/site:0.24.0' = {
   name: '${funcAppName}-${deploymentDate}'
   params: {
     name: toUpper(funcAppName)
@@ -265,6 +265,11 @@ module functionapp 'br/avm:web/site:0.23.1' = {
             diagnosticSettings: [
               {
                 name: '${funcAppName}-staging-diagnosticSettings'
+                logCategoriesAndGroups: [
+                  {
+                    categoryGroup: 'allLogs'
+                  }
+                ]
                 metricCategories: [
                   {
                     category: 'AllMetrics'
@@ -340,6 +345,11 @@ module functionapp 'br/avm:web/site:0.23.1' = {
     diagnosticSettings: [
       {
         name: '${funcAppName}-diagnosticSettings'
+        logCategoriesAndGroups: [
+          {
+            categoryGroup: 'allLogs'
+          }
+        ]
         metricCategories: [
           {
             category: 'AllMetrics'

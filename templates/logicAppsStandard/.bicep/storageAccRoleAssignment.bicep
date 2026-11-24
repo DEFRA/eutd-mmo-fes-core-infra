@@ -2,7 +2,7 @@ param roleAssignments array
 param principalId string
 param storageAccountName string
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' existing = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
   name: toLower(storageAccountName)
 }
 

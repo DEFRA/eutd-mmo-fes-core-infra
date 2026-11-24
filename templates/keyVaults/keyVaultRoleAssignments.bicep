@@ -7,14 +7,14 @@ var webAppsObjectsArray = json(webAppNames)
 var webAppNamesArray = [for webApp in webAppsObjectsArray: webApp.Name]
 var allAppNames = union(webAppNamesArray, [functionAppName])
 
-resource webApps 'Microsoft.Web/sites@2024-04-01' existing = [
+resource webApps 'Microsoft.Web/sites@2025-03-01' existing = [
   for appName in allAppNames: {
     name: toUpper(appName)
     scope: resourceGroup(webAppResourceGroupName)
   }
 ]
 
-resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' existing = {
   name: keyVaultName
 }
 

@@ -1,0 +1,26 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/keyVaults/keyVaults.bicep",
+  "added": 9,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 6,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 3
+  },
+  "ranges": {
+    "ai-agent": "40,85-89",
+    "untracked": "28,31,36"
+  },
+  "ai": [
+    [40, "a", "60204c48", 0],
+    [85, "a", "7b54a7a9", 0],
+    [86, "a", "2c944dad", 0],
+    [87, "a", "da2abeab", 0],
+    [88, "a", "9845a6a3", 0],
+    [89, "a", "2a1e1832", 0]
+  ]
+}

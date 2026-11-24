@@ -1,0 +1,25 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/containerRegistries/containerRegistry.bicep",
+  "added": 8,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 5,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 3
+  },
+  "ranges": {
+    "ai-agent": "60,115-118",
+    "untracked": "35,38,43"
+  },
+  "ai": [
+    [60, "a", "73ef91b4", 0],
+    [115, "a", "b2d280af", 0],
+    [116, "a", "08556cae", 0],
+    [117, "a", "8f31e834", 0],
+    [118, "a", "655fc6c2", 0]
+  ]
+}

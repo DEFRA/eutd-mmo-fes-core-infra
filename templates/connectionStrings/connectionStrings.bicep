@@ -18,16 +18,16 @@ resource serviceBus 'Microsoft.ServiceBus/namespaces@2024-01-01' existing = {
   scope: resourceGroup(resourceGroupName)
 }
 
-resource redisCache 'Microsoft.Cache/redis@2024-03-01' existing = {
+resource redisCache 'Microsoft.Cache/redis@2024-11-01' existing = {
   name: redisCacheName
   scope: resourceGroup(resourceGroupName)
 }
 
-resource exportCertStorageAcc 'Microsoft.Storage/storageAccounts@2022-05-01' existing = {
+resource exportCertStorageAcc 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
   name: exportCertStorageName
 }
 
-resource refDataStorageAcc 'Microsoft.Storage/storageAccounts@2022-05-01' existing = {
+resource refDataStorageAcc 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
   name: refDataStorageName
 }
 
@@ -36,11 +36,11 @@ resource eventhubRule 'Microsoft.EventHub/namespaces/eventhubs/authorizationRule
   scope: resourceGroup(eventHubResourceGroupName)
 }
 
-resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' existing = {
   name: keyVaultName
 }
 
-resource servicebusSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+resource servicebusSecret 'Microsoft.KeyVault/vaults/secrets@2025-05-01' = {
   name: 'SERVICEBUS-CONNECTION-STRING'
   parent: keyVault
   properties: {
@@ -52,7 +52,7 @@ resource servicebusSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   }
 }
 
-resource redisSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+resource redisSecret 'Microsoft.KeyVault/vaults/secrets@2025-05-01' = {
   name: 'REDIS-PASSWORD'
   parent: keyVault
   properties: {
@@ -64,7 +64,7 @@ resource redisSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   }
 }
 
-resource redisSecret2 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+resource redisSecret2 'Microsoft.KeyVault/vaults/secrets@2025-05-01' = {
   name: 'REDIS-CONNECTION-STRING'
   parent: keyVault
   properties: {
@@ -76,7 +76,7 @@ resource redisSecret2 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   }
 }
 
-resource exportCertStorageSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+resource exportCertStorageSecret 'Microsoft.KeyVault/vaults/secrets@2025-05-01' = {
   name: 'EXPORTCERT-STORAGE-CONNECTION-STRING'
   parent: keyVault
   properties: {
@@ -88,7 +88,7 @@ resource exportCertStorageSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' 
   }
 }
 
-resource refDataStorageSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+resource refDataStorageSecret 'Microsoft.KeyVault/vaults/secrets@2025-05-01' = {
   name: 'REFDATA-STORAGE-CONNECTION-STRING'
   parent: keyVault
   properties: {
@@ -100,7 +100,7 @@ resource refDataStorageSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   }
 }
 
-resource eventHubConnectionSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+resource eventHubConnectionSecret 'Microsoft.KeyVault/vaults/secrets@2025-05-01' = {
   name: 'EVENTHUB-CONNECTION-STRING'
   parent: keyVault
   properties: {

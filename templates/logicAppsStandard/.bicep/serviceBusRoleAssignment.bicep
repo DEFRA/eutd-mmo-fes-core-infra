@@ -2,7 +2,7 @@ param roleAssignments array
 param principalId string
 param serviceBusName string
 
-resource serviceBus 'Microsoft.ServiceBus/namespaces@2022-10-01-preview' existing = {
+resource serviceBus 'Microsoft.ServiceBus/namespaces@2024-01-01' existing = {
   name: toLower(serviceBusName)
 }
 

@@ -38,7 +38,7 @@ var logAnalyticsModule = resourceId(
   logAnalyticsWorkspace
 )
 
-module appServicePlan 'br/avm:web/serverfarm:0.4.0' = [
+module appServicePlan 'br/avm:web/serverfarm:0.7.1' = [
   for asp in aspNamesArray: {
     name: '${asp}-${deploymentDate}'
     params: {

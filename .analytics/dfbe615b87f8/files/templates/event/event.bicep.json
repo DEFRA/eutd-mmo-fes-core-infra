@@ -1,0 +1,26 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/event/event.bicep",
+  "added": 7,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 6,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 1
+  },
+  "ranges": {
+    "ai-agent": "57,77-81",
+    "untracked": "53"
+  },
+  "ai": [
+    [57, "a", "df6eba31", 0],
+    [77, "a", "7b54a7a9", 0],
+    [78, "a", "2c944dad", 0],
+    [79, "a", "da2abeab", 0],
+    [80, "a", "9845a6a3", 0],
+    [81, "a", "2a1e1832", 0]
+  ]
+}

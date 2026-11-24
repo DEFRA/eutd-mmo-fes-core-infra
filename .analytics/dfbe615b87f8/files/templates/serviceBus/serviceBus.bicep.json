@@ -1,0 +1,25 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/serviceBus/serviceBus.bicep",
+  "added": 6,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 6,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 0
+  },
+  "ranges": {
+    "ai-agent": "49,68-72"
+  },
+  "ai": [
+    [49, "a", "3246079d", 0],
+    [68, "a", "7b54a7a9", 0],
+    [69, "a", "2c944dad", 0],
+    [70, "a", "da2abeab", 0],
+    [71, "a", "9845a6a3", 0],
+    [72, "a", "2a1e1832", 0]
+  ]
+}

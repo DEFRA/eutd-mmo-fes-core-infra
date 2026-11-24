@@ -50,11 +50,11 @@ var eventHubdefaultTags = {
   Tier: 'Web'
 }
 
-resource law 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
+resource law 'Microsoft.OperationalInsights/workspaces@2025-07-01' existing = {
   name: logAnalyticsName
 }
 
-module primaryNamespace 'br/avm:event-hub/namespace:0.10.2' = {
+module primaryNamespace 'br/avm:event-hub/namespace:0.15.3' = {
   name: '${eventHubNamespaceName}-${deploymentDate}'
   params: {
     name: toUpper(eventHubNamespaceName)
@@ -74,6 +74,11 @@ module primaryNamespace 'br/avm:event-hub/namespace:0.10.2' = {
     diagnosticSettings: [
       {
         name: '${eventHubNamespaceName}-diagnosticSettings'
+        logCategoriesAndGroups: [
+          {
+            categoryGroup: 'allLogs'
+          }
+        ]
         metricCategories: [
           {
             category: 'AllMetrics'

@@ -33,7 +33,7 @@ var nsg = union(nsgObject, {
   rules: json(nsgRules)
 })
 
-module routeTableInstance 'br/avm:network/route-table:0.4.0' = {
+module routeTableInstance 'br/avm:network/route-table:0.5.0' = {
   name: 'routeTableDeployment'
   params: {
     name: routeTable.name
@@ -44,7 +44,7 @@ module routeTableInstance 'br/avm:network/route-table:0.4.0' = {
   }
 }
 
-module networkSecurityGroup 'br/avm:network/network-security-group:0.5.0' = {
+module networkSecurityGroup 'br/avm:network/network-security-group:0.5.3' = {
   name: 'nsgDeployment'
   params: {
     name: nsg.name

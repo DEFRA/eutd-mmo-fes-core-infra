@@ -1,0 +1,21 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/keyVaults/keyVaultRoleAssignments.bicep",
+  "added": 2,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 2,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 0
+  },
+  "ranges": {
+    "ai-agent": "10,17"
+  },
+  "ai": [
+    [10, "a", "219eae0f", 0],
+    [17, "a", "07ab69c6", 0]
+  ]
+}

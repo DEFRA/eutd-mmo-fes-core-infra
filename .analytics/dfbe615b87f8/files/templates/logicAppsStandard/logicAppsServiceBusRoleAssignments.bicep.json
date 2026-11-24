@@ -1,0 +1,21 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/logicAppsStandard/logicAppsServiceBusRoleAssignments.bicep",
+  "added": 2,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 2,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 0
+  },
+  "ranges": {
+    "ai-agent": "8,12"
+  },
+  "ai": [
+    [8, "a", "2bb150e0", 0],
+    [12, "a", "3fc7e48d", 0]
+  ]
+}

@@ -1,4 +1,4 @@
 ﻿/.vs
 /.vscode/mcp.json
-null
-docs/
+docs/*
+!docs/adr/
