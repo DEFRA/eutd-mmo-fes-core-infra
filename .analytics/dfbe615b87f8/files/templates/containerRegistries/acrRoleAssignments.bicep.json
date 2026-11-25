@@ -1,0 +1,21 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/containerRegistries/acrRoleAssignments.bicep",
+  "added": 2,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 2,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 0
+  },
+  "ranges": {
+    "ai-agent": "6,13"
+  },
+  "ai": [
+    [6, "a", "219eae0f", 0],
+    [13, "a", "d440fd4a", 0]
+  ]
+}

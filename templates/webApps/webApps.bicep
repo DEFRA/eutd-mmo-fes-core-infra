@@ -64,7 +64,31 @@ var siteConfig = {
   scmMinTlsVersion: '1.3'
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2021-02-01' existing = {
+var accessRestrictionConfig = [
+  for app in webAppNamesArray: {
+    ipSecurityRestrictions: bool(app.IsFrontEnd)
+      ? [
+          {
+            ipAddress: 'AzureFrontDoor.Backend'
+            action: 'Allow'
+            tag: 'ServiceTag'
+            priority: 101
+            name: 'FrontDoor'
+            description: 'Allow FrontDoor Backend connection'
+            headers: {
+              'x-azure-fdid': [
+                frontDoorId
+              ]
+            }
+          }
+        ]
+      : []
+    ipSecurityRestrictionsDefaultAction: 'Deny'
+    scmIpSecurityRestrictionsUseMain: true
+  }
+]
+
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
   scope: resourceGroup(vnetResourceGroupName)
   resource subnet 'subnets' existing = {
@@ -77,13 +101,13 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   scope: resourceGroup(resourceGroupName)
 }
 
-resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2025-07-01' existing = {
   name: logAnalyticsWorkspace
   scope: resourceGroup(resourceGroupName)
 }
 
 // Create one user-assigned managed identity per web app
-module userAssignedIdentity 'br/avm:managed-identity/user-assigned-identity:0.5.1' = [
+module userAssignedIdentity 'br/avm:managed-identity/user-assigned-identity:0.6.0' = [
   for (app, i) in webAppNamesArray: {
     name: '${app.ManagedIdentityName}-${deploymentDate}'
     params: {
@@ -117,7 +141,7 @@ var userAssignedIdentityResourceIds = [
 
 // Create Web Apps in batches
 @batchSize(2)
-module webApp 'br/avm:web/site:0.23.1' = [
+module webApp 'br/avm:web/site:0.24.0' = [
   for (app, i) in webAppNamesArray: {
     name: '${app.Name}-${deploymentDate}'
     params: {
@@ -125,18 +149,22 @@ module webApp 'br/avm:web/site:0.23.1' = [
       location: location
       kind: 'app,linux,container'
       serverFarmResourceId: resourceId('Microsoft.Web/serverfarms', app.ASP)
-      siteConfig: union(siteConfig, {
-        linuxFxVersion: reduce(
-          appVersionsArray,
-          'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest',
-          (cur, next) =>
-            (toUpper(next.Name) == toUpper(app.Name) && next.Slot != true)
-              ? next.LinuxFxVersion
-              : cur
-        )
-        minTlsVersion: app.?TlsMinVersion ?? '1.3'
-        acrUserManagedIdentityID: userAssignedIdentityExisting[i].properties.clientId
-      })
+      siteConfig: union(
+        siteConfig,
+        {
+          linuxFxVersion: reduce(
+            appVersionsArray,
+            'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest',
+            (cur, next) =>
+              (toUpper(next.Name) == toUpper(app.Name) && next.Slot != true)
+                ? next.LinuxFxVersion
+                : cur
+          )
+          minTlsVersion: app.?TlsMinVersion ?? '1.3'
+          acrUserManagedIdentityID: userAssignedIdentityExisting[i].properties.clientId
+        },
+        ephemeralFlag ? accessRestrictionConfig[i] : {}
+      )
       configs: [
         {
           name: 'appsettings'
@@ -163,18 +191,22 @@ module webApp 'br/avm:web/site:0.23.1' = [
                 allTraffic: true
                 imagePullTraffic: true
               }
-              siteConfig: union(siteConfig, {
-                linuxFxVersion: reduce(
-                  appVersionsArray,
-                  'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest',
-                  (cur, next) =>
-                    (toUpper(next.Name) == toUpper(app.Name) && next.Slot == true)
-                      ? next.LinuxFxVersion
-                      : cur
-                )
-                minTlsVersion: app.?TlsMinVersion ?? '1.3'
-                acrUserManagedIdentityID: userAssignedIdentityExisting[i].properties.clientId
-              })
+              siteConfig: union(
+                siteConfig,
+                {
+                  linuxFxVersion: reduce(
+                    appVersionsArray,
+                    'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest',
+                    (cur, next) =>
+                      (toUpper(next.Name) == toUpper(app.Name) && next.Slot == true)
+                        ? next.LinuxFxVersion
+                        : cur
+                  )
+                  minTlsVersion: app.?TlsMinVersion ?? '1.3'
+                  acrUserManagedIdentityID: userAssignedIdentityExisting[i].properties.clientId
+                },
+                accessRestrictionConfig[i]
+              )
               managedIdentities: {
                 systemAssigned: false
                 userAssignedResourceIds: [
@@ -219,6 +251,11 @@ module webApp 'br/avm:web/site:0.23.1' = [
               diagnosticSettings: [
                 {
                   name: '${app.Name}-staging-diagnosticSettings'
+                  logCategoriesAndGroups: [
+                    {
+                      categoryGroup: 'allLogs'
+                    }
+                  ]
                   metricCategories: [
                     {
                       category: 'AllMetrics'
@@ -291,6 +328,11 @@ module webApp 'br/avm:web/site:0.23.1' = [
       diagnosticSettings: [
         {
           name: '${app.Name}-diagnosticSettings'
+          logCategoriesAndGroups: [
+            {
+              categoryGroup: 'allLogs'
+            }
+          ]
           metricCategories: [
             {
               category: 'AllMetrics'
@@ -301,87 +343,6 @@ module webApp 'br/avm:web/site:0.23.1' = [
         }
       ]
     }
-  }
-]
-
-resource createdWebApps 'Microsoft.Web/sites@2024-04-01' existing = [
-  for (app, i) in webAppNamesArray: if (bool(slotsEnabled)) {
-    name: toUpper(app.Name)
-    dependsOn: [
-      webApp[i]
-    ]
-  }
-]
-
-resource createdStagingSlots 'Microsoft.Web/sites/slots@2024-04-01' existing = [
-  for (app, i) in webAppNamesArray: if (bool(slotsEnabled)) {
-    name: 'staging'
-    parent: createdWebApps[i]
-    dependsOn: [
-      webApp[i]
-    ]
-  }
-]
-
-resource stagingSlotConfig 'Microsoft.Web/sites/slots/config@2024-04-01' = [
-  for (app, i) in webAppNamesArray: if (bool(slotsEnabled)) {
-    name: 'web'
-    parent: createdStagingSlots[i]
-    properties: {
-      ipSecurityRestrictions: bool(app.IsFrontEnd)
-        ? [
-            {
-              ipAddress: 'AzureFrontDoor.Backend'
-              action: 'Allow'
-              tag: 'ServiceTag'
-              priority: 101
-              name: 'FrontDoor'
-              description: 'Allow FrontDoor Backend connection'
-              headers: {
-                'x-azure-fdid': [
-                  frontDoorId
-                ]
-              }
-            }
-          ]
-        : []
-      ipSecurityRestrictionsDefaultAction: 'Deny'
-      scmIpSecurityRestrictionsUseMain: true
-    }
-    dependsOn: [
-      createdStagingSlots[i]
-    ]
-  }
-]
-
-resource webAppsConfig 'Microsoft.Web/sites/config@2024-04-01' = [
-  for (app, i) in webAppNamesArray: if (ephemeralFlag) {
-    name: 'web'
-    parent: createdWebApps[i]
-    properties: {
-      ipSecurityRestrictions: bool(app.IsFrontEnd)
-        ? [
-            {
-              ipAddress: 'AzureFrontDoor.Backend'
-              action: 'Allow'
-              tag: 'ServiceTag'
-              priority: 101
-              name: 'FrontDoor'
-              description: 'Allow FrontDoor Backend connection'
-              headers: {
-                'x-azure-fdid': [
-                  frontDoorId
-                ]
-              }
-            }
-          ]
-        : []
-      ipSecurityRestrictionsDefaultAction: 'Deny'
-      scmIpSecurityRestrictionsUseMain: true
-    }
-    dependsOn: [
-      createdWebApps[i]
-    ]
   }
 ]
 

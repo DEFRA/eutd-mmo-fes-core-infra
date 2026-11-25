@@ -1,0 +1,21 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/apiConnections/apiConnectionsAccesspolicies.bicep",
+  "added": 2,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 2,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 0
+  },
+  "ranges": {
+    "ai-agent": "15,20"
+  },
+  "ai": [
+    [15, "a", "82ee3887", 0],
+    [20, "a", "3fc7e48d", 0]
+  ]
+}

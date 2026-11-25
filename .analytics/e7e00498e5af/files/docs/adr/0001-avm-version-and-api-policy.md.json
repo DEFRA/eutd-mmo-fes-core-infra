@@ -1,0 +1,26 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "docs/adr/0001-avm-version-and-api-policy.md",
+  "added": 7,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 7,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 0
+  },
+  "ranges": {
+    "ai-agent": "70,72,74-76,78,80"
+  },
+  "ai": [
+    [70, "a", "951e1245", 0],
+    [72, "a", "0ce3ac04", 0],
+    [74, "a", "d8c378fa", 0],
+    [75, "a", "4fb9cce0", 0],
+    [76, "a", "3632b41d", 0],
+    [78, "a", "767763bb", 0],
+    [80, "a", "552cc49d", 0]
+  ]
+}

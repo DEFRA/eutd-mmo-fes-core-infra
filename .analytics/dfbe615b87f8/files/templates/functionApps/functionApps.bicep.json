@@ -1,0 +1,22 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/functionApps/functionApps.bicep",
+  "added": 16,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 2,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 14
+  },
+  "ranges": {
+    "ai-agent": "81,100",
+    "untracked": "70,90,95,126,268-272,348-352"
+  },
+  "ai": [
+    [81, "a", "d3662fec", 0],
+    [100, "a", "b5b97ffc", 0]
+  ]
+}

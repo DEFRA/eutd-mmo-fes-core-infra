@@ -46,7 +46,7 @@ var authorizationRules = [
   }
 ]
 
-module serviceBusNamespace 'br/avm:service-bus/namespace:0.14.1' = {
+module serviceBusNamespace 'br/avm:service-bus/namespace:0.17.2' = {
   name: '${serviceBusName}-${deploymentDate}'
   params: {
     name: serviceBusName
@@ -65,6 +65,11 @@ module serviceBusNamespace 'br/avm:service-bus/namespace:0.14.1' = {
     diagnosticSettings: [
       {
         name: '${serviceBusName}-diagnosticSettings'
+        logCategoriesAndGroups: [
+          {
+            categoryGroup: 'allLogs'
+          }
+        ]
         metricCategories: [
           {
             category: 'AllMetrics'

@@ -32,15 +32,15 @@ var customTags = {
   type: 'ACR'
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2020-11-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
   scope: resourceGroup(vnetResourceGroupName)
-  resource subnet 'subnets@2024-05-01' existing = {
+  resource subnet 'subnets@2025-05-01' existing = {
     name: registry.subnet
   }
 }
 
-module containerRegistry 'br/avm:container-registry/registry:0.6.0' = {
+module containerRegistry 'br/avm:container-registry/registry:0.13.2' = {
   name: '${registry.name}-${deploymentDate}'
   scope: resourceGroup(registry.resourceGroup)
   params: {
@@ -57,8 +57,7 @@ module containerRegistry 'br/avm:container-registry/registry:0.6.0' = {
     }
     networkRuleBypassOptions: 'AzureServices'
     dataEndpointEnabled: true
-    networkRuleSetDefaultAction: 'Deny'
-    networkRuleSetIpRules: []
+    // networkRuleSet omitted: sending it would flip live Allow to Deny.
     replications: bool(acrGeoReplicationEnabled)
       ? [
           {
@@ -113,6 +112,10 @@ module containerRegistry 'br/avm:container-registry/registry:0.6.0' = {
       }
     ]
     publicNetworkAccess: 'Disabled'
+    // Pinned: the module default changed from 'enabled' to 'disabled' in later versions.
+    azureADAuthenticationAsArmPolicyStatus: 'enabled'
+    // Pinned: ABAC is announced as the future service default; live registry uses legacy mode.
+    roleAssignmentMode: 'LegacyRegistryPermissions'
   }
 }
 

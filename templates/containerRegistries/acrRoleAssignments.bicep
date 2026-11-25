@@ -3,14 +3,14 @@ param webAppResourceGroupName string
 param acrName string
 param appEnvSubscriptionId string
 
-resource webApps 'Microsoft.Web/sites@2024-04-01' existing = [
+resource webApps 'Microsoft.Web/sites@2025-03-01' existing = [
   for app in webAppNames: {
     name: toUpper(app)
     scope: resourceGroup(appEnvSubscriptionId, webAppResourceGroupName)
   }
 ]
 
-resource acr 'Microsoft.ContainerRegistry/registries@2023-06-01-preview' existing = {
+resource acr 'Microsoft.ContainerRegistry/registries@2025-11-01' existing = {
   name: acrName
 }
 

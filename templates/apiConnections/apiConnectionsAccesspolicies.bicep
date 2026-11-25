@@ -12,12 +12,12 @@ var storageConnectionName = toUpper(storageConnection)
 var serviceBusConnectionName = toUpper(serviceBusConnection)
 var scopeGroup = resourceGroup().name
 
-resource refdataLogicApp 'Microsoft.Web/sites@2024-04-01' existing = {
+resource refdataLogicApp 'Microsoft.Web/sites@2025-03-01' existing = {
   name: refdatalogicAppName
   scope: resourceGroup(scopeGroup)
 }
 
-resource processorLogicApp 'Microsoft.Web/sites@2024-04-01' existing = {
+resource processorLogicApp 'Microsoft.Web/sites@2025-03-01' existing = {
   name: processorlogicAppName
   scope: resourceGroup(scopeGroup)
 }

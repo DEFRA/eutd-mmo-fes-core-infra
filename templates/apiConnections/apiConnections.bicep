@@ -3,6 +3,7 @@ param environment string
 param location string = resourceGroup().location
 param storagerefdataName string
 param createdDate string = utcNow('yyyy-MM-dd')
+param deploymentDate string = utcNow('yyyyMMdd-HHmmss')
 param serviceBusConnection string
 param azureMgmtUri string
 param resourceGroupName string
@@ -16,11 +17,10 @@ param common object
 @secure()
 param servicePrincipalSecret string
 param servicePrincipalTenant string
-var storageResourceId = resourceId(
-  primaryRegionResourceGroupName,
-  'Microsoft.Storage/storageAccounts',
-  toLower(storagerefdataName)
-)
+resource storageRefData 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
+  name: toLower(storagerefdataName)
+  scope: resourceGroup(primaryRegionResourceGroupName)
+}
 
 var defaulttags = {
   ServiceCode: 'FES'
@@ -37,18 +37,20 @@ resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2024-01-01' existi
 }
 var authRuleResourceId = '${serviceBusNamespace.id}/authorizationRules/RootManageSharedAccessKey'
 
-resource storageConnection_name 'Microsoft.Web/connections@2016-06-01' = {
-  name: toUpper(storageConnection)
-  location: location
-  kind: 'V2'
-  tags: defaulttags
-  properties: {
+module storageConnection_name 'br/avm:web/connection:0.4.4' = {
+  name: '${toUpper(storageConnection)}-${deploymentDate}'
+  params: {
+    name: toUpper(storageConnection)
+    location: location
+    kind: 'V2'
+    tags: defaulttags
+    displayName: 'Azure Table Storage'
     api: {
       id: subscriptionResourceId('Microsoft.Web/locations/managedApis', location, 'azuretables')
     }
     parameterValues: {
       storageaccount: toLower(storagerefdataName)
-      sharedkey: listKeys(storageResourceId, '2019-04-01').keys[0].value
+      sharedkey: storageRefData.listKeys().keys[0].value
     }
     testLinks: [
       {
@@ -62,12 +64,13 @@ resource storageConnection_name 'Microsoft.Web/connections@2016-06-01' = {
   }
 }
 
-resource serviceBusconnections 'Microsoft.Web/connections@2016-06-01' = {
-  name: toUpper(serviceBusConnection)
-  location: location
-  tags: defaulttags
-  kind: 'V2'
-  properties: {
+module serviceBusconnections 'br/avm:web/connection:0.4.4' = {
+  name: '${toUpper(serviceBusConnection)}-${deploymentDate}'
+  params: {
+    name: toUpper(serviceBusConnection)
+    location: location
+    tags: defaulttags
+    kind: 'V2'
     displayName: 'servicebus-connect-resource'
     api: {
       id: subscriptionResourceId('Microsoft.Web/locations/managedApis', location, 'servicebus')
@@ -78,12 +81,13 @@ resource serviceBusconnections 'Microsoft.Web/connections@2016-06-01' = {
   }
 }
 
-resource CommonApiConnection 'Microsoft.Web/connections@2016-06-01' = {
-  name: toUpper(CommonApiContName)
-  location: location
-  tags: defaulttags
-  kind: 'V2'
-  properties: {
+module CommonApiConnection 'br/avm:web/connection:0.4.4' = {
+  name: '${toUpper(CommonApiContName)}-${deploymentDate}'
+  params: {
+    name: toUpper(CommonApiContName)
+    location: location
+    tags: defaulttags
+    kind: 'V2'
     displayName: 'commondataservice'
     customParameterValues: {}
     api: {
@@ -103,5 +107,15 @@ resource CommonApiConnection 'Microsoft.Web/connections@2016-06-01' = {
   }
 }
 
-output commonApiConnectionId string = CommonApiConnection.id
-output connectionRuntimeUrl string = CommonApiConnection.properties.connectionRuntimeUrl
+// Module outputs omit connectionRuntimeUrl, so read it from the deployed connection.
+resource commonApiConnectionRuntime 'Microsoft.Web/connections@2016-06-01' existing = {
+  name: toUpper(CommonApiContName)
+  dependsOn: [
+    CommonApiConnection
+  ]
+}
+
+output commonApiConnectionId string = CommonApiConnection.outputs.resourceId
+// connectionRuntimeUrl is returned by ARM but missing from the type definition.
+#disable-next-line BCP053
+output connectionRuntimeUrl string = commonApiConnectionRuntime.properties.connectionRuntimeUrl

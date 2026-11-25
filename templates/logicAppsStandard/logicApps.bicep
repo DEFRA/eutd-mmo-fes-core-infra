@@ -46,17 +46,17 @@ var customTagsMI = [
   }
 ]
 
-resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
   scope: resourceGroup(vnetResourceGroupName)
-  resource subnet 'subnets@2024-05-01' existing = {
+  resource subnet 'subnets@2025-05-01' existing = {
     name: subnetName
   }
-  resource privateEndpoint 'subnets@2024-05-01' existing = {
+  resource privateEndpoint 'subnets@2025-05-01' existing = {
     name: privateEndpointSubnet
   }
 }
-resource storageModule 'Microsoft.Storage/storageAccounts@2023-05-01' existing = {
+resource storageModule 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
   name: refedataStorageAccountName
   scope: resourceGroup(primaryRegionResourceGroupName)
 }
@@ -65,7 +65,7 @@ resource appInsightsModule 'Microsoft.Insights/components@2020-02-02' existing =
   scope: resourceGroup(resourceGroupName)
 }
 
-module userAssignedIdentity 'br/avm:managed-identity/user-assigned-identity:0.5.1' = [
+module userAssignedIdentity 'br/avm:managed-identity/user-assigned-identity:0.6.0' = [
   for (logicApp, i) in logicAppsArray: {
     name: logicApp.ManagedIdentityName
     params: {
@@ -87,7 +87,7 @@ var userAssignedIdentityResourceIds = [
   )
 ]
 
-module logicApp 'br/avm:web/site:0.23.1' = [
+module logicApp 'br/avm:web/site:0.24.0' = [
   for (logicApp, i) in logicAppsArray: {
     name: logicApp.Name
     dependsOn: [
@@ -192,6 +192,11 @@ module logicApp 'br/avm:web/site:0.23.1' = [
       diagnosticSettings: [
         {
           name: '${logicApp.Name}-diagnosticSettings'
+          logCategoriesAndGroups: [
+            {
+              categoryGroup: 'allLogs'
+            }
+          ]
           metricCategories: [
             {
               category: 'AllMetrics'

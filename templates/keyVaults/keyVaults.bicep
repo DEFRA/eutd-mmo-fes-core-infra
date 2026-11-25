@@ -25,19 +25,19 @@ var defaultTags = {
   Location: location
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
   scope: resourceGroup(vnetResourceGroupName)
-  resource subnet 'subnets@2024-05-01' existing = {
+  resource subnet 'subnets@2025-05-01' existing = {
     name: privateEndpointSubnet
   }
 }
 
-resource law 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
+resource law 'Microsoft.OperationalInsights/workspaces@2025-07-01' existing = {
   name: logAnalyticsWorkspace
 }
 
-module keyVault 'br/avm:key-vault/vault:0.11.2' = {
+module keyVault 'br/avm:key-vault/vault:0.14.0' = {
   name: '${keyVaultName}-${deploymentDate}'
   params: {
     name: toUpper(keyVaultName)
@@ -49,10 +49,6 @@ module keyVault 'br/avm:key-vault/vault:0.11.2' = {
     enableRbacAuthorization: true
     enableSoftDelete: true
     softDeleteRetentionInDays: softDeleteRetentionDays
-    networkAcls: {
-      networkAclBypass: 'AzureServices'
-      publicNetworkAccess: 'Disabled'
-    }
     privateEndpoints: [
       {
         name: toUpper('${keyVaultName}-PE')
@@ -86,6 +82,11 @@ module keyVault 'br/avm:key-vault/vault:0.11.2' = {
     ]
     diagnosticSettings: [
       {
+        logCategoriesAndGroups: [
+          {
+            categoryGroup: 'allLogs'
+          }
+        ]
         metricCategories: [
           {
             category: 'AllMetrics'

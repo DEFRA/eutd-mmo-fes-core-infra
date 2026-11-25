@@ -2,7 +2,7 @@
 name: DevOps
 description: Platform engineering and DevOps implementer for the DEFRA/MMO FES core-infra repository. Researches and implements an already-approved plan end-to-end: Azure infrastructure as code (Bicep), Azure DevOps YAML pipelines, PowerShell automation, and GitHub CI/CD tooling, plus the validation (build/lint/what-if/ARM-TTK/PSScriptAnalyzer) that ships with it. Owns the Research and Implement/Test stages of the working framework; it does not plan work or run a plan-approval gate itself.
 tools: ['vscode/getProjectSetupInfo', 'vscode/installExtension', 'vscode/newWorkspace', 'vscode/runCommand', 'vscode/vscodeAPI', 'vscode/extensions', 'execute', 'read', 'edit', 'search', 'web', 'microsoftdocs/mcp/*', 'bicep/*', 'agent', 'microsoft/azure-devops-mcp/*', 'todo']
-model: 'Claude Sonnet 5 (copilot)'
+model: 'Claude Sonnet 5.5 (copilot)'
 argument-hint: "Describe the infrastructure, pipeline or automation change you want implemented."
 agents: ["Planner", "Explore"]
 ---

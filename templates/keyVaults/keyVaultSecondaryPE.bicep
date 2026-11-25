@@ -15,20 +15,20 @@ var privateEndpointTags = {
   Environment: environment
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
   scope: resourceGroup(vnetResourceGroupName)
-  resource subnet 'subnets@2024-05-01' existing = {
+  resource subnet 'subnets@2025-05-01' existing = {
     name: privateEndpointSubnet
   }
 }
 
-resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' existing = {
   name: keyVaultName
   scope: resourceGroup(keyVaultResourceGroupName)
 }
 
-module keyVaultPE 'br/avm:network/private-endpoint:0.11.0' = {
+module keyVaultPE 'br/avm:network/private-endpoint:0.12.2' = {
   name: toUpper('${keyVaultName}-PE-SEC')
   params: {
     name: toUpper('${keyVaultName}-PE-SEC')

@@ -4,14 +4,14 @@ param resourceGroupName string
 param aspNames string
 param logicAppAspName string
 
-resource asps 'Microsoft.Web/serverfarms@2024-04-01' existing = [
+resource asps 'Microsoft.Web/serverfarms@2025-03-01' existing = [
   for item in json(aspNames): {
     name: item.Name
     scope: resourceGroup(resourceGroupName)
   }
 ]
 
-resource logicAppAsp 'Microsoft.Web/serverfarms@2024-04-01' existing = {
+resource logicAppAsp 'Microsoft.Web/serverfarms@2025-03-01' existing = {
   name: logicAppAspName
   scope: resourceGroup(resourceGroupName)
 }

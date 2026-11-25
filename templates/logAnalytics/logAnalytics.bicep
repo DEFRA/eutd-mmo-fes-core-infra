@@ -18,13 +18,17 @@ var logAnalyticdefaultTags = {
   type: 'LOG'
 }
 
-module law 'br/avm:operational-insights/workspace:0.7.0' = {
+module law 'br/avm:operational-insights/workspace:0.16.2' = {
   name: '${logAnalyticsWorkspace}-${deploymentDate}'
   params: {
     name: toUpper(logAnalyticsWorkspace)
     location: location
     dataRetention: 30
     skuName: 'PerGB2018'
+    // Pinned: the module default for disableLocalAuth changed to true in later versions.
+    features: {
+      disableLocalAuth: false
+    }
     tags: logAnalyticdefaultTags
   }
 }

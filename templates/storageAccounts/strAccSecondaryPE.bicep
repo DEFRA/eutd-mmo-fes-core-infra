@@ -26,10 +26,10 @@ param deploymentDate string = utcNow('yyyyMMdd-HHmmss')
 var storageSuffix = az.environment().suffixes.storage
 var strAccArray = json(storageAccounts)
 
-resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
   scope: resourceGroup(vnetResourceGroupName)
-  resource subnet 'subnets@2024-05-01' existing = {
+  resource subnet 'subnets@2025-05-01' existing = {
     name: privateEndpointSubnet
   }
   resource internalSubnets 'subnets' existing = [
@@ -46,14 +46,14 @@ var internalSubnetRules = [
   }
 ]
 
-resource strAccount 'Microsoft.Storage/storageAccounts@2021-02-01' existing = [
+resource strAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = [
   for (strAcc, i) in strAccArray: if (strAcc.Access == 'public') {
     name: toLower(strAcc.Name)
     scope: resourceGroup(strAccResourceGroupName)
   }
 ]
 
-module storageAccount 'br/avm:storage/storage-account:0.11.1' = [
+module storageAccount 'br/avm:storage/storage-account:0.33.2' = [
   for (strAcc, i) in strAccArray: if (strAcc.Access == 'public') {
     params: {
       name: toLower(strAcc.Name)
@@ -85,7 +85,7 @@ module storageAccount 'br/avm:storage/storage-account:0.11.1' = [
   }
 ]
 
-module strAccBlobPE 'br/avm:network/private-endpoint:0.11.0' = [
+module strAccBlobPE 'br/avm:network/private-endpoint:0.12.2' = [
   for (strAcc, i) in strAccArray: if (strAcc.Access == 'private' && contains(
     strAcc.PrivateEndpoints,
     'blob'
@@ -139,7 +139,7 @@ module strAccBlobPE 'br/avm:network/private-endpoint:0.11.0' = [
   }
 ]
 
-module strAccTablePE 'br/avm:network/private-endpoint:0.11.0' = [
+module strAccTablePE 'br/avm:network/private-endpoint:0.12.2' = [
   for (strAcc, i) in strAccArray: if (strAcc.Access == 'private' && contains(
     strAcc.PrivateEndpoints,
     'table'
@@ -193,7 +193,7 @@ module strAccTablePE 'br/avm:network/private-endpoint:0.11.0' = [
   }
 ]
 
-module strAccQueuePE 'br/avm:network/private-endpoint:0.11.0' = [
+module strAccQueuePE 'br/avm:network/private-endpoint:0.12.2' = [
   for (strAcc, i) in strAccArray: if (strAcc.Access == 'private' && contains(
     strAcc.PrivateEndpoints,
     'queue'

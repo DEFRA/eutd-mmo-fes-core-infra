@@ -23,22 +23,23 @@ var customTagsForappInsights = {
 
 var appInsightsId = resourceId('microsoft.insights/components', toUpper(appInsightsName))
 
-resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2025-07-01' existing = {
   name: logAnalyticsName
 }
 
 // Create Application Insights 
-module appInsights 'br/avm:insights/component:0.4.1' = {
+module appInsights 'br/avm:insights/component:0.8.0' = {
   name: '${appInsightsName}-${deploymentDate}'
   params: {
     name: toUpper(appInsightsName)
     location: location
     workspaceResourceId: logAnalyticsWorkspace.id
+    kind: 'web'
     tags: union(appInsightsTags, customTagsForappInsights)
   }
 }
 
-resource webtests 'Microsoft.Insights/webtests@2018-05-01-preview' = [
+resource webtests 'Microsoft.Insights/webtests@2022-06-15' = [
   for i in range(0, length(testsEndpoints.endpoints)): {
     name: testsEndpoints.endpoints[i].name
     location: resourceGroup().location

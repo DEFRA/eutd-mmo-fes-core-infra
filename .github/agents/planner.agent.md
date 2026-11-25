@@ -2,7 +2,7 @@
 name: Planner
 description: "Internal planning subagent for the DEFRA/MMO FES core-infra repository (Azure IaC — Bicep, ADO YAML pipelines, PowerShell). Produces a complete, approval-ready implementation plan — sequencing, dependencies, risks, a validation strategy — and does the open/internet research behind it (via the deep-research-defra-alignment skill) to validate Azure API versions, Bicep/AVM patterns, pipeline design, identity/RBAC, security and policy against Microsoft, DEFRA/GDS guidance before returning the plan to the parent agent."
 tools: [execute, read, agent, search, web, 'microsoftdocs/mcp/*', 'bicep/*', todo]
-model: 'Claude Opus 4.8 (copilot)'
+model: 'Claude Opus 5.5 (copilot)'
 argument-hint: "Planning handoff payload from a parent agent."
 agents: ['Explore']
 ---

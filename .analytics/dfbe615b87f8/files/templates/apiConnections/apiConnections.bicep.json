@@ -1,0 +1,33 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/apiConnections/apiConnections.bicep",
+  "added": 39,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 12,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 1,
+    "untracked": 26
+  },
+  "ranges": {
+    "ai-agent": "6,20-23,41,53,68,85,119-121",
+    "typed": "40",
+    "untracked": "42-47,67,69-73,84,86-90,110-116,118"
+  },
+  "ai": [
+    [6, "a", "4e423612", 0],
+    [20, "a", "601cee7b", 0],
+    [21, "a", "1c9c44df", 0],
+    [22, "a", "a33c88c4", 0],
+    [23, "a", "9845a6a3", 0],
+    [41, "a", "6e33be4b", 0],
+    [53, "a", "18bfd51e", 0],
+    [68, "a", "7d86d614", 0],
+    [85, "a", "7e6b5459", 0],
+    [119, "a", "37aa0dda", 0],
+    [120, "a", "2fb39803", 0],
+    [121, "a", "5f2d859a", 0]
+  ]
+}

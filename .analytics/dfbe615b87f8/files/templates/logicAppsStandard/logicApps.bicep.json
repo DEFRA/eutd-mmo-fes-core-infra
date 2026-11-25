@@ -1,0 +1,22 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/logicAppsStandard/logicApps.bicep",
+  "added": 11,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 2,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 9
+  },
+  "ranges": {
+    "ai-agent": "68,198",
+    "untracked": "49,52,55,59,90,195-197,199"
+  },
+  "ai": [
+    [68, "a", "0e4a8f5a", 0],
+    [198, "a", "9845a6a3", 0]
+  ]
+}

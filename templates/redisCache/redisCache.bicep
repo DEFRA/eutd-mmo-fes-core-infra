@@ -32,30 +32,30 @@ var defaultTags = {
   Tier: 'Cache'
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
   scope: resourceGroup(vnetResourceGroupName)
-  resource subnet 'subnets@2024-05-01' existing = {
+  resource subnet 'subnets@2025-05-01' existing = {
     name: privateEndpointSubnet
   }
 }
-resource secondaryVnet 'Microsoft.Network/virtualNetworks@2024-05-01' existing = if (bool(disasterRecoverySupported)) {
+resource secondaryVnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = if (bool(disasterRecoverySupported)) {
   name: secondaryRegionVnetName
   scope: resourceGroup(secondaryRegionVnetResourceGroupName)
-  resource subnet 'subnets@2024-05-01' existing = {
+  resource subnet 'subnets@2025-05-01' existing = {
     name: secondaryRegionPrivateEndpointSubnet
   }
 }
-resource law 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
+resource law 'Microsoft.OperationalInsights/workspaces@2025-07-01' existing = {
   name: comparams.logAnalyticsName
   scope: resourceGroup(sharedResourceGroupName)
 }
-resource secondaryRegionLaw 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = if (bool(disasterRecoverySupported)) {
+resource secondaryRegionLaw 'Microsoft.OperationalInsights/workspaces@2025-07-01' existing = if (bool(disasterRecoverySupported)) {
   name: comparams.secondaryRegionLogAnalyticsName
   scope: resourceGroup(secondaryRegionSharedResourceGroupName)
 }
 
-module secondaryRegionRG 'br/avm:resources/resource-group:0.4.1' = if (bool(disasterRecoverySupported)) {
+module secondaryRegionRG 'br/avm:resources/resource-group:0.4.4' = if (bool(disasterRecoverySupported)) {
   name: '${secondaryRegionResourceGroup}-${deploymentDate}'
   scope: subscription()
   params: {
@@ -65,18 +65,16 @@ module secondaryRegionRG 'br/avm:resources/resource-group:0.4.1' = if (bool(disa
 }
 
 // Primary Redis Cache
-module primaryRedisCache 'br/avm:cache/redis:0.14.0' = {
+module primaryRedisCache 'br/avm:cache/redis:0.18.1' = {
   name: '${redisCacheName}-${deploymentDate}'
   params: {
     name: redisCacheName
     location: location
-    redisConfiguration: {}
     minimumTlsVersion: '1.2'
     enableNonSslPort: false
     tags: union(defaultTags, {
       Location: location
     })
-    zoneRedundant: true
     skuName: redisCacheSkuName
     capacity: int(redisCacheCapacity)
     replicasPerPrimary: 1
@@ -120,6 +118,11 @@ module primaryRedisCache 'br/avm:cache/redis:0.14.0' = {
     diagnosticSettings: [
       {
         name: '${redisCacheName}-diagnosticSettings'
+        logCategoriesAndGroups: [
+          {
+            categoryGroup: 'allLogs'
+          }
+        ]
         metricCategories: [
           {
             category: 'AllMetrics'
@@ -133,20 +136,19 @@ module primaryRedisCache 'br/avm:cache/redis:0.14.0' = {
 }
 
 // Secondary Redis Cache (for geo-replication)
-module secondaryRedisCache 'br/avm:cache/redis:0.14.0' = if (bool(disasterRecoverySupported)) {
+module secondaryRedisCache 'br/avm:cache/redis:0.18.1' = if (bool(disasterRecoverySupported)) {
   name: '${secondaryRegionCacheName}-${deploymentDate}'
   scope: resourceGroup(secondaryRegionResourceGroup)
   dependsOn: [secondaryRegionRG]
   params: {
     name: secondaryRegionCacheName
     location: secondaryRegion
-    redisConfiguration: {}
     minimumTlsVersion: '1.2'
     enableNonSslPort: false
     tags: union(defaultTags, {
       Location: secondaryRegion
     })
-    zoneRedundant: false
+    availabilityZones: []
     skuName: redisCacheSkuName
     capacity: int(redisCacheCapacity)
     replicasPerPrimary: 1
@@ -190,6 +192,11 @@ module secondaryRedisCache 'br/avm:cache/redis:0.14.0' = if (bool(disasterRecove
     diagnosticSettings: [
       {
         name: '${secondaryRegionCacheName}-diagnosticSettings'
+        logCategoriesAndGroups: [
+          {
+            categoryGroup: 'allLogs'
+          }
+        ]
         metricCategories: [
           {
             category: 'AllMetrics'

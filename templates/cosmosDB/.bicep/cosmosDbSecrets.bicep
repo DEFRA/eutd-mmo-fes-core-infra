@@ -6,15 +6,15 @@ param isVcore bool
 @secure()
 param cosmosAdminPassword string
 
-resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' existing = if (!isVcore) {
+resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts@2025-10-15' existing = if (!isVcore) {
   name: cosmosDbName
 }
 
-resource cosmosDbVcore 'Microsoft.DocumentDB/mongoClusters@2025-04-01-preview' existing = if (isVcore) {
+resource cosmosDbVcore 'Microsoft.DocumentDB/mongoClusters@2025-09-01' existing = if (isVcore) {
   name: toLower(cosmosDbName)
 }
 
-resource keyvault 'Microsoft.KeyVault/vaults@2024-04-01-preview' existing = {
+resource keyvault 'Microsoft.KeyVault/vaults@2025-05-01' existing = {
   name: keyVaultName
 }
 
@@ -30,7 +30,7 @@ var cosmosRWConnString = !isVcore
       uriComponent(cosmosAdminPassword)
     )
 
-resource addCosmosWriteConnStringToKeyVault 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+resource addCosmosWriteConnStringToKeyVault 'Microsoft.KeyVault/vaults/secrets@2025-05-01' = {
   parent: keyvault
   name: cosmosDbWriteConnStringSecretName
   properties: {
@@ -39,7 +39,7 @@ resource addCosmosWriteConnStringToKeyVault 'Microsoft.KeyVault/vaults/secrets@2
   }
 }
 
-resource addCosmosReadOnlyConnStringToKeyVault 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = if (!isVcore) {
+resource addCosmosReadOnlyConnStringToKeyVault 'Microsoft.KeyVault/vaults/secrets@2025-05-01' = if (!isVcore) {
   parent: keyvault
   name: cosmosDbReadOnlyConnStringSecretName
   properties: {

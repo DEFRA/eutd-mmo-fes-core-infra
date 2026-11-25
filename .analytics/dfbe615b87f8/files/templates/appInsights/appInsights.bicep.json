@@ -1,0 +1,24 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/appInsights/appInsights.bicep",
+  "added": 4,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 3,
+    "aiModified": 1,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 1
+  },
+  "ranges": {
+    "ai-agent": "31,37,42",
+    "ai-modified": "37",
+    "untracked": "26"
+  },
+  "ai": [
+    [31, "a", "3f3bc4c3", 0],
+    [37, "a", "64769b35", 1],
+    [42, "a", "ecf92cae", 0]
+  ]
+}

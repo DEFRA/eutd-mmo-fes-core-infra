@@ -1,0 +1,24 @@
+{
+  "schema": "ai-attribution-file/2",
+  "path": "templates/logAnalytics/logAnalytics.bicep",
+  "added": 5,
+  "counts": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 5,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 0
+  },
+  "ranges": {
+    "ai-agent": "21,28-31"
+  },
+  "ai": [
+    [21, "a", "e5ffd228", 0],
+    [28, "a", "624a9aa5", 0],
+    [29, "a", "a095d4ad", 0],
+    [30, "a", "f486c9f1", 0],
+    [31, "a", "9845a6a3", 0]
+  ]
+}

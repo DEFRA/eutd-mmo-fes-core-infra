@@ -15,20 +15,20 @@ var privateEndpointTags = {
   Environment: environment
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
   scope: resourceGroup(vnetResourceGroupName)
-  resource subnet 'subnets@2024-05-01' existing = {
+  resource subnet 'subnets@2025-05-01' existing = {
     name: privateEndpointSubnet
   }
 }
 
-resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = {
+resource acr 'Microsoft.ContainerRegistry/registries@2025-11-01' existing = {
   name: acrName
   scope: resourceGroup(acrResourceGroupName)
 }
 
-module privateEndpointCosmos 'br/avm:network/private-endpoint:0.11.0' = {
+module privateEndpointCosmos 'br/avm:network/private-endpoint:0.12.2' = {
   name: toUpper('${acrName}-PE-SEC')
   params: {
     name: toUpper('${acrName}-PE-SEC')
