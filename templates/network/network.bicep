@@ -54,7 +54,7 @@ module networkSecurityGroup 'br/avm:network/network-security-group:0.5.3' = {
   }
 }
 
-module virtualNetwork 'br/avm:network/virtual-network:0.4.0' = {
+module virtualNetwork 'br/avm:network/virtual-network:0.10.2' = {
   name: virtualNetworkDeployment
   params: {
     name: vnetName

@@ -67,13 +67,17 @@ Each change is validated with `az deployment group what-if` against DEV1 before 
 - no `Delete` and no resource recreate; and
 - no immutable or one-way property changes.
 
-### Deferred high-risk items
+### High-risk items
 
-- `virtual-network` module upgrade.
-- Redis cache.
-- All `*SecondaryPE.bicep` templates (Container Registry, Key Vault, storage), pending a secondary region in DEV1.
+Upgraded in a dedicated round, each with its own DEV1 what-if:
 
-These are handled in a separate, dedicated round.
+- `virtual-network` `0.10.2`.
+- Redis `cache/redis` `0.18.1`; the secondary cache sets `availabilityZones: []` to stay non-zonal.
+- All `*SecondaryPE.bicep` templates (storage, Key Vault, Container Registry) on `private-endpoint` `0.12.2` and `storage-account` `0.33.2`.
+
+The DEV1 secondary VNet does not exist yet, so the secondary templates were checked against the live primary resources and compiled output only. Re-run their what-if once the secondary region is deployed.
+
+Known gap: `strAccSecondaryPE.bicep` re-PUTs public storage accounts without `blobServices`, so module defaults (shorter delete retention, versioning off) apply. This is unchanged from the previous module version and is tracked separately.
 
 ## Consequences
 

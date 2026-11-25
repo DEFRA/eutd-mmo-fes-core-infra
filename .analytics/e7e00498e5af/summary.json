@@ -1,0 +1,75 @@
+{
+  "schema": "ai-attribution/2",
+  "id": "e7e00498e5af",
+  "extensionVersion": "1.1.0",
+  "totals": {
+    "aiCompletion": 0,
+    "aiChat": 0,
+    "aiAgent": 42,
+    "aiModified": 0,
+    "pasted": 0,
+    "typed": 0,
+    "untracked": 1
+  },
+  "fileCount": 6,
+  "signals": {
+    "agentHooks": "installed",
+    "completionKeys": "enabled",
+    "usage": "captured"
+  },
+  "usage": {
+    "source": "copilot-otel-file",
+    "split": "per-request",
+    "sessions": [
+      {
+        "agent": "GitHub Copilot Chat",
+        "splitAcross": 1,
+        "models": [
+          {
+            "model": "claude-sonnet-5.5",
+            "requests": 198,
+            "inputTokens": 37691088,
+            "outputTokens": 149825,
+            "cacheReadTokens": 35500559,
+            "cacheCreationTokens": 2190113,
+            "reasoningTokens": 40689,
+            "credits": 1052.442
+          },
+          {
+            "model": "claude-opus-5.5",
+            "requests": 12,
+            "inputTokens": 2615578,
+            "outputTokens": 10765,
+            "cacheReadTokens": 1491315,
+            "cacheCreationTokens": 1124235,
+            "reasoningTokens": 1646,
+            "credits": 613.485
+          },
+          {
+            "model": "gpt-5.6-luna",
+            "requests": 18,
+            "inputTokens": 56765,
+            "outputTokens": 5448,
+            "cacheReadTokens": 35299,
+            "cacheCreationTokens": 0,
+            "reasoningTokens": 2464,
+            "credits": 1.1537
+          }
+        ]
+      }
+    ],
+    "totals": {
+      "requests": 228,
+      "inputTokens": 40363431,
+      "outputTokens": 166038,
+      "cacheReadTokens": 37027173,
+      "cacheCreationTokens": 3314348,
+      "reasoningTokens": 44799,
+      "credits": 1667.0807
+    },
+    "window": {
+      "from": "2026-11-23T09:48:34.784Z",
+      "to": "2026-11-24T17:10:35.608Z"
+    }
+  }
+}
